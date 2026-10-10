@@ -1,0 +1,226 @@
+import assert from 'node:assert/strict';
+import { after, before, describe, it } from 'node:test';
+
+import {
+  startTestServer,
+  validRegistration,
+  type TestClient,
+} from '../../test/testServer.js';
+
+const NOVEMBER_BATCH = 'batch_gst_class_11_november';
+const DECEMBER_BATCH = 'batch_gst_class_11_december';
+
+describe('catalogue and enrolments', () => {
+  let server: Awaited<ReturnType<typeof startTestServer>>;
+  let student: TestClient;
+  let studentId: string;
+  let otherStudent: TestClient;
+
+  before(async () => {
+    server = await startTestServer();
+    student = server.createClient();
+    const registered = await student.request(
+      'POST',
+      '/api/auth/register',
+      validRegistration(),
+    );
+    studentId = registered.body.user.id;
+
+    otherStudent = server.createClient();
+    await otherStudent.request(
+      'POST',
+      '/api/auth/register',
+      validRegistration({ email: 'ravi@example.com', fullName: 'Ravi Shah' }),
+    );
+  });
+
+  after(async () => {
+    await server.close();
+  });
+
+  it('serves the public catalogue as subject → chapter → topic → lesson → batch', async () => {
+    const response = await server
+      .createClient()
+      .request('GET', '/api/catalogue');
+
+    assert.equal(response.status, 200);
+    const accounts = response.body.subjects.find(
+      (subject: { slug: string }) => subject.slug === 'accounts',
+    );
+    const topic = accounts.chapters[0].topics[0];
+    assert.equal(topic.title, 'Learn GST for Class 11');
+    assert.equal(topic.lessons.length, 4);
+    assert.deepEqual(topic.price, {
+      amountPaise: 12900,
+      currency: 'INR',
+      taxLabel: null,
+    });
+    assert.equal(topic.batches[0].availability, 'OPEN');
+    assert.equal(topic.batches[0].seatsRemaining, 100);
+    assert.equal(topic.batches[0].instructorName, null);
+  });
+
+  it('requires authentication to enrol', async () => {
+    const response = await server
+      .createClient()
+      .request('POST', '/api/enrolments', { batchId: NOVEMBER_BATCH });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.body.code, 'UNAUTHENTICATED');
+  });
+
+  it('enrols the signed-in student as pending payment', async () => {
+    const response = await student.request('POST', '/api/enrolments', {
+      batchId: NOVEMBER_BATCH,
+    });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.enrolment.status, 'PENDING_PAYMENT');
+    assert.equal(response.body.enrolment.batch.id, NOVEMBER_BATCH);
+    assert.equal(response.body.enrolment.batch.seatsRemaining, 99);
+    assert.equal(response.body.enrolment.topic.lessons.length, 4);
+
+    const row = server.db
+      .prepare('SELECT user_id FROM enrolments WHERE id = ?')
+      .get(response.body.enrolment.id);
+    assert.equal(row?.user_id, studentId);
+  });
+
+  it('rejects a duplicate selection of the same batch', async () => {
+    const response = await student.request('POST', '/api/enrolments', {
+      batchId: NOVEMBER_BATCH,
+    });
+
+    assert.equal(response.status, 409);
+    assert.equal(response.body.code, 'ALREADY_ENROLLED');
+  });
+
+  it('cannot enrol another user by supplying their id', async () => {
+    const response = await otherStudent.request('POST', '/api/enrolments', {
+      batchId: DECEMBER_BATCH,
+      userId: studentId,
+    });
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.code, 'REQUEST_VALIDATION_FAILED');
+
+    const count = server.db
+      .prepare(
+        'SELECT COUNT(*) AS count FROM enrolments WHERE user_id = ? AND batch_id = ?',
+      )
+      .get(studentId, DECEMBER_BATCH);
+    assert.equal(Number(count?.count), 0);
+  });
+
+  it('only lists the signed-in student’s own enrolments', async () => {
+    const mine = await student.request('GET', '/api/enrolments');
+    const theirs = await otherStudent.request('GET', '/api/enrolments');
+
+    assert.equal(mine.body.enrolments.length, 1);
+    assert.equal(theirs.body.enrolments.length, 0);
+  });
+
+  it('validates batch identifiers on the server', async () => {
+    const response = await student.request('POST', '/api/enrolments', {
+      batchId: 'batch_does_not_exist',
+    });
+
+    assert.equal(response.status, 404);
+    assert.equal(response.body.code, 'BATCH_NOT_FOUND');
+  });
+
+  it('refuses inactive batches with their actual status', async () => {
+    server.db
+      .prepare("UPDATE batches SET status = 'INACTIVE' WHERE id = ?")
+      .run(DECEMBER_BATCH);
+
+    try {
+      const response = await otherStudent.request('POST', '/api/enrolments', {
+        batchId: DECEMBER_BATCH,
+      });
+      assert.equal(response.status, 409);
+      assert.equal(response.body.code, 'BATCH_UNAVAILABLE');
+      assert.equal(response.body.details.availability, 'INACTIVE');
+    } finally {
+      server.db
+        .prepare("UPDATE batches SET status = 'OPEN' WHERE id = ?")
+        .run(DECEMBER_BATCH);
+    }
+  });
+
+  it('refuses full batches', async () => {
+    server.db
+      .prepare('UPDATE batches SET capacity = 1 WHERE id = ?')
+      .run(NOVEMBER_BATCH);
+
+    try {
+      const response = await otherStudent.request('POST', '/api/enrolments', {
+        batchId: NOVEMBER_BATCH,
+      });
+      assert.equal(response.status, 409);
+      assert.equal(response.body.code, 'BATCH_FULL');
+
+      const catalogue = await otherStudent.request('GET', '/api/catalogue');
+      const batch = catalogue.body.subjects[0].chapters[0].topics[0].batches[0];
+      assert.equal(batch.availability, 'FULL');
+      assert.equal(batch.seatsRemaining, 0);
+    } finally {
+      server.db
+        .prepare('UPDATE batches SET capacity = 100 WHERE id = ?')
+        .run(NOVEMBER_BATCH);
+    }
+  });
+
+  it('closes batches whose start date has passed', async () => {
+    server.db
+      .prepare("UPDATE batches SET start_date = '2026-10-01' WHERE id = ?")
+      .run(DECEMBER_BATCH);
+
+    try {
+      const response = await otherStudent.request('POST', '/api/enrolments', {
+        batchId: DECEMBER_BATCH,
+      });
+      assert.equal(response.status, 409);
+      assert.equal(response.body.details.availability, 'CLOSED');
+    } finally {
+      server.db
+        .prepare("UPDATE batches SET start_date = '2026-12-08' WHERE id = ?")
+        .run(DECEMBER_BATCH);
+    }
+  });
+});
+
+describe('enquiries', () => {
+  it('stores model paper waitlist sign-ups and rejects counselling requests', async () => {
+    const server = await startTestServer();
+
+    try {
+      const client = server.createClient();
+      const waitlist = await client.request('POST', '/api/enquiries', {
+        type: 'MODEL_PAPER_WAITLIST',
+        email: 'asha@example.com',
+        exam: 'NEET',
+      });
+      assert.equal(waitlist.status, 201);
+
+      const counselling = await client.request('POST', '/api/enquiries', {
+        type: 'COUNSELLING',
+        fullName: 'Asha Verma',
+        mobile: '9876543210',
+        email: 'asha@example.com',
+        area: 'EXAM_PATHWAY',
+      });
+      assert.equal(counselling.status, 400);
+      assert.equal(counselling.body.code, 'REQUEST_VALIDATION_FAILED');
+
+      const stored = server.db
+        .prepare('SELECT type, exam FROM enquiries')
+        .all();
+      assert.equal(stored.length, 1);
+      assert.equal(stored[0].type, 'MODEL_PAPER_WAITLIST');
+      assert.equal(stored[0].exam, 'NEET');
+    } finally {
+      await server.close();
+    }
+  });
+});

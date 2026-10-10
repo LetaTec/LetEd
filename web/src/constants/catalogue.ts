@@ -1,0 +1,136 @@
+import type { StatusColor } from './status';
+
+// URL search params for the course panel: the open subject and the batch the
+// student intends to select. Kept in the URL so they survive authentication.
+export const CATALOGUE_QUERY_PARAM = {
+  subject: 'subject',
+  batch: 'batch',
+} as const;
+
+export const SUBJECT_STATUS = {
+  AVAILABLE: 'AVAILABLE',
+  UPCOMING: 'UPCOMING',
+} as const;
+
+export type SubjectStatus =
+  (typeof SUBJECT_STATUS)[keyof typeof SUBJECT_STATUS];
+
+export const BATCH_AVAILABILITY = {
+  OPEN: 'OPEN',
+  FULL: 'FULL',
+  CLOSED: 'CLOSED',
+  UPCOMING: 'UPCOMING',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type BatchAvailability =
+  (typeof BATCH_AVAILABILITY)[keyof typeof BATCH_AVAILABILITY];
+
+export const BATCH_AVAILABILITY_LABEL: Record<BatchAvailability, string> = {
+  OPEN: 'Open for enrolment',
+  FULL: 'Batch full',
+  CLOSED: 'Enrolment closed',
+  UPCOMING: 'Opening soon',
+  INACTIVE: 'Not running',
+};
+
+export const BATCH_AVAILABILITY_COLOR: Record<BatchAvailability, StatusColor> =
+  {
+    OPEN: 'positive',
+    FULL: 'negative',
+    CLOSED: 'neutral',
+    UPCOMING: 'warning',
+    INACTIVE: 'neutral',
+  };
+
+export const ENROLMENT_STATUS = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type EnrolmentStatus =
+  (typeof ENROLMENT_STATUS)[keyof typeof ENROLMENT_STATUS];
+
+export const ENROLMENT_STATUS_LABEL: Record<EnrolmentStatus, string> = {
+  PENDING_PAYMENT: 'Seat reserved — payment pending',
+  CONFIRMED: 'Enrolment confirmed',
+  CANCELLED: 'Cancelled',
+};
+
+export const ENROLMENT_STATUS_COLOR: Record<EnrolmentStatus, StatusColor> = {
+  PENDING_PAYMENT: 'warning',
+  CONFIRMED: 'positive',
+  CANCELLED: 'neutral',
+};
+
+export const CATALOGUE_ERROR_CODE = {
+  alreadyEnrolled: 'ALREADY_ENROLLED',
+  batchFull: 'BATCH_FULL',
+  batchUnavailable: 'BATCH_UNAVAILABLE',
+  batchNotFound: 'BATCH_NOT_FOUND',
+} as const;
+
+export const CATALOGUE_TEXT = {
+  topicWiseHeadline:
+    'Learn topic by topic. Build confidence one concept at a time.',
+  topicWiseNote:
+    'letaEd teaches one topic at a time. Each batch covers only the lessons listed for its topic — not the complete subject.',
+  subjectEyebrow: 'Subject',
+  learnTitle: 'Learn',
+  chapterLabel: 'Chapter',
+  topicLabel: 'Topic',
+  lessonsLabel: 'Lessons',
+  lessonsIncludedLabel: 'Lessons included in this topic',
+  batchesLabel: 'Available batches',
+  levelLabel: 'Level',
+  scheduleLabel: 'Schedule',
+  startsLabel: 'Starts',
+  timeLabel: 'Time',
+  sessionsLabel: 'Sessions',
+  durationLabel: 'Lesson duration',
+  facultyLabel: 'Faculty',
+  seatsLabel: 'Seats',
+  priceLabel: 'Price',
+  toBeAnnounced: 'To be announced',
+  priceOnRequest: 'Price to be announced',
+  comingSoon: 'Coming soon',
+  pricePrefix: 'From',
+  selectBatch: 'Select batch',
+  selectBatchLabel: (topic: string, schedule: string) =>
+    `Select batch: ${topic}, ${schedule}`,
+  viewBatches: 'View batches',
+  viewTopicDetails: 'Topics & batches',
+  chooseAnotherBatch: 'Choose another batch',
+  continueToSignIn: 'Sign in to continue',
+  createAccountToContinue: 'Create account to continue',
+  signInRequired:
+    'Sign in or create a student account to select this batch. Your selection will be kept.',
+  reviewEyebrow: 'Review / Enrolment',
+  reviewTitle: 'Review your',
+  reviewTitleEmphasis: 'selection.',
+  reserveSeat: 'Reserve seat',
+  paymentPendingNote:
+    'Online payment is not live yet. Reserving records your seat for this batch; the letaEd team will contact you to complete payment.',
+  reservedTitle: 'Seat',
+  reservedTitleEmphasis: 'reserved.',
+  reservedToast: 'Seat reserved — payment pending',
+  alreadyReservedMessage: 'You have already reserved a seat in this batch',
+  viewMyLearning: 'Go to my learning',
+  noTopicsTitle: 'Topics are being scheduled',
+  noTopicsMessage:
+    'Topic-wise batches for this subject have not been published yet. Check back soon for the first topics.',
+  upcomingSubjectMessage:
+    'This learning path is planned for a later stage. Batches will be announced here.',
+  batchNotFound: 'This batch is no longer available. Please choose another.',
+  noBatchesMessage: 'Batches for this topic will be announced soon',
+  loadError: 'Course information is unavailable right now',
+  retry: 'Try again',
+  seatsRemaining: (seats: number) =>
+    seats === 1 ? '1 seat left' : `${seats} seats left`,
+  sessionCount: (count: number) =>
+    count === 1 ? '1 session' : `${count} sessions`,
+  durationMinutes: (minutes: number) => `${minutes} min`,
+  lessonCount: (count: number) =>
+    count === 1 ? '1 lesson' : `${count} lessons`,
+} as const;

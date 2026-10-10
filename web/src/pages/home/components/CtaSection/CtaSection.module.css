@@ -1,0 +1,4 @@
+.title {
+  max-width: 1000px;
+  margin: var(--space-2) auto var(--space-5);
+}

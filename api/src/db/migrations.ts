@@ -1,0 +1,153 @@
+export type Migration = {
+  id: string;
+  sql: string;
+};
+
+// Append new migrations to the end of this list. Never edit a migration that
+// has already been applied to a shared database — add a new one instead.
+export const MIGRATIONS: readonly Migration[] = [
+  {
+    id: '001_initial_schema',
+    sql: `
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        password_hash TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE student_profiles (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL UNIQUE REFERENCES users (id) ON DELETE CASCADE,
+        full_name TEXT NOT NULL,
+        date_of_birth TEXT NOT NULL,
+        mobile TEXT NOT NULL,
+        standard TEXT NOT NULL,
+        stream TEXT,
+        address TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL
+      );
+
+      CREATE INDEX sessions_user_id_idx ON sessions (user_id);
+
+      CREATE TABLE password_reset_tokens (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        used_at TEXT
+      );
+
+      CREATE INDEX password_reset_tokens_user_id_idx
+        ON password_reset_tokens (user_id);
+
+      CREATE TABLE subjects (
+        id TEXT PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('AVAILABLE', 'UPCOMING')),
+        list_price_paise INTEGER CHECK (list_price_paise >= 0),
+        list_price_tax_label TEXT,
+        position INTEGER NOT NULL
+      );
+
+      CREATE TABLE chapters (
+        id TEXT PRIMARY KEY,
+        subject_id TEXT NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        position INTEGER NOT NULL
+      );
+
+      CREATE TABLE topics (
+        id TEXT PRIMARY KEY,
+        chapter_id TEXT NOT NULL REFERENCES chapters (id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        summary TEXT NOT NULL,
+        level TEXT,
+        price_paise INTEGER CHECK (price_paise >= 0),
+        price_tax_label TEXT,
+        position INTEGER NOT NULL
+      );
+
+      CREATE TABLE lessons (
+        id TEXT PRIMARY KEY,
+        topic_id TEXT NOT NULL REFERENCES topics (id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        duration_minutes INTEGER CHECK (duration_minutes > 0),
+        position INTEGER NOT NULL
+      );
+
+      CREATE TABLE batches (
+        id TEXT PRIMARY KEY,
+        topic_id TEXT NOT NULL REFERENCES topics (id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        schedule_label TEXT NOT NULL,
+        start_date TEXT,
+        start_time TEXT,
+        session_count INTEGER CHECK (session_count > 0),
+        session_duration_minutes INTEGER CHECK (session_duration_minutes > 0),
+        instructor_name TEXT,
+        capacity INTEGER CHECK (capacity > 0),
+        status TEXT NOT NULL CHECK (status IN ('OPEN', 'UPCOMING', 'INACTIVE')),
+        position INTEGER NOT NULL
+      );
+
+      CREATE TABLE enrolments (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        batch_id TEXT NOT NULL REFERENCES batches (id) ON DELETE RESTRICT,
+        status TEXT NOT NULL
+          CHECK (status IN ('PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED')),
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE (user_id, batch_id)
+      );
+
+      CREATE INDEX enrolments_batch_id_idx ON enrolments (batch_id);
+
+      CREATE TABLE enquiries (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL CHECK (type IN ('COUNSELLING', 'GUESS_PAPER_WAITLIST')),
+        full_name TEXT,
+        email TEXT NOT NULL,
+        mobile TEXT,
+        subject TEXT,
+        user_id TEXT REFERENCES users (id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL
+      );
+    `,
+  },
+  {
+    // Counselling is no longer offered and the guess paper is now the AI
+    // model paper: keep only waitlist sign-ups, under the new type name.
+    id: '002_model_paper_waitlist',
+    sql: `
+      CREATE TABLE enquiries_next (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL CHECK (type IN ('MODEL_PAPER_WAITLIST')),
+        email TEXT NOT NULL,
+        exam TEXT NOT NULL,
+        user_id TEXT REFERENCES users (id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL
+      );
+
+      INSERT INTO enquiries_next (id, type, email, exam, user_id, created_at)
+        SELECT id, 'MODEL_PAPER_WAITLIST', email, subject, user_id, created_at
+        FROM enquiries
+        WHERE type = 'GUESS_PAPER_WAITLIST';
+
+      DROP TABLE enquiries;
+      ALTER TABLE enquiries_next RENAME TO enquiries;
+    `,
+  },
+];

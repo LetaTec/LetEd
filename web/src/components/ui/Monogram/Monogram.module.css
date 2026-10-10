@@ -1,0 +1,10 @@
+.monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1.08;
+  background: var(--color-bg-placeholder);
+  color: var(--color-text-accent);
+  font-family: var(--font-serif);
+  font-size: var(--text-display-md);
+}

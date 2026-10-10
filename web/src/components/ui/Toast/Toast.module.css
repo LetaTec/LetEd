@@ -1,0 +1,35 @@
+.toast {
+  position: fixed;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: calc(100vw - var(--space-6));
+  padding: var(--space-2) var(--space-2-5);
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  visibility: hidden;
+  transform: translateY(calc(100% + var(--space-4)));
+  transition:
+    transform var(--duration-toast) var(--ease-editorial),
+    visibility 0s linear var(--duration-toast);
+}
+
+.open {
+  visibility: visible;
+  transform: none;
+  transition: transform var(--duration-toast) var(--ease-editorial);
+}
+
+.error .icon {
+  color: var(--color-text-accent-inverse-strong);
+}
+
+@media (--reduced-motion) {
+  .toast {
+    transition: none;
+  }
+}

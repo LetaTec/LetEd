@@ -1,0 +1,28 @@
+.list {
+  display: grid;
+}
+
+.item {
+  border-top: var(--border-width-base) solid var(--color-border-base);
+  color: var(--color-text-primary);
+}
+
+.md {
+  gap: var(--space-1-5);
+}
+
+.md .item {
+  padding-top: var(--space-1);
+  font-size: var(--text-xs);
+}
+
+/* Scales with the interactive book's container width */
+.sheet {
+  gap: var(--space-1);
+}
+
+.sheet .item {
+  padding-top: var(--space-1);
+  font-size: var(--text-sheet-list);
+  letter-spacing: var(--tracking-sheet);
+}
