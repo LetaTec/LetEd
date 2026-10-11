@@ -2,6 +2,55 @@
 
 The letaEd education platform: topic-wise online classes, AI test papers and AI model papers.
 
+## What's built
+
+### Homepage
+
+Sections, in order:
+
+1. **Hero** — "Big Subjects. _Broken Into_ Small Victories", with the interactive book alongside.
+2. **Our model** — "Big Subjects. Broken Into Small Victories." with four cards: Big Subjects, Broken Into, Small Victories and Test Paper.
+3. **AI Test Paper** — explains generated test papers. "Start a sample test" invites visitors to create a profile.
+4. **Courses** — one card per subject from the live catalogue. Each card opens that subject's topics, lessons and batches.
+5. **The three paths** — Online Classes, AI Test Paper and AI Model Paper. "Join waitlist" opens the AI model paper waitlist form.
+6. **About**, **Team** and a closing **Create your student account** call to action.
+
+Student counselling is not offered and has been removed from the site and the API.
+
+### Interactive book
+
+- Pages: an intro, one page per topic (title and lessons), a batch spread, then closing chapters on AI tests, AI model papers and getting started.
+- **Batch spread:** two facing pages showing up to four batches, two per page. Each batch shows the topic and price, the schedule, the date, time and number of sessions, its availability, and a **Select batch** link.
+- **Explore more batches** at the foot of the spread opens `/batches`.
+- **Stable layout:** fixed proportions and a static tilt, with no pointer parallax or hover movement. Page turns are locked so rapid clicks can't break the page state.
+- **Controls:** previous and next buttons, arrow keys, clicking either half of the book, and swiping on touch screens. Reduced-motion preferences are respected.
+
+### Choosing a batch
+
+1. A visitor opens a subject or selects a batch, from the course cards, the book or the batches page.
+2. If they aren't signed in, the registration or sign-in dialog opens. The chosen batch is kept in the URL, so it survives sign-in, registration and page refreshes.
+3. Once signed in, they see **Review your selection**: the topic, the lessons it includes, the schedule and the price.
+4. **Reserve seat** creates a real enrolment with status "payment pending". The student can then see it under **My learning**.
+
+Full, closed, inactive and upcoming batches show their status and cannot be selected.
+
+### Pages
+
+| Path              | Who                | What                                               |
+| ----------------- | ------------------ | -------------------------------------------------- |
+| `/`               | everyone           | Homepage, course details, sign-in and registration |
+| `/batches`        | signed-in students | Every topic batch with full details                |
+| `/my-learning`    | signed-in students | The student's reserved seats                       |
+| `/reset-password` | anyone with a link | Choose a new password from a reset email           |
+
+Signed-out visitors who open `/batches` or `/my-learning` get the sign-in dialog and are returned to the page after signing in.
+
+### Tests
+
+- **API:** integration tests cover registration, login, sessions, password reset, the catalogue, enrolment rules and the waitlist.
+- **Website:** Vitest covers the book, formatters and the selection-through-sign-in flow.
+- **Browser:** Playwright runs the full student journey, the book's stability and the sign-in gate in Chrome at desktop and mobile sizes.
+
 ## Structure
 
 | Folder      | What it is                                                                                                              |
