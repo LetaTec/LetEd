@@ -1,0 +1,88 @@
+.page {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-sheet-y) var(--space-sheet-x);
+  overflow: hidden;
+}
+
+.heading {
+  margin: var(--space-sheet-heading) 0 calc(var(--space-sheet-heading) / 3);
+}
+
+.headingCompact {
+  margin-bottom: calc(var(--space-sheet-heading) / 4);
+}
+
+.copy {
+  max-width: var(--width-sheet-copy);
+}
+
+.list {
+  max-width: var(--width-copy);
+  margin-top: calc(var(--space-sheet-heading) / 1.6);
+}
+
+.listTight {
+  margin-top: calc(var(--space-sheet-heading) / 5);
+}
+
+.pageAction {
+  margin-top: auto;
+  padding-top: calc(var(--space-sheet-heading) / 4);
+}
+
+.batches {
+  display: grid;
+  margin-top: calc(var(--space-sheet-heading) / 2);
+}
+
+.batch {
+  display: grid;
+  gap: calc(var(--space-sheet-heading) / 8);
+  padding: calc(var(--space-sheet-heading) / 3) 0;
+  border-top: var(--border-width-base) solid var(--color-border-base);
+}
+
+.batch:last-child {
+  border-bottom: var(--border-width-base) solid var(--color-border-base);
+}
+
+.batchFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: calc(var(--space-sheet-heading) / 8);
+}
+
+.emptyBatches {
+  margin-top: calc(var(--space-sheet-heading) / 2);
+  padding-top: calc(var(--space-sheet-heading) / 3);
+  border-top: var(--border-width-base) solid var(--color-border-base);
+}
+
+.endPage {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Narrow books show the essentials; the batches page carries full details */
+@container book (max-width: 520px) {
+  .batchMeta,
+  .batchStatus,
+  .copy {
+    display: none;
+  }
+
+  .moreLink {
+    width: 100%;
+    padding-inline: var(--space-1);
+    gap: var(--space-0-5);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+}

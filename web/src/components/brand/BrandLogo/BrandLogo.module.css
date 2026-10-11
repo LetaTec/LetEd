@@ -1,0 +1,19 @@
+.logo {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-logo);
+  line-height: var(--leading-none);
+}
+
+.logo em {
+  font-style: italic;
+  color: var(--color-text-accent);
+}
+
+.md {
+  font-size: var(--text-display-2xs);
+}
+
+.lg {
+  font-size: var(--text-display-sm);
+}

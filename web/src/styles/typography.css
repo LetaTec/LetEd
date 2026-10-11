@@ -1,0 +1,41 @@
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Paper grain from the editorial identity, drawn once for the whole page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-grain);
+  opacity: var(--opacity-grain);
+  background-image: radial-gradient(
+    var(--color-grain) var(--size-grain-dot),
+    transparent var(--size-grain-dot)
+  );
+  background-size: var(--size-grain-cell) var(--size-grain-cell);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}

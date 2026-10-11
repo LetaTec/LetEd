@@ -1,0 +1,12 @@
+.bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-progress);
+  width: 100%;
+  height: var(--size-progress);
+  background: var(--color-accent);
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left center;
+  pointer-events: none;
+}

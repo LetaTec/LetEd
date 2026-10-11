@@ -1,0 +1,26 @@
+# dependencies
+node_modules
+
+# builds
+dist
+build
+coverage
+
+# local data
+api/data
+*.sqlite
+*.sqlite-*
+
+# environment
+.env
+.env.local
+.env.*.local
+
+# test output
+web/test-results
+web/playwright-report
+
+# misc
+.DS_Store
+.idea
+*.log

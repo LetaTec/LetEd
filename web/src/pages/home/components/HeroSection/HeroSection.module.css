@@ -1,0 +1,73 @@
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  padding-top: var(--height-header);
+  overflow: hidden;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 42% 58%;
+  align-items: center;
+  min-height: calc(100vh - var(--height-header));
+}
+
+.copy {
+  position: relative;
+  z-index: var(--z-content);
+  padding: var(--space-9) 0 var(--space-10);
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-bottom: var(--space-3);
+}
+
+.kickerRule {
+  width: var(--space-6);
+  height: var(--border-width-base);
+  background: currentColor;
+}
+
+.title {
+  margin-bottom: var(--space-4);
+}
+
+.lead {
+  max-width: var(--width-copy-lead);
+  margin-bottom: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.stats {
+  margin-top: var(--space-6);
+}
+
+@media (--viewport-md) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .copy {
+    padding: var(--space-12) 0 var(--space-1);
+  }
+}
+
+@media (--viewport-sm) {
+  .copy {
+    padding-top: var(--space-8);
+  }
+
+  .lead {
+    font-size: var(--text-base);
+  }
+}

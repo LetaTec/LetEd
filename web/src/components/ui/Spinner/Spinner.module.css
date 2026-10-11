@@ -1,0 +1,26 @@
+.spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  border: var(--border-width-base) solid var(--spinner-track-color);
+  border-top-color: var(--spinner-head-color);
+  border-radius: var(--radius-full);
+  animation: spin var(--duration-spinner) linear infinite;
+}
+
+.current {
+  --spinner-track-color: var(--color-border-inverse);
+  --spinner-head-color: currentColor;
+}
+
+.muted {
+  --spinner-track-color: var(--color-border-base);
+  --spinner-head-color: var(--color-text-muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

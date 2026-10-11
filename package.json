@@ -1,0 +1,28 @@
+{
+  "name": "leta-ed",
+  "version": "0.1.0",
+  "private": true,
+  "description": "letaEd education platform",
+  "license": "PRIVATE",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w api",
+    "dev:web": "npm run dev -w web",
+    "db:seed": "npm run db:seed -w api",
+    "build": "npm run build -w api && npm run build -w web",
+    "lint": "npm run lint -w api && npm run lint -w web",
+    "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
+    "test": "npm run test -w api && npm run test -w web",
+    "format": "prettier --write --ignore-unknown .",
+    "format:check": "prettier --check --ignore-unknown ."
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1"
+  }
+}

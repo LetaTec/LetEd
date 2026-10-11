@@ -1,0 +1,24 @@
+.topic {
+  display: grid;
+  gap: var(--space-1-5);
+  padding-top: var(--space-3);
+  border-top: var(--border-width-base) solid var(--color-border-strong);
+}
+
+.title {
+  margin-top: var(--space-0-5);
+}
+
+.facts {
+  margin-top: var(--space-1);
+}
+
+.block {
+  display: grid;
+  gap: var(--space-1-5);
+  margin-top: var(--space-2);
+}
+
+.batches {
+  display: grid;
+}

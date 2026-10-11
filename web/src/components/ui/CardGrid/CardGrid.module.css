@@ -1,0 +1,97 @@
+.grid {
+  display: grid;
+}
+
+.columns-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.columns-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.columns-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* ruled — strong top rule, hairlines between every cell */
+.ruled {
+  border-top: var(--border-width-base) solid var(--color-border-strong);
+  border-left: var(--border-width-base) solid var(--color-border-base);
+}
+
+.ruled > * {
+  border-right: var(--border-width-base) solid var(--color-border-base);
+  border-bottom: var(--border-width-base) solid var(--color-border-base);
+}
+
+/* tiled — hairline gutters between alternating tiles */
+.tiled {
+  gap: var(--border-width-base);
+  background: var(--color-border-base);
+  border: var(--border-width-base) solid var(--color-border-base);
+}
+
+.tiled > * {
+  background: var(--color-bg-page);
+}
+
+.tiled.columns-2 > :nth-child(4n + 2),
+.tiled.columns-2 > :nth-child(4n + 3),
+.tiled.columns-3 > :nth-child(even) {
+  background: var(--color-bg-raised);
+}
+
+/* columns — strong top rule with vertical hairlines between columns */
+.columns {
+  border-top: var(--border-width-base) solid var(--color-border-strong);
+}
+
+.columns > * {
+  border-bottom: var(--border-width-base) solid var(--color-border-base);
+}
+
+.columns > * + * {
+  padding-left: var(--space-2-5);
+  border-left: var(--border-width-base) solid var(--color-border-base);
+}
+
+@media (--viewport-md) {
+  .columns-3,
+  .columns-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tiled.columns-2,
+  .tiled.columns-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tiled.columns-2 > :nth-child(n),
+  .tiled.columns-3 > :nth-child(n) {
+    background: var(--color-bg-page);
+  }
+
+  .tiled.columns-2 > :nth-child(even),
+  .tiled.columns-3 > :nth-child(even) {
+    background: var(--color-bg-raised);
+  }
+
+  .columns > :nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (--viewport-sm) {
+  .columns-2,
+  .columns-3,
+  .columns-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .columns > * + * {
+    padding-left: 0;
+    border-left: 0;
+  }
+}

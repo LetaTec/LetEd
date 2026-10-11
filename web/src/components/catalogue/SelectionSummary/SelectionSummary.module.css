@@ -1,0 +1,21 @@
+.summary {
+  display: grid;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5) 0;
+  border-top: var(--border-width-base) solid var(--color-border-strong);
+  border-bottom: var(--border-width-base) solid var(--color-border-base);
+}
+
+.batchLine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.lessons {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}

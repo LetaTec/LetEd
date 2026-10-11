@@ -1,0 +1,236 @@
+/*
+ * Stability rules for the book:
+ * - Its size comes from a fixed aspect ratio, so content loading never
+ *   changes its dimensions.
+ * - Its tilt is static. There is no hover lift and no pointer parallax, so
+ *   the book and its controls never move under the cursor.
+ * - Only the turning leaf animates, and only its own transform.
+ */
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-block: var(--space-8);
+}
+
+.shadow {
+  position: absolute;
+  bottom: var(--space-12);
+  left: 50%;
+  width: 75%;
+  height: var(--space-12);
+  border-radius: var(--radius-full);
+  background: var(--color-spine-shade);
+  filter: blur(var(--blur-book-shadow));
+  transform: translateX(-50%) rotate(var(--book-shadow-tilt));
+  pointer-events: none;
+}
+
+.frame {
+  container: book / inline-size;
+  width: min(var(--width-book), 100%);
+  perspective: var(--book-perspective);
+}
+
+.book {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--book-aspect-ratio);
+  transform: var(--book-tilt);
+  transform-style: preserve-3d;
+  cursor: pointer;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.coverBack {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg-inverse);
+  box-shadow: var(--shadow-book);
+  transform: translateZ(var(--book-cover-depth));
+}
+
+.sheet {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg-sheet);
+  border: var(--border-width-base) solid var(--color-border-sheet);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  cursor: auto;
+}
+
+/* Paper grain on every page */
+.sheet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--opacity-grain);
+  background: radial-gradient(
+    var(--color-sheet-grain) var(--size-grain-dot),
+    transparent var(--size-grain-dot)
+  );
+  background-size: var(--size-grain-cell) var(--size-grain-cell);
+}
+
+.base {
+  z-index: 0;
+}
+
+.leftBase {
+  left: 0;
+  border-right: 0;
+  box-shadow: inset calc(var(--space-2) * -1) 0 var(--space-3)
+    var(--color-sheet-fold);
+}
+
+.rightBase {
+  right: 0;
+  border-left: 0;
+  box-shadow: inset var(--space-2) 0 var(--space-3) var(--color-sheet-fold);
+}
+
+.leaf {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: var(--leaf-z);
+  width: 50%;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform var(--duration-page-turn) var(--ease-page-turn);
+}
+
+.turned {
+  transform: rotateY(-180deg);
+}
+
+.face {
+  left: 0;
+  width: 100%;
+  box-shadow: var(--shadow-sheet);
+}
+
+.back {
+  transform: rotateY(180deg);
+}
+
+/* Soft shading along the spine edge of each face */
+.front::before,
+.back::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: var(--z-content);
+  width: var(--width-page-shade);
+  pointer-events: none;
+}
+
+.front::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--color-sheet-shade), transparent);
+}
+
+.back::before {
+  right: 0;
+  background: linear-gradient(270deg, var(--color-sheet-shade), transparent);
+}
+
+.spine {
+  position: absolute;
+  top: calc(var(--space-0-5) * -1);
+  bottom: calc(var(--space-0-5) * -1);
+  left: 50%;
+  z-index: var(--z-book-spine);
+  width: var(--width-spine);
+  background: linear-gradient(
+    90deg,
+    var(--color-spine-shade),
+    var(--color-spine-light),
+    var(--color-spine-shade)
+  );
+  box-shadow: var(--shadow-spine);
+  transform: translateX(-50%) translateZ(var(--space-0-25));
+  pointer-events: none;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1-5);
+  width: min(var(--width-book), 100%);
+}
+
+.instruction {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-right: auto;
+}
+
+.pulse {
+  display: block;
+  width: var(--space-5);
+  height: var(--border-width-base);
+  background: var(--color-accent);
+  animation: line-pulse var(--duration-pulse) infinite;
+}
+
+.position {
+  white-space: nowrap;
+}
+
+@keyframes line-pulse {
+  0%,
+  100% {
+    width: var(--space-3);
+    opacity: var(--opacity-pulse-min);
+  }
+
+  50% {
+    width: var(--space-6);
+    opacity: 1;
+  }
+}
+
+/* Narrow books get taller pages so topic and batch content is not clipped */
+@container book (max-width: 520px) {
+  .book {
+    aspect-ratio: var(--book-aspect-ratio-narrow);
+  }
+}
+
+@media (--reduced-motion) {
+  .leaf {
+    transition: none;
+  }
+
+  .pulse {
+    animation: none;
+  }
+}
+
+@media (--viewport-sm) {
+  .stage {
+    padding-block: var(--space-4) var(--space-6);
+  }
+
+  .instruction {
+    display: none;
+  }
+
+  .controls {
+    justify-content: space-between;
+  }
+}
