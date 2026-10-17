@@ -69,11 +69,12 @@ Student photographs are used under [CC BY 2.0](https://creativecommons.org/licen
 
 ## Structure
 
-| Folder      | What it is                                                                                                              |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `api/`      | Node 22.13+ / Express 5 / TypeScript API with SQLite (`node:sqlite`). Auth, sessions, catalogue, enrolments, enquiries. |
-| `web/`      | Vite / React 19 / TypeScript / CSS Modules website.                                                                     |
-| `AGENTS.md` | Codebase rules (pro-web conventions adapted to SriDha Academy).                                                         |
+| Folder          | What it is                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `api/`          | Node 22.13+ / Express 5 / TypeScript API with SQLite (`node:sqlite`). Auth, sessions, catalogue, enrolments, enquiries. |
+| `web/`          | Vite / React 19 / TypeScript / CSS Modules website.                                                                     |
+| `AGENTS.md`     | Codebase rules (pro-web conventions adapted to SriDha Academy).                                                         |
+| `DEPLOYMENT.md` | Production deployment guide for Cloudflare Pages and environment configuration.                                         |
 
 ## Getting started
 
