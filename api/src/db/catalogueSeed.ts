@@ -1,6 +1,6 @@
 import { transaction, type Database } from './client.js';
 
-// Catalogue content sourced from the letaEd education-model document and the
+// Catalogue content sourced from the SriDha Academy education-model document and the
 // approved website prototype. Only values present in those sources are set;
 // anything not yet decided (faculty, lesson durations) stays null so the
 // website shows an explicit "to be announced" state instead of invented data.

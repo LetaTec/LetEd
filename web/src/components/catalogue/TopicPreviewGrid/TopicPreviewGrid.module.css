@@ -1,0 +1,20 @@
+.grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.topic {
+  display: block;
+  width: 100%;
+  color: inherit;
+  text-align: inherit;
+}
+
+.topic:focus-visible {
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+/* Coming-soon topics stay fully readable; only the cursor changes */
+.topicSoon:disabled {
+  cursor: default;
+}

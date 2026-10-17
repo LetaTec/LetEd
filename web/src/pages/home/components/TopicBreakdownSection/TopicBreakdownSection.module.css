@@ -1,0 +1,281 @@
+/*
+ * Three states on .stage[data-step]:
+ *   0 — the subject is one solid block
+ *   1 — it breaks apart into individual topic tiles
+ *   2 — one topic is chosen and its lessons tick off
+ * The layout never changes size between steps, so nothing shifts.
+ */
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--space-6);
+}
+
+/* Subject block and topic tiles */
+.subject {
+  position: relative;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  height: 100%;
+  transition: gap var(--duration-breakdown) var(--ease-editorial);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: var(--height-breakdown-tile);
+  padding: var(--space-2);
+  border: var(--border-width-base) solid var(--color-border-base);
+  background: var(--color-bg-sheet);
+  transition:
+    opacity var(--duration-breakdown) var(--ease-editorial),
+    transform var(--duration-breakdown) var(--ease-editorial),
+    background-color var(--duration-breakdown) var(--ease-editorial),
+    color var(--duration-breakdown) var(--ease-editorial);
+  transition-delay: calc(var(--tile-index) * var(--delay-breakdown-stagger));
+}
+
+.tileIndex {
+  font-family: var(--font-serif);
+  font-size: var(--text-numeral-sm);
+  line-height: var(--leading-none);
+}
+
+.tileLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.tileIndex,
+.tileLabel {
+  opacity: 0;
+  transition: opacity var(--duration-breakdown) var(--ease-editorial);
+  transition-delay: inherit;
+}
+
+/* The whole subject: one dark block over the joined tiles */
+.cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-offset-accent);
+  transition:
+    opacity var(--duration-breakdown) var(--ease-editorial),
+    transform var(--duration-breakdown) var(--ease-editorial);
+}
+
+.coverTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-display-md);
+  line-height: var(--leading-display);
+}
+
+/* Chosen topic panel */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  padding: var(--space-4);
+  border: var(--border-width-base) solid var(--color-border-strong);
+  background: var(--color-bg-page);
+  opacity: 0;
+  transform: translateX(var(--space-3));
+  transition:
+    opacity var(--duration-breakdown) var(--ease-editorial),
+    transform var(--duration-breakdown) var(--ease-editorial);
+}
+
+.panelTitle {
+  margin-bottom: var(--space-1);
+  font-family: var(--font-serif);
+  font-size: var(--text-display-xs);
+  line-height: var(--leading-tight);
+}
+
+.lessons {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.lesson {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: var(--border-width-base) solid var(--color-border-base);
+}
+
+.check {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-option-bubble);
+  height: var(--size-option-bubble);
+  border: var(--border-width-base) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  color: transparent;
+}
+
+.victory {
+  margin-top: auto;
+  padding-top: var(--space-1-5);
+  opacity: 0;
+}
+
+/* Step 0 — one solid subject */
+.stage[data-step='0'] .cover {
+  opacity: 1;
+}
+
+/* Steps 1 and 2 — the subject breaks into topics */
+.stage:not([data-step='0']) .tiles {
+  gap: var(--space-1-5);
+}
+
+.stage:not([data-step='0']) .cover {
+  opacity: 0;
+  transform: scale(var(--scale-breakdown-cover));
+  pointer-events: none;
+}
+
+.stage:not([data-step='0']) .tileIndex,
+.stage:not([data-step='0']) .tileLabel {
+  opacity: 1;
+}
+
+/* Step 2 — one topic is chosen */
+.stage[data-step='2'] .tile:not(.tileSelected) {
+  opacity: var(--opacity-breakdown-dimmed);
+  transition-delay: 0s;
+}
+
+.stage[data-step='2'] .tileSelected {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  transform: translateY(var(--distance-lift-card));
+  transition-delay: 0s;
+}
+
+.stage[data-step='2'] .panel {
+  opacity: 1;
+  transform: none;
+}
+
+.stage[data-step='2'] .check {
+  animation: tick var(--duration-breakdown) var(--ease-editorial) forwards;
+  animation-delay: calc(
+    var(--delay-breakdown-panel) + var(--lesson-index) *
+      var(--delay-breakdown-lesson)
+  );
+}
+
+.stage[data-step='2'] .victory {
+  animation: appear var(--duration-breakdown) var(--ease-editorial) forwards;
+  animation-delay: var(--delay-breakdown-victory);
+}
+
+@keyframes tick {
+  to {
+    background: var(--color-bg-inverse);
+    color: var(--color-text-inverse);
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Step selector and pause control */
+.controls {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.steps {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.step {
+  display: grid;
+  gap: var(--space-0-5);
+  width: 100%;
+  text-align: left;
+}
+
+.stepBar {
+  height: var(--size-progress);
+  margin-bottom: var(--space-1);
+  background: var(--color-border-base);
+  transition: background-color var(--transition-fast);
+}
+
+.stepActive .stepBar {
+  background: var(--color-accent);
+}
+
+.note {
+  margin-top: var(--space-2);
+}
+
+@media (--viewport-md) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel {
+    transform: translateY(var(--space-2));
+  }
+}
+
+@media (--viewport-sm) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .coverTitle {
+    font-size: var(--text-display-sm);
+  }
+}
+
+/* Reduced motion: no transitions; the final step is shown statically */
+@media (--reduced-motion) {
+  .tiles,
+  .tile,
+  .tileIndex,
+  .tileLabel,
+  .cover,
+  .panel {
+    transition: none;
+  }
+
+  .stage[data-step='2'] .check,
+  .stage[data-step='2'] .victory {
+    animation-duration: 0s;
+    animation-delay: 0s;
+  }
+}

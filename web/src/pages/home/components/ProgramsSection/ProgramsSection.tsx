@@ -26,7 +26,7 @@ export const ProgramsSection = ({
       action: (
         <ButtonLink
           variant="editorial"
-          href={toSectionHref(HOME_SECTION_ID.courses)}
+          href={toSectionHref(HOME_SECTION_ID.topics)}
           endIcon="arrowRight"
         >
           {classes.action}

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const STUDENT_STANDARDS = [
+  'CLASS_10',
   'CLASS_11',
   'CLASS_12',
   'CA',
@@ -10,7 +11,14 @@ export const STUDENT_STANDARDS = [
   'BANK_PO',
 ] as const;
 
-export const STUDENT_STREAMS = ['COMMERCE', 'SCIENCE', 'ARTS'] as const;
+export const STUDENT_STREAMS = [
+  'COMMERCE',
+  'SCIENCE',
+  'ARTS',
+  'OTHER',
+] as const;
+
+const OTHER_STREAM = 'OTHER' satisfies (typeof STUDENT_STREAMS)[number];
 
 export const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 128;
@@ -35,28 +43,50 @@ const isPastDate = (value: string) => {
   return !Number.isNaN(date.getTime()) && date.getTime() < Date.now();
 };
 
-export const registerSchema = z.strictObject({
-  fullName: z.string().trim().min(2, 'Enter your full name').max(120),
-  email: emailSchema,
-  password: passwordSchema,
-  dateOfBirth: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid date of birth')
-    .refine(isPastDate, 'Date of birth must be in the past'),
-  mobile: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9][0-9\s-]{8,16}[0-9]$/, 'Enter a valid mobile number'),
-  standard: z.enum(STUDENT_STANDARDS, 'Select your standard or exam'),
-  stream: z.enum(STUDENT_STREAMS).nullable().default(null),
-  address: z
-    .string()
-    .trim()
-    .max(300)
-    .nullable()
-    .default(null)
-    .transform(value => value || null),
-});
+export const registerSchema = z
+  .strictObject({
+    fullName: z.string().trim().min(2, 'Enter your full name').max(120),
+    email: emailSchema,
+    password: passwordSchema,
+    dateOfBirth: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid date of birth')
+      .refine(isPastDate, 'Date of birth must be in the past'),
+    mobile: z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9][0-9\s-]{8,16}[0-9]$/, 'Enter a valid mobile number'),
+    standard: z.enum(STUDENT_STANDARDS, 'Select your standard or exam'),
+    stream: z.enum(STUDENT_STREAMS).nullable().default(null),
+    // Free-text stream, required only when the student picks "Other".
+    streamOther: z
+      .string()
+      .trim()
+      .max(80, 'Keep your stream under 80 characters')
+      .nullable()
+      .default(null)
+      .transform(value => value || null),
+    address: z
+      .string()
+      .trim()
+      .max(300)
+      .nullable()
+      .default(null)
+      .transform(value => value || null),
+  })
+  .superRefine((input, ctx) => {
+    if (input.stream === OTHER_STREAM && !input.streamOther) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['streamOther'],
+        message: 'Tell us your stream',
+      });
+    }
+  })
+  .transform(input => ({
+    ...input,
+    streamOther: input.stream === OTHER_STREAM ? input.streamOther : null,
+  }));
 
 export const loginSchema = z.strictObject({
   email: emailSchema,

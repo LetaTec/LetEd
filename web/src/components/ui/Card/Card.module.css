@@ -21,14 +21,11 @@
   justify-content: space-between;
   min-height: var(--height-card-tile);
   padding: var(--space-3-5);
-  transition:
-    background-color var(--transition-reveal),
-    transform var(--transition-reveal);
+  transition: background-color var(--transition-reveal);
 }
 
 .tile:hover {
   background: var(--color-bg-hover);
-  transform: translateY(var(--distance-lift-card));
 }
 
 .tile .title {
@@ -85,14 +82,32 @@
   font-size: var(--text-base);
 }
 
-@media (--reduced-motion) {
-  .tile {
-    transition: background-color var(--transition-reveal);
-  }
+/* centered — icon-led tiles, such as topic previews */
+.centered {
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  min-height: var(--height-card-centered);
+  padding: var(--space-4) var(--space-3);
+  text-align: center;
+}
 
-  .tile:hover {
-    transform: none;
-  }
+.centered .media {
+  margin-bottom: var(--space-1);
+  color: var(--color-text-accent);
+}
+
+.centered .title {
+  font-size: var(--text-numeral);
+}
+
+.centered .description {
+  margin-top: var(--space-0-5);
+}
+
+.centered .footer {
+  justify-content: center;
+  margin-top: var(--space-1);
 }
 
 @media (--viewport-sm) {

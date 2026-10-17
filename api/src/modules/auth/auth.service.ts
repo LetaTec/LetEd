@@ -24,6 +24,7 @@ export type AuthUser = {
     fullName: string;
     standard: string;
     stream: string | null;
+    streamOther: string | null;
   };
 };
 
@@ -43,7 +44,7 @@ export const getAuthUser = (
 ): AuthUser | null => {
   const row = db
     .prepare(
-      `SELECT u.id, u.email, s.id AS student_id, s.full_name, s.standard, s.stream
+      `SELECT u.id, u.email, s.id AS student_id, s.full_name, s.standard, s.stream, s.stream_other
        FROM users u
        JOIN student_profiles s ON s.user_id = u.id
        WHERE u.id = ?`,
@@ -62,6 +63,7 @@ export const getAuthUser = (
       fullName: String(row.full_name),
       standard: String(row.standard),
       stream: row.stream === null ? null : String(row.stream),
+      streamOther: row.stream_other === null ? null : String(row.stream_other),
     },
   };
 };
@@ -91,8 +93,8 @@ export const registerStudent = async (
 
       db.prepare(
         `INSERT INTO student_profiles
-          (id, user_id, full_name, date_of_birth, mobile, standard, stream, address, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, user_id, full_name, date_of_birth, mobile, standard, stream, stream_other, address, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
         randomUUID(),
         userId,
@@ -101,6 +103,7 @@ export const registerStudent = async (
         input.mobile,
         input.standard,
         input.stream,
+        input.streamOther,
         input.address,
         timestamp,
         timestamp,
@@ -158,7 +161,7 @@ export const requestPasswordReset = async (
     throw new ApiError(
       503,
       ERROR_CODE.passwordRecoveryUnavailable,
-      'Password recovery is not available yet. Please contact letaEd support.',
+      'Password recovery is not available yet. Please contact SriDha Academy support.',
     );
   }
 

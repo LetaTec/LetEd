@@ -1,5 +1,6 @@
 // Values mirror the API enums in api/src/modules/auth/auth.schema.ts.
 export const STUDENT_STANDARD = {
+  CLASS_10: 'CLASS_10',
   CLASS_11: 'CLASS_11',
   CLASS_12: 'CLASS_12',
   CA: 'CA',
@@ -13,6 +14,7 @@ export type StudentStandard =
   (typeof STUDENT_STANDARD)[keyof typeof STUDENT_STANDARD];
 
 export const STUDENT_STANDARD_LABEL: Record<StudentStandard, string> = {
+  CLASS_10: '10th',
   CLASS_11: '11th',
   CLASS_12: '12th',
   CA: 'CA',
@@ -30,6 +32,7 @@ export const STUDENT_STREAM = {
   COMMERCE: 'COMMERCE',
   SCIENCE: 'SCIENCE',
   ARTS: 'ARTS',
+  OTHER: 'OTHER',
 } as const;
 
 export type StudentStream =
@@ -39,6 +42,7 @@ export const STUDENT_STREAM_LABEL: Record<StudentStream, string> = {
   COMMERCE: 'Commerce',
   SCIENCE: 'Science',
   ARTS: 'Arts',
+  OTHER: 'Other',
 };
 
 export const STUDENT_STREAM_OPTIONS = Object.values(STUDENT_STREAM).map(

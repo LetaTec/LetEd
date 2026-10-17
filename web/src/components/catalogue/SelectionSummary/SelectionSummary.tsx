@@ -21,15 +21,15 @@ export type SelectionSummaryProps = {
   context: BatchContext;
 };
 
-// The scope of a selection before enrolment: which subject, chapter and topic,
+// The scope of a selection before enrolment: which chapter and topic,
 // the lessons it includes, and the exact batch schedule and price.
 export const SelectionSummary = ({ context }: SelectionSummaryProps) => {
-  const { subject, chapter, topic, batch } = context;
+  const { chapter, topic, batch } = context;
 
   return (
     <div className={cn('summary')}>
       <Text as="div" variant="label" tone="accent">
-        {subject.name} / {chapter.title}
+        {CATALOGUE_TEXT.chapterLabel} / {chapter.title}
       </Text>
       <Heading level={3} variant="item">
         {topic.title}

@@ -110,7 +110,7 @@ const MyLearningPage = () => {
           message={PAGE_TEXT.myLearningEmptyMessage}
           action={
             <ButtonRouteLink
-              to={`${APP_ROUTES.HOME}${toSectionHref(HOME_SECTION_ID.courses)}`}
+              to={`${APP_ROUTES.HOME}${toSectionHref(HOME_SECTION_ID.topics)}`}
               endIcon="arrowRight"
             >
               {PAGE_TEXT.myLearningBrowse}
@@ -126,10 +126,7 @@ const MyLearningPage = () => {
               <div key={enrolment.id}>
                 <Card
                   variant="panel"
-                  label={BOOK_TEXT.topicLabel(
-                    enrolment.subject.name,
-                    enrolment.topic.level,
-                  )}
+                  label={BOOK_TEXT.topicLabel(enrolment.topic.level)}
                   title={enrolment.topic.title}
                   description={describeEnrolment(enrolment)}
                   footer={

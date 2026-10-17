@@ -56,6 +56,27 @@
   border-left: var(--border-width-base) solid var(--color-border-base);
 }
 
+/* boxed — separate bordered boxes with gutters */
+.boxed {
+  gap: var(--space-3);
+}
+
+.boxed > * {
+  border: var(--border-width-base) solid var(--color-border-base);
+  background: var(--color-bg-sheet);
+  transition: border-color var(--transition-fast);
+}
+
+.boxed > *:hover,
+.boxed > *:focus-within {
+  border-color: var(--color-border-strong);
+}
+
+/* plain — open layout with gutters and no rules */
+.plain {
+  gap: var(--space-6);
+}
+
 @media (--viewport-md) {
   .columns-3,
   .columns-4 {

@@ -41,8 +41,5 @@ export const ENQUIRY_TEXT = {
   testTitle: 'Build your',
   testTitleEmphasis: 'paper.',
   testDescription:
-    'AI test papers are being built with our in-house tools. Create a student profile now and we will let you know when tests open for your topics.',
-  testSignedInDescription:
     'AI test papers are being built with our in-house tools. Your profile is ready — we will let you know when tests open for your topics.',
-  testSubmit: 'Create profile',
 } as const;

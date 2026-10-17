@@ -4,10 +4,12 @@ import { ButtonLink } from '@components/ui/Button/Button';
 import { Card } from '@components/ui/Card/Card';
 import { CardGrid } from '@components/ui/CardGrid/CardGrid';
 import { Heading } from '@components/ui/Heading/Heading';
+import { Photo } from '@components/ui/Photo/Photo';
 import { Reveal } from '@components/ui/Reveal/Reveal';
 import { Section } from '@components/ui/Section/Section';
 import { Text } from '@components/ui/Text/Text';
 import { LEARNING_MODEL_TEXT } from '@constants/home';
+import { STUDENT_PHOTOS } from '@constants/photos';
 import { HOME_SECTION_ID, toSectionHref } from '@constants/routes';
 
 import styles from './LearningModelSection.module.css';
@@ -35,7 +37,7 @@ export const LearningModelSection = () => (
         <div>
           <ButtonLink
             variant="editorial"
-            href={toSectionHref(HOME_SECTION_ID.courses)}
+            href={toSectionHref(HOME_SECTION_ID.topics)}
             endIcon="arrowRight"
           >
             {LEARNING_MODEL_TEXT.action}
@@ -49,6 +51,13 @@ export const LearningModelSection = () => (
         <Reveal key={block.index}>
           <Card
             variant="note"
+            media={
+              <Photo
+                src={STUDENT_PHOTOS[block.photo].src}
+                alt={STUDENT_PHOTOS[block.photo].alt}
+                credit={STUDENT_PHOTOS[block.photo].credit}
+              />
+            }
             label={block.index}
             title={block.title}
             description={block.description}

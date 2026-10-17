@@ -1,12 +1,12 @@
 import cx from 'classnames/bind';
 
-import { Button, ButtonLink } from '@components/ui/Button/Button';
+import { ButtonLink, ButtonRouteLink } from '@components/ui/Button/Button';
 import { Container } from '@components/ui/Container/Container';
 import { Heading } from '@components/ui/Heading/Heading';
 import { StatList } from '@components/ui/StatList/StatList';
 import { Text } from '@components/ui/Text/Text';
 import { HERO_TEXT } from '@constants/home';
-import { HOME_SECTION_ID, toSectionHref } from '@constants/routes';
+import { APP_ROUTES, HOME_SECTION_ID, toSectionHref } from '@constants/routes';
 
 import {
   InteractiveBook,
@@ -16,14 +16,9 @@ import styles from './HeroSection.module.css';
 
 const cn = cx.bind(styles);
 
-export type HeroSectionProps = InteractiveBookProps & {
-  onCreateAccount: () => void;
-};
+export type HeroSectionProps = InteractiveBookProps;
 
-export const HeroSection = ({
-  onCreateAccount,
-  ...bookProps
-}: HeroSectionProps) => (
+export const HeroSection = (bookProps: HeroSectionProps) => (
   <section id={HOME_SECTION_ID.home} className={cn('hero')}>
     <Container className={cn('grid')}>
       <div className={cn('copy')}>
@@ -43,14 +38,14 @@ export const HeroSection = ({
         </Text>
         <div className={cn('actions')}>
           <ButtonLink
-            href={toSectionHref(HOME_SECTION_ID.courses)}
+            href={toSectionHref(HOME_SECTION_ID.topics)}
             endIcon="arrowUpRight"
           >
             {HERO_TEXT.primaryAction}
           </ButtonLink>
-          <Button variant="secondary" onClick={onCreateAccount}>
+          <ButtonRouteLink variant="secondary" to={APP_ROUTES.MY_LEARNING}>
             {HERO_TEXT.secondaryAction}
-          </Button>
+          </ButtonRouteLink>
         </div>
         <StatList items={HERO_TEXT.stats} className={cn('stats')} />
       </div>

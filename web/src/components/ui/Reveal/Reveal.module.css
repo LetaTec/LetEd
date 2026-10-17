@@ -1,20 +1,16 @@
 .reveal {
   opacity: 0;
-  transform: translateY(var(--distance-reveal));
-  transition:
-    opacity var(--transition-reveal),
-    transform var(--transition-reveal);
+  transition: opacity var(--transition-reveal);
 }
 
+/* Fade only — content never shifts position */
 .visible {
   opacity: 1;
-  transform: none;
 }
 
 @media (--reduced-motion) {
   .reveal {
     opacity: 1;
-    transform: none;
     transition: none;
   }
 }

@@ -1,7 +1,8 @@
 import type React from 'react';
 import cx from 'classnames/bind';
 
-import { useRevealOnScroll } from './useRevealOnScroll';
+import { useRevealOnScroll } from '@hooks/useRevealOnScroll';
+
 import styles from './Reveal.module.css';
 
 const cn = cx.bind(styles);

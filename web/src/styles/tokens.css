@@ -1,14 +1,14 @@
 :root {
-  /* Colour — editorial paper, dark green ink and brown accent */
-  --color-bg-page: #f3f1e9;
-  --color-bg-subtle: #ebe7dc;
-  --color-bg-raised: #eeeae1;
-  --color-bg-hover: #e7e2d7;
-  --color-bg-sheet: #faf8f0;
-  --color-bg-placeholder: #d8d3c9;
+  /* Colour — white paper, dark green ink and brown accent */
+  --color-bg-page: #ffffff;
+  --color-bg-subtle: #f6f6f3;
+  --color-bg-raised: #f8f8f6;
+  --color-bg-hover: #f1f1ed;
+  --color-bg-sheet: #ffffff;
+  --color-bg-placeholder: #e7e7e2;
   --color-bg-inverse: #203c39;
   --color-bg-inverse-deep: #17302e;
-  --color-bg-header: rgb(243 241 233 / 0.9);
+  --color-bg-header: rgb(255 255 255 / 0.92);
   --color-bg-overlay: rgb(23 48 46 / 0.55);
   --color-bg-zebra: rgb(255 255 255 / 0.28);
 
@@ -27,10 +27,10 @@
   --color-accent: #8a6748;
   --color-accent-soft: #a4815e;
 
-  --color-border-base: #c9c3b7;
+  --color-border-base: #d9d9d3;
   --color-border-strong: #203c39;
-  --color-border-sheet: #d8d1c5;
-  --color-border-header: rgb(201 195 183 / 0.8);
+  --color-border-sheet: #e5e5df;
+  --color-border-header: rgb(217 217 211 / 0.8);
   --color-border-inverse: rgb(255 255 255 / 0.25);
   --color-border-inverse-strong: rgb(255 255 255 / 0.6);
   --color-border-inverse-inner: rgb(255 255 255 / 0.35);
@@ -42,7 +42,21 @@
   --color-status-negative: #9b3b2f;
   --color-status-neutral: #a39f94;
 
-  --color-grain: rgb(32 60 57 / 0.16);
+  /* Illustration palette — muted editorial tints */
+  --color-illus-sky: #c8dbd8;
+  --color-illus-sand: #ecdcbf;
+  --color-illus-sage: #d3dfc6;
+  --color-illus-blush: #efd2c3;
+  --color-illus-lilac: #ddd5e4;
+  --color-illus-skin: #e9b896;
+  --color-illus-skin-deep: #c98b64;
+  --color-illus-cheek: #e39a82;
+  --color-illus-hair: #2c221d;
+  --color-illus-paper: #ffffff;
+  --color-illus-line: #9fb3b0;
+  --color-illus-gold: #d9a441;
+  --color-illus-rust: #b5623d;
+  --color-illus-teal: #3f7d74;
   --color-sheet-grain: rgb(32 60 57 / 0.09);
   --color-sheet-shade: rgb(23 48 46 / 0.075);
   --color-sheet-fold: rgb(0 0 0 / 0.04);
@@ -78,10 +92,18 @@
   --width-copy-wide: 500px;
   --width-copy-lead: 470px;
   --width-modal: 570px;
+  --width-auth-copy: 540px;
+  --width-auth-collage: 560px;
   --width-book: 820px;
   --height-header: 76px;
+  --height-logo-horizontal-md: 40px;
+  --height-logo-horizontal-lg: 48px;
+  --height-logo-horizontal-sm: 32px;
+  --height-logo-stacked-md: 72px;
+  --height-logo-stacked-lg: 96px;
   --height-card-tile: 330px;
   --height-card-panel: 300px;
+  --height-card-centered: 236px;
   --section-padding: 144px;
   --section-padding-sm: 88px;
 
@@ -132,11 +154,15 @@
   /* Controls */
   --height-control: 46px;
   --padding-control-x: 20px;
+  --padding-control-x-compact: 14px;
   --padding-control-y: 12px;
   --border-width-base: 1px;
   --radius-none: 0;
   --radius-full: 9999px;
   --size-dot: 6px;
+  --size-option-bubble: 20px;
+  --tilt-test-sheet: 2deg;
+  --tilt-test-sheet-sm: 1deg;
   --size-visually-hidden: 1px;
   --size-progress: 2px;
   --icon-size-sm: 16px;
@@ -168,12 +194,28 @@
   --duration-page-turn: 1150ms;
   --duration-toast: 400ms;
   --duration-pulse: 2.8s;
+  --duration-float: 6s;
+  --distance-float: -8px;
   --duration-spinner: 700ms;
+  --duration-photo-reveal: 900ms;
+  --duration-photo-settle: 1600ms;
+  --duration-breakdown: 700ms;
+  --delay-breakdown-stagger: 70ms;
+  --delay-breakdown-panel: 600ms;
+  --delay-breakdown-lesson: 550ms;
+  --delay-breakdown-victory: 3000ms;
+  --opacity-breakdown-dimmed: 0.35;
+  --scale-breakdown-cover: 0.96;
+  --height-breakdown-tile: 112px;
   --distance-lift: -2px;
   --distance-lift-card: -5px;
   --distance-reveal: 35px;
 
   /* Book */
+  --aspect-photo-landscape: 4 / 3;
+  --aspect-photo-portrait: 4 / 5;
+  --filter-photo: saturate(0.88) sepia(0.08) contrast(1.02);
+  --scale-photo-start: 1.08;
   --book-aspect-ratio: 820 / 540;
   --book-aspect-ratio-narrow: 1 / 0.95;
   --book-tilt: rotateX(3deg) rotateZ(-0.6deg);
@@ -190,7 +232,6 @@
   --z-content: 1;
   --z-book-spine: 60;
   --z-header: 90;
-  --z-grain: 100;
   --z-progress: 120;
   --z-modal: 200;
   --z-toast: 250;

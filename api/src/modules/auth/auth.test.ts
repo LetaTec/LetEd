@@ -83,6 +83,63 @@ describe('auth', () => {
     assert.ok(paths.includes('password'));
   });
 
+  it('requires a description when the stream is Other and stores it', async () => {
+    const missing = await server
+      .createClient()
+      .request(
+        'POST',
+        '/api/auth/register',
+        validRegistration({ email: 'other1@example.com', stream: 'OTHER' }),
+      );
+    assert.equal(missing.status, 400);
+    assert.deepEqual(
+      missing.body.details.body.map((issue: { path: string[] }) =>
+        issue.path.join('.'),
+      ),
+      ['streamOther'],
+    );
+
+    const described = await server.createClient().request(
+      'POST',
+      '/api/auth/register',
+      validRegistration({
+        email: 'other2@example.com',
+        stream: 'OTHER',
+        streamOther: '  Vocational  ',
+      }),
+    );
+    assert.equal(described.status, 201);
+    assert.equal(described.body.user.student.stream, 'OTHER');
+    assert.equal(described.body.user.student.streamOther, 'Vocational');
+
+    // Text sent with a regular stream is ignored rather than stored.
+    const regular = await server.createClient().request(
+      'POST',
+      '/api/auth/register',
+      validRegistration({
+        email: 'other3@example.com',
+        stream: 'SCIENCE',
+        streamOther: 'Ignored',
+      }),
+    );
+    assert.equal(regular.status, 201);
+    assert.equal(regular.body.user.student.streamOther, null);
+  });
+
+  it('accepts 10th class students', async () => {
+    const response = await server.createClient().request(
+      'POST',
+      '/api/auth/register',
+      validRegistration({
+        email: 'class10@example.com',
+        standard: 'CLASS_10',
+        stream: null,
+      }),
+    );
+    assert.equal(response.status, 201);
+    assert.equal(response.body.user.student.standard, 'CLASS_10');
+  });
+
   it('rejects client-supplied identifiers on registration', async () => {
     const client = server.createClient();
     const response = await client.request(

@@ -1,31 +1,27 @@
 import { HOME_SECTION_ID } from './routes';
 
 export const BRAND = {
-  name: 'letaEd',
-  wordmark: 'leta',
-  wordmarkEmphasis: 'Ed',
+  name: 'SriDha Academy',
   footerLead:
     'A focused education platform for topic-wise classes, assessment, examination preparation and AI model papers',
-  copyright: '© 2026 letaEd Education',
+  copyright: '© 2026 SriDha Academy',
   footerNote: 'Designed as an editorial learning experience',
 } as const;
 
 export const NAV_LINKS = [
-  { label: 'Courses', sectionId: HOME_SECTION_ID.courses },
+  { label: 'Topics', sectionId: HOME_SECTION_ID.topics },
   { label: 'AI Test', sectionId: HOME_SECTION_ID.aiTest },
   { label: 'Model Paper', sectionId: HOME_SECTION_ID.modelPaper },
   { label: 'About', sectionId: HOME_SECTION_ID.about },
 ] as const;
 
 export const HEADER_TEXT = {
-  login: 'Login',
-  signUp: 'Sign up',
   myLearning: 'My learning',
   logout: 'Log out',
   openMenu: 'Open menu',
   closeMenu: 'Close menu',
   primaryNavigation: 'Primary',
-  homeLabel: 'letaEd home',
+  homeLabel: 'SriDha Academy home',
   skipToContent: 'Skip to content',
 } as const;
 
@@ -36,15 +32,15 @@ export const HERO_TEXT = {
   titleEnd: 'Small Victories',
   lead: 'A focused learning environment for students preparing for school, competitive examinations and professional pathways — taught topic by topic',
   primaryAction: 'Explore learning',
-  secondaryAction: 'Create account',
+  secondaryAction: 'My learning',
   stats: [
     { value: '03', label: 'Learning paths' },
-    { value: '15+', label: 'Subjects & exams' },
+    { value: '15+', label: 'Topics & exams' },
     { value: '100', label: 'Students / batch' },
   ],
 } as const;
 
-// Second section: the approved breakdown of the letaEd learning model.
+// Second section: the approved breakdown of the SriDha Academy learning model.
 export const LEARNING_MODEL_TEXT = {
   index: '01 /',
   title: 'Big Subjects. Broken Into',
@@ -55,29 +51,76 @@ export const LEARNING_MODEL_TEXT = {
   blocks: [
     {
       index: '01',
+      photo: 'overwhelmed',
       title: 'Big Subjects',
       description:
         'Subjects like Mathematics, Accounts, Science, Economics and other subjects related to professional courses can feel overwhelming when students have to learn everything at once',
     },
     {
       index: '02',
+      photo: 'reading',
       title: 'Broken Into',
       description:
         'Instead of teaching the entire subject as one big package, you divide it into individual chapters and topics',
     },
     {
       index: '03',
+      photo: 'smiling',
       title: 'Small Victories',
       description:
         'Every time a student understands a difficult concept, completes a chapter, or solves a problem independently, they achieve a small win',
     },
     {
       index: '04',
+      photo: 'writing',
       title: 'Test Paper',
       description:
         'We develop online test papers for students so they can track their progress. This is done with the help of in-house AI tools.',
     },
   ],
+} as const;
+
+// Animated explainer: a whole subject breaking into topics, then one topic.
+export const TOPIC_BREAKDOWN_TEXT = {
+  eyebrow: 'Topic-wise learning',
+  title: 'Not the whole subject.',
+  titleEmphasis: 'One topic at a time.',
+  description:
+    'A subject like Accounts has many chapters. At SriDha Academy you join a batch for one topic, learn its lessons and move on when you are ready',
+  subjectLabel: 'Accounts · Class 11',
+  subjectCaption: 'The whole subject',
+  exampleNote: 'Illustration: chapters in Class 11 Accounts',
+  tiles: [
+    'Basics of accounting',
+    'Journal entries',
+    'Ledger',
+    'Trial balance',
+    'Depreciation',
+    'GST',
+  ],
+  selectedTile: 'GST',
+  steps: [
+    {
+      label: 'A whole subject',
+      description: 'Everything at once feels overwhelming',
+    },
+    {
+      label: 'Broken into topics',
+      description: 'Each chapter becomes a focused topic',
+    },
+    {
+      label: 'One topic, one batch',
+      description: 'Join only the topic you need',
+    },
+  ],
+  panelEyebrow: 'You join one topic',
+  lessonsLabel: 'Lessons in this topic',
+  victory: 'Topic complete — a small victory',
+  pause: 'Pause animation',
+  play: 'Play animation',
+  stepLabel: (step: number, label: string) => `Step ${step}: ${label}`,
+  figureLabel:
+    'Animation: a whole subject, Accounts, splits into six topics, and one topic, GST, is chosen with its lessons ticked off one by one',
 } as const;
 
 export const AI_TEST_TEXT = {
@@ -87,35 +130,21 @@ export const AI_TEST_TEXT = {
   description:
     'Test papers are generated from the subject material using our in-house tools, so each student receives a different paper for the topics they are studying, followed by marking and a percentile result',
   action: 'Start a sample test',
-  sheet: {
-    brand: 'letaEd / AI Assessment',
-    count: '01 / 25',
-    title: 'Test',
-    titleEnd: 'Paper',
-    questions: [
-      { index: '01', prompt: 'What is the next concept?', answer: 'A' },
-      { index: '02', prompt: 'Select the correct entry', answer: 'B' },
-      { index: '03', prompt: 'Apply the principle', answer: 'C' },
-      { index: '04', prompt: 'Interpret the result', answer: 'D' },
-    ],
-  },
 } as const;
 
-export const COURSES_TEXT = {
-  title: 'Courses',
+export const TOPICS_TEXT = {
+  title: 'Topics',
   titleEmphasis: 'to begin with.',
   description:
-    'Each subject is taught through individual topics. Open a subject to see exactly which topics, lessons and batches are available.',
-  loading: 'Loading courses',
-  openSubjectLabel: (subject: string) =>
-    `View topics and batches for ${subject}`,
+    'Each topic is a focused batch with its own lessons. Open a topic to see its lessons and batches.',
+  openTopicLabel: (topic: string) => `View batches for ${topic}`,
 } as const;
 
 export const PROGRAMS_TEXT = {
   title: 'The',
   titleEmphasis: 'three paths.',
   description:
-    'letaEd brings three services together: topic-wise online classes, AI test papers and AI model papers',
+    'SriDha Academy brings three services together: topic-wise online classes, AI test papers and AI model papers',
   items: [
     {
       tag: '01 / Classes',
@@ -145,11 +174,11 @@ export const PROGRAMS_TEXT = {
 } as const;
 
 export const ABOUT_TEXT = {
-  eyebrow: 'letaEd / About',
+  eyebrow: 'SriDha Academy / About',
   title: 'Built around',
   titleEmphasis: 'learning.',
   paragraphs: [
-    'letaEd is designed around a simple proposition: make the path from choosing a topic to preparing for an examination feel coherent',
+    'SriDha Academy is designed around a simple proposition: make the path from choosing a topic to preparing for an examination feel coherent',
     'Instead of selling a whole subject at once, we break it into chapters and topics, teach them in focused batches and help students measure progress along the way',
   ],
   note: 'Topic-wise online classes · AI assessment · AI model paper',
@@ -159,12 +188,16 @@ export const TEAM_TEXT = {
   title: 'People behind',
   titleEmphasis: 'the page.',
   description:
-    'Faculty profiles will be published here as each subject team is confirmed',
+    'Faculty profiles will be published here as each topic team is confirmed',
   members: [
-    { initial: 'A', name: 'Accounts Faculty', role: 'Subject Faculty' },
-    { initial: 'E', name: 'Economics Faculty', role: 'Subject Faculty' },
-    { initial: 'M', name: 'Mathematics Faculty', role: 'Subject Faculty' },
-    { initial: 'L', name: 'letaEd Team', role: 'Education & Operations' },
+    { initial: 'A', name: 'Accounts Faculty', role: 'Topic Faculty' },
+    { initial: 'E', name: 'Economics Faculty', role: 'Topic Faculty' },
+    { initial: 'M', name: 'Mathematics Faculty', role: 'Topic Faculty' },
+    {
+      initial: 'S',
+      name: 'SriDha Academy Team',
+      role: 'Education & Operations',
+    },
   ],
 } as const;
 
@@ -172,14 +205,14 @@ export const CTA_TEXT = {
   eyebrow: 'Start here / 01',
   title: 'Turn the next page',
   titleEmphasis: 'with us.',
-  action: 'Create your student account',
+  action: 'Browse topics',
 } as const;
 
 export const FOOTER_COLUMNS = [
   {
     title: 'Explore',
     links: [
-      { label: 'Courses', sectionId: HOME_SECTION_ID.courses },
+      { label: 'Topics', sectionId: HOME_SECTION_ID.topics },
       { label: 'AI Test', sectionId: HOME_SECTION_ID.aiTest },
       { label: 'Model Paper', sectionId: HOME_SECTION_ID.modelPaper },
     ],
@@ -195,15 +228,13 @@ export const FOOTER_COLUMNS = [
 
 export const FOOTER_STUDENT_TEXT = {
   title: 'Student',
-  login: 'Login',
-  signUp: 'Sign up',
   myLearning: 'My learning',
 } as const;
 
 // Static closing chapters of the interactive book. Topic and batch pages are
 // generated from the live catalogue and inserted before these.
 export const BOOK_TEXT = {
-  ariaLabel: 'Interactive letaEd book',
+  ariaLabel: 'Interactive SriDha Academy book',
   instruction: 'Click a page to turn it',
   previousPage: 'Turn back one page',
   nextPage: 'Turn to the next page',
@@ -221,8 +252,7 @@ export const BOOK_TEXT = {
       '03 — Model papers',
     ],
   },
-  topicLabel: (subject: string, level: string | null) =>
-    level ? `${subject} / ${level}` : subject,
+  topicLabel: (level: string | null) => (level ? `Topic / ${level}` : 'Topic'),
   lessonsHeading: 'Lessons in this topic',
   batchListLabel: (part: number) =>
     `Batches / ${String(part).padStart(2, '0')}`,

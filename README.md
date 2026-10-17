@@ -1,6 +1,6 @@
 # LetEd
 
-The letaEd education platform: topic-wise online classes, AI test papers and AI model papers.
+SriDha Academy (repository: LetEd): topic-wise online classes, AI test papers and AI model papers.
 
 ## What's built
 
@@ -11,7 +11,7 @@ Sections, in order:
 1. **Hero** — "Big Subjects. _Broken Into_ Small Victories", with the interactive book alongside.
 2. **Our model** — "Big Subjects. Broken Into Small Victories." with four cards: Big Subjects, Broken Into, Small Victories and Test Paper.
 3. **AI Test Paper** — explains generated test papers. "Start a sample test" invites visitors to create a profile.
-4. **Courses** — one card per subject from the live catalogue. Each card opens that subject's topics, lessons and batches.
+4. **Topics** — one searchable card per topic from the live catalogue. A topic with batches opens its lessons and batches; the others show "Coming soon".
 5. **The three paths** — Online Classes, AI Test Paper and AI Model Paper. "Join waitlist" opens the AI model paper waitlist form.
 6. **About**, **Team** and a closing **Create your student account** call to action.
 
@@ -27,8 +27,8 @@ Student counselling is not offered and has been removed from the site and the AP
 
 ### Choosing a batch
 
-1. A visitor opens a subject or selects a batch, from the course cards, the book or the batches page.
-2. If they aren't signed in, the registration or sign-in dialog opens. The chosen batch is kept in the URL, so it survives sign-in, registration and page refreshes.
+1. A student opens a topic or selects a batch, from the topic cards, the book or the batches page.
+2. The chosen batch is kept in the URL, so it survives page refreshes and the sign-in redirect.
 3. Once signed in, they see **Review your selection**: the topic, the lessons it includes, the schedule and the price.
 4. **Reserve seat** creates a real enrolment with status "payment pending". The student can then see it under **My learning**.
 
@@ -36,14 +36,19 @@ Full, closed, inactive and upcoming batches show their status and cannot be sele
 
 ### Pages
 
-| Path              | Who                | What                                               |
-| ----------------- | ------------------ | -------------------------------------------------- |
-| `/`               | everyone           | Homepage, course details, sign-in and registration |
-| `/batches`        | signed-in students | Every topic batch with full details                |
-| `/my-learning`    | signed-in students | The student's reserved seats                       |
-| `/reset-password` | anyone with a link | Choose a new password from a reset email           |
+Visitors see only the sign-in screens until they log in or create an account.
 
-Signed-out visitors who open `/batches` or `/my-learning` get the sign-in dialog and are returned to the page after signing in.
+| Path               | Who                | What                                                         |
+| ------------------ | ------------------ | ------------------------------------------------------------ |
+| `/login`           | signed-out         | Sign-in page: headline, form, illustrations, topic previews  |
+| `/register`        | signed-out         | Student registration (10th–12th, CA, CS, NEET, JEE, Bank PO) |
+| `/forgot-password` | signed-out         | Request a password-reset email                               |
+| `/reset-password`  | anyone with a link | Choose a new password from a reset email                     |
+| `/`                | signed-in students | Homepage, topic details and batch selection                  |
+| `/batches`         | signed-in students | Every topic batch with full details                          |
+| `/my-learning`     | signed-in students | The student's reserved seats                                 |
+
+Opening any signed-in page while signed out redirects to `/login?redirect_to=…`. After signing in, the student returns to that page, including any chosen topic and batch. Signed-in students who open `/login` or `/register` go straight to the homepage.
 
 ### Tests
 
@@ -51,13 +56,24 @@ Signed-out visitors who open `/batches` or `/my-learning` get the sign-in dialog
 - **Website:** Vitest covers the book, formatters and the selection-through-sign-in flow.
 - **Browser:** Playwright runs the full student journey, the book's stability and the sign-in gate in Chrome at desktop and mobile sizes.
 
+## Photo credits
+
+Student photographs are used under [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), which allows commercial use with credit. Each photo shows its credit on the page. The images are cropped and resized from the originals.
+
+| File (`web/src/assets/photos/`) | Original                                                                                                   | Photographer |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------ |
+| `student-overwhelmed.webp`      | [Is education really a rat race in India?](https://www.flickr.com/photos/47850033@N08/41403332650)         | Nithi clicks |
+| `student-reading.webp`          | [Indian School Boy Reading the Book](https://www.flickr.com/photos/47850033@N08/40717134564)               | Nithi clicks |
+| `students-smiling.webp`         | [Colours of Rural life (School Life in Tamilnadu)](https://www.flickr.com/photos/47850033@N08/47393681652) | Nithi clicks |
+| `student-writing.webp`          | [\_L8V1571](https://www.flickr.com/photos/28032587@N06/10485308324)                                        | KMo Foto     |
+
 ## Structure
 
 | Folder      | What it is                                                                                                              |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `api/`      | Node 22.13+ / Express 5 / TypeScript API with SQLite (`node:sqlite`). Auth, sessions, catalogue, enrolments, enquiries. |
 | `web/`      | Vite / React 19 / TypeScript / CSS Modules website.                                                                     |
-| `AGENTS.md` | Codebase rules (pro-web conventions adapted to letaEd).                                                                 |
+| `AGENTS.md` | Codebase rules (pro-web conventions adapted to SriDha Academy).                                                         |
 
 ## Getting started
 
@@ -82,7 +98,7 @@ npm run dev:web                # http://localhost:5173 (proxies /api to the API)
 
 ## Learning model
 
-The catalogue follows **Subject → Chapter → Topic → Lesson → Batch**. The homepage book previews up to four batches (two per page); **Explore more batches** opens `/batches`, which is only available to signed-in students — visitors are sent to sign in first and returned afterwards. Students select a batch of a single topic; each batch lists exactly which lessons it covers. A topic offering is never presented as a complete subject.
+The catalogue is stored as **Subject → Chapter → Topic → Lesson → Batch**, but students only ever see and choose topics; subjects are never shown or sold. The homepage book previews up to four batches (two per page); **Explore more batches** opens `/batches`, which is only available to signed-in students — visitors are sent to sign in first and returned afterwards. Students select a batch of a single topic; each batch lists exactly which lessons it covers. A topic offering is never presented as a complete subject.
 
 ## Identity and data model
 

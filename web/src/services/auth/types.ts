@@ -8,6 +8,7 @@ export type AuthUser = {
     fullName: string;
     standard: StudentStandard;
     stream: StudentStream | null;
+    streamOther: string | null;
   };
 };
 
@@ -19,6 +20,7 @@ export type RegisterRequest = {
   mobile: string;
   standard: StudentStandard;
   stream: StudentStream | null;
+  streamOther: string | null;
   address: string | null;
 };
 

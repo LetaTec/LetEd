@@ -1,0 +1,9 @@
+.body {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.note {
+  padding-left: var(--space-2);
+  border-left: var(--border-width-base) solid var(--color-accent);
+}
