@@ -1,0 +1,134 @@
+.text {
+  margin: 0;
+}
+
+/* Variants set the type role; tones set the colour */
+.body {
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+.lead {
+  font-size: var(--text-md);
+  line-height: var(--leading-body);
+}
+
+.small {
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+.fine {
+  font-size: var(--text-3xs);
+  line-height: var(--leading-body);
+}
+
+.strong {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.eyebrow {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-eyebrow);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+}
+
+.label {
+  font-size: var(--text-3xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+}
+
+.caption {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  line-height: var(--leading-body);
+  text-transform: uppercase;
+}
+
+.numeral,
+.numeralSm,
+.price {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+}
+
+.numeral {
+  font-size: var(--text-numeral);
+}
+
+.numeralSm {
+  font-size: var(--text-numeral-sm);
+}
+
+.price {
+  font-size: var(--text-display-2xs);
+}
+
+/* Sheet variants scale with the interactive book's container width */
+.sheetBody {
+  font-size: var(--text-sheet-body);
+  line-height: var(--leading-sheet);
+}
+
+.sheetTitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-sheet-title);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+}
+
+.sheetLabel {
+  font-size: var(--text-sheet-list);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-eyebrow);
+  line-height: var(--leading-tight);
+  text-transform: uppercase;
+}
+
+.inherit {
+  color: inherit;
+}
+
+.primary {
+  color: var(--color-text-primary);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.sheetMuted {
+  color: var(--color-text-sheet-muted);
+}
+
+.accent {
+  color: var(--color-text-accent);
+}
+
+.inverse {
+  color: var(--color-text-inverse);
+}
+
+.inverseMuted {
+  color: var(--color-text-inverse-muted);
+}
+
+.accentInverse {
+  color: var(--color-text-accent-inverse);
+}
+
+.danger {
+  color: var(--color-text-danger);
+}
+
+.success {
+  color: var(--color-text-success);
+}

@@ -1,0 +1,21 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
+}
+
+.description {
+  max-width: var(--width-copy-narrow);
+}
+
+@media (--viewport-sm) {
+  .head {
+    display: block;
+  }
+
+  .description {
+    margin-top: var(--space-2-5);
+  }
+}

@@ -1,0 +1,16 @@
+.container {
+  width: min(var(--width-container), calc(100% - var(--container-gutter)));
+  margin-inline: auto;
+}
+
+@media (--viewport-md) {
+  .container {
+    width: calc(100% - var(--container-gutter-md));
+  }
+}
+
+@media (--viewport-sm) {
+  .container {
+    width: calc(100% - var(--container-gutter-sm));
+  }
+}

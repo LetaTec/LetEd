@@ -1,0 +1,197 @@
+:root {
+  /* Colour — editorial paper, dark green ink and brown accent */
+  --color-bg-page: #f3f1e9;
+  --color-bg-subtle: #ebe7dc;
+  --color-bg-raised: #eeeae1;
+  --color-bg-hover: #e7e2d7;
+  --color-bg-sheet: #faf8f0;
+  --color-bg-placeholder: #d8d3c9;
+  --color-bg-inverse: #203c39;
+  --color-bg-inverse-deep: #17302e;
+  --color-bg-header: rgb(243 241 233 / 0.9);
+  --color-bg-overlay: rgb(23 48 46 / 0.55);
+  --color-bg-zebra: rgb(255 255 255 / 0.28);
+
+  --color-text-primary: #203c39;
+  --color-text-muted: #706e66;
+  --color-text-sheet-muted: #77746b;
+  --color-text-inverse: #fbfaf5;
+  --color-text-inverse-muted: rgb(251 250 245 / 0.7);
+  --color-text-inverse-subtle: rgb(251 250 245 / 0.45);
+  --color-text-accent: #8a6748;
+  --color-text-accent-inverse: #cbb59d;
+  --color-text-accent-inverse-strong: #d1b898;
+  --color-text-danger: #9b3b2f;
+  --color-text-success: #2f6b4f;
+
+  --color-accent: #8a6748;
+  --color-accent-soft: #a4815e;
+
+  --color-border-base: #c9c3b7;
+  --color-border-strong: #203c39;
+  --color-border-sheet: #d8d1c5;
+  --color-border-header: rgb(201 195 183 / 0.8);
+  --color-border-inverse: rgb(255 255 255 / 0.25);
+  --color-border-inverse-strong: rgb(255 255 255 / 0.6);
+  --color-border-inverse-inner: rgb(255 255 255 / 0.35);
+  --color-border-focus: #8a6748;
+  --color-border-danger: #9b3b2f;
+
+  --color-status-positive: #3f7d5c;
+  --color-status-warning: #b7832f;
+  --color-status-negative: #9b3b2f;
+  --color-status-neutral: #a39f94;
+
+  --color-grain: rgb(32 60 57 / 0.16);
+  --color-sheet-grain: rgb(32 60 57 / 0.09);
+  --color-sheet-shade: rgb(23 48 46 / 0.075);
+  --color-sheet-fold: rgb(0 0 0 / 0.04);
+  --color-spine-light: rgb(255 255 255 / 0.75);
+  --color-spine-shade: rgb(23 48 46 / 0.16);
+
+  /* Spacing — 4px base, 8px rhythm */
+  --space-0-25: 2px;
+  --space-0-5: 4px;
+  --space-1: 8px;
+  --space-1-5: 12px;
+  --space-2: 16px;
+  --space-2-5: 20px;
+  --space-3: 24px;
+  --space-3-5: 28px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-7: 56px;
+  --space-8: 64px;
+  --space-9: 72px;
+  --space-10: 80px;
+  --space-12: 96px;
+
+  /* Layout */
+  --width-container: 1240px;
+  --container-gutter: 64px;
+  --container-gutter-md: 38px;
+  --container-gutter-sm: 28px;
+  --width-copy-narrow: 340px;
+  --width-card-copy: 300px;
+  --width-copy: 400px;
+  --width-copy-wide: 500px;
+  --width-copy-lead: 470px;
+  --width-modal: 570px;
+  --width-book: 820px;
+  --height-header: 76px;
+  --height-card-tile: 330px;
+  --height-card-panel: 300px;
+  --section-padding: 144px;
+  --section-padding-sm: 88px;
+
+  /* Typography */
+  --font-sans: 'DM Sans', Arial, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+
+  --text-3xs: 10px;
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-numeral-sm: 22px;
+  --text-numeral: 25px;
+  --text-display-2xs: 28px;
+  --text-display-xs: 32px;
+  --text-display-sm: clamp(36px, 3.4vw, 44px);
+  --text-display-md: clamp(40px, 4.2vw, 56px);
+  --text-display-lg: clamp(52px, 6.5vw, 88px);
+  --text-display-xl: clamp(56px, 7.5vw, 110px);
+  --text-display-hero: clamp(48px, 5.4vw, 84px);
+  --text-display-sheet: clamp(22px, 8.4cqi, 68px);
+  --text-sheet-body: clamp(9px, 1.7cqi, 14px);
+  --text-sheet-title: clamp(15px, 3.6cqi, 30px);
+  --text-sheet-list: clamp(8px, 1.35cqi, 11px);
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-none: 1;
+  --leading-display: 0.8;
+  --leading-display-relaxed: 0.86;
+  --leading-tight: 1.2;
+  --leading-body: 1.6;
+  --leading-sheet: 1.75;
+
+  --tracking-display: -0.045em;
+  --tracking-display-tight: -0.055em;
+  --tracking-logo: -0.02em;
+  --tracking-label: 0.12em;
+  --tracking-eyebrow: 0.19em;
+  --tracking-nav: 0.1em;
+  --tracking-sheet: 0.03em;
+
+  /* Controls */
+  --height-control: 46px;
+  --padding-control-x: 20px;
+  --padding-control-y: 12px;
+  --border-width-base: 1px;
+  --radius-none: 0;
+  --radius-full: 9999px;
+  --size-dot: 6px;
+  --size-visually-hidden: 1px;
+  --size-progress: 2px;
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;
+  --icon-size-lg: 24px;
+  --opacity-disabled: 0.5;
+  --opacity-grain: 0.18;
+  --blur-header: 12px;
+  --blur-book-shadow: 22px;
+  --opacity-pulse-min: 0.4;
+  --size-grain-dot: 0.55px;
+  --size-grain-cell: 7px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
+
+  /* Elevation — the brand uses flat offset blocks instead of soft shadows */
+  --shadow-offset-accent: 15px 15px 0 var(--color-accent);
+  --shadow-offset-accent-lg: 20px 20px 0 var(--color-accent);
+  --shadow-book: 18px 22px 35px rgb(32 60 57 / 0.16);
+  --shadow-sheet: 0 9px 24px rgb(23 48 46 / 0.08);
+  --shadow-spine: 0 0 9px rgb(23 48 46 / 0.15);
+
+  /* Motion */
+  --ease-editorial: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-page-turn: cubic-bezier(0.22, 0.72, 0.15, 1);
+  --transition-fast: 300ms var(--ease-editorial);
+  --transition-base: 350ms var(--ease-editorial);
+  --transition-reveal: 800ms var(--ease-editorial);
+  --duration-page-turn: 1150ms;
+  --duration-toast: 400ms;
+  --duration-pulse: 2.8s;
+  --duration-spinner: 700ms;
+  --distance-lift: -2px;
+  --distance-lift-card: -5px;
+  --distance-reveal: 35px;
+
+  /* Book */
+  --book-aspect-ratio: 820 / 540;
+  --book-aspect-ratio-narrow: 1 / 0.95;
+  --book-tilt: rotateX(3deg) rotateZ(-0.6deg);
+  --book-perspective: 1600px;
+  --book-cover-depth: -10px;
+  --book-shadow-tilt: -4deg;
+  --width-spine: 8px;
+  --width-page-shade: 35px;
+  --space-sheet-y: clamp(14px, 7cqi, 58px);
+  --space-sheet-x: clamp(12px, 6.7cqi, 55px);
+  --space-sheet-heading: clamp(10px, 7cqi, 56px);
+  --width-sheet-copy: 310px;
+
+  --z-content: 1;
+  --z-book-spine: 60;
+  --z-header: 90;
+  --z-grain: 100;
+  --z-progress: 120;
+  --z-modal: 200;
+  --z-toast: 250;
+}

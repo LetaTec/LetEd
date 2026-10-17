@@ -1,0 +1,23 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--icon-size-lg);
+  min-height: var(--icon-size-lg);
+  color: var(--color-text-primary);
+  transition:
+    color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.inverse {
+  color: var(--color-text-inverse);
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--color-text-accent);
+}
+
+.iconButton:disabled {
+  opacity: var(--opacity-disabled);
+}

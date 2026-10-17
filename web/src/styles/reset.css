@@ -1,0 +1,91 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--height-header);
+}
+
+@media (--reduced-motion) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+:where(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  width: 100%;
+  min-width: 0;
+  border: var(--border-width-base) solid var(--color-border-base);
+  border-radius: var(--radius-none);
+  background: transparent;
+  padding: var(--padding-control-y);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+:where(
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea
+):focus {
+  border-color: var(--color-border-focus);
+}
+
+:where(input, textarea)::placeholder {
+  color: var(--color-text-muted);
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-border-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+/* Lock page scroll while a modal dialog is open */
+html:has(dialog[open]) {
+  overflow: hidden;
+}

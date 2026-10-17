@@ -1,0 +1,19 @@
+.main {
+  min-height: 100vh;
+}
+
+.skipLink {
+  position: fixed;
+  top: var(--space-1);
+  left: var(--space-1);
+  z-index: var(--z-toast);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  transform: translateY(-200%);
+}
+
+.skipLink:focus-visible {
+  transform: none;
+}

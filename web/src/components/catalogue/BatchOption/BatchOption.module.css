@@ -1,0 +1,28 @@
+.batch {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2-5) 0;
+  border-top: var(--border-width-base) solid var(--color-border-base);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.action {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (--viewport-sm) {
+  .header {
+    flex-direction: column;
+  }
+
+  .action > * {
+    width: 100%;
+  }
+}

@@ -1,0 +1,8 @@
+/*
+ * Shared viewport breakpoints. CSS custom properties cannot be used inside
+ * media queries, so breakpoints are declared as custom media and compiled by
+ * postcss-custom-media. Use them as `@media (--viewport-md) { ... }`.
+ */
+@custom-media --viewport-md (max-width: 56.25em);
+@custom-media --viewport-sm (max-width: 35em);
+@custom-media --reduced-motion (prefers-reduced-motion: reduce);

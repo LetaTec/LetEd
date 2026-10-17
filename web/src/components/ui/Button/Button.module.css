@@ -1,0 +1,105 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  border-radius: var(--radius-none);
+  font-family: var(--font-sans);
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
+    transform var(--transition-base);
+}
+
+.primary,
+.secondary {
+  min-height: var(--height-control);
+  padding: var(--padding-control-y) var(--padding-control-x);
+  border: var(--border-width-base) solid var(--color-border-strong);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+
+.primary {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.secondary.inverse {
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-inverse-strong);
+}
+
+.primary:hover:not(.disabled),
+.secondary:hover:not(.disabled) {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  transform: translateY(var(--distance-lift));
+}
+
+.editorial {
+  padding-bottom: var(--space-0-5);
+  border-bottom: var(--border-width-base) solid currentColor;
+  color: var(--color-text-primary);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.editorial.inverse {
+  color: var(--color-text-inverse);
+}
+
+.editorial:hover:not(.disabled) {
+  color: var(--color-text-accent);
+}
+
+.plain {
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+}
+
+.plain:hover:not(.disabled) {
+  color: var(--color-text-accent);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.disabled {
+  opacity: var(--opacity-disabled);
+}
+
+/* Keep the button width stable while the spinner replaces the label */
+.loadingLabel {
+  visibility: hidden;
+}
+
+.spinner {
+  position: absolute;
+}
+
+@media (--reduced-motion) {
+  .btn {
+    transition: none;
+  }
+
+  .primary:hover:not(.disabled),
+  .secondary:hover:not(.disabled) {
+    transform: none;
+  }
+}

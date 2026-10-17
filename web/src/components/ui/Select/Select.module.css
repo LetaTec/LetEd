@@ -1,0 +1,18 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.select {
+  min-height: var(--height-control);
+  cursor: pointer;
+}
+
+.invalid {
+  border-color: var(--color-border-danger);
+}
+
+.message {
+  font-size: var(--text-xs);
+}

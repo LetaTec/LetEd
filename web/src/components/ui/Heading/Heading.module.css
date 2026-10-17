@@ -1,0 +1,62 @@
+.heading {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--weight-medium);
+}
+
+.default {
+  color: var(--color-text-primary);
+}
+
+.inverse {
+  color: var(--color-text-inverse);
+}
+
+.heading em {
+  font-style: italic;
+  color: var(--color-text-accent);
+}
+
+.inverse em {
+  color: var(--color-text-accent-inverse-strong);
+}
+
+.hero {
+  font-size: var(--text-display-hero);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display-tight);
+}
+
+.feature {
+  font-size: var(--text-display-xl);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.display {
+  font-size: var(--text-display-lg);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.title {
+  font-size: var(--text-display-md);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.card {
+  font-size: var(--text-display-sm);
+  line-height: var(--leading-display-relaxed);
+}
+
+.item {
+  font-size: var(--text-display-xs);
+  line-height: var(--leading-tight);
+}
+
+.sheet {
+  font-size: var(--text-display-sheet);
+  line-height: var(--leading-display-relaxed);
+  letter-spacing: var(--tracking-display);
+}
