@@ -1,77 +1,47 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
-import { AuthDialog } from '@components/auth/AuthDialog/AuthDialog';
 import { ModelPaperDialog } from '@components/enquiries/ModelPaperDialog/ModelPaperDialog';
-import { AUTH_TEXT, AUTH_VIEW, type AuthView } from '@constants/auth';
-import { APP_ROUTES } from '@constants/routes';
-import { useAuth } from '@context/AuthContext';
-import { useToast } from '@context/ToastContext';
-import { useAuthDialog } from '@hooks/useAuthDialog';
 import { useCatalogue } from '@hooks/useCatalogue';
-import { useCourseSelection } from '@hooks/useCourseSelection';
-import type { AuthUser } from '@services/auth';
+import { useTopicSelection } from '@hooks/useTopicSelection';
 import {
   findBatchContext,
-  findSubjectBySlug,
+  findTopicContext,
+  listTopics,
   type Batch,
-  type Subject,
 } from '@services/catalogue';
-import { resolveInternalPath } from '@utils/url';
 
 import { AboutSection } from './components/AboutSection/AboutSection';
 import { AiTestDialog } from './components/AiTestDialog/AiTestDialog';
 import { AiTestSection } from './components/AiTestSection/AiTestSection';
-import { CourseDialog } from './components/CourseDialog/CourseDialog';
-import { CoursesSection } from './components/CoursesSection/CoursesSection';
 import { CtaSection } from './components/CtaSection/CtaSection';
 import { HeroSection } from './components/HeroSection/HeroSection';
 import { LearningModelSection } from './components/LearningModelSection/LearningModelSection';
 import { ProgramsSection } from './components/ProgramsSection/ProgramsSection';
 import { TeamSection } from './components/TeamSection/TeamSection';
+import { TopicBreakdownSection } from './components/TopicBreakdownSection/TopicBreakdownSection';
+import { TopicDialog } from './components/TopicDialog/TopicDialog';
+import { TopicsSection } from './components/TopicsSection/TopicsSection';
 
 type HomeDialog = 'modelPaper' | 'aiTest';
 
 const HomePage = () => {
   const catalogue = useCatalogue();
-  const auth = useAuth();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
   const location = useLocation();
-  const { view: authView, redirectTo, openAuth, closeAuth } = useAuthDialog();
-  const {
-    subjectSlug,
-    batchId,
-    openSubject,
-    selectBatch,
-    clearBatch,
-    closeCourse,
-  } = useCourseSelection();
+  const { topicId, batchId, openTopic, selectBatch, clearBatch, closeTopic } =
+    useTopicSelection();
   const [activeDialog, setActiveDialog] = useState<HomeDialog | null>(null);
 
-  const subject = findSubjectBySlug(catalogue.subjects, subjectSlug);
+  const topicContext = findTopicContext(catalogue.subjects, topicId);
   const batchContext = findBatchContext(catalogue.subjects, batchId);
   const selection =
-    batchContext && subject && batchContext.subject.id === subject.id
+    batchContext &&
+    topicContext &&
+    batchContext.topic.id === topicContext.topic.id
       ? batchContext
       : null;
   const hasUnknownBatch =
     !catalogue.isLoading && Boolean(batchId) && selection === null;
-  const isAuthDialogOpen = authView !== null && !auth.isLoggedIn;
-
-  // A signed-in visitor who lands on an auth URL (refresh, back button) goes
-  // straight to where they were heading.
-  useEffect(() => {
-    if (!auth.isLoggedIn || authView === null) return;
-
-    if (redirectTo) {
-      navigate(resolveInternalPath(redirectTo, APP_ROUTES.HOME), {
-        replace: true,
-      });
-    } else {
-      closeAuth();
-    }
-  }, [auth.isLoggedIn, authView, closeAuth, navigate, redirectTo]);
 
   // Sections render client-side, so honour an incoming #anchor once mounted.
   useEffect(() => {
@@ -81,24 +51,8 @@ const HomePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleOpenSubject = (nextSubject: Subject) =>
-    openSubject(nextSubject.slug);
-
-  const handleSelectBatch = (nextSubjectSlug: string, batch: Batch) =>
-    selectBatch(
-      nextSubjectSlug,
-      batch.id,
-      auth.isLoggedIn ? undefined : AUTH_VIEW.register,
-    );
-
-  const handleAuthenticated = (user: AuthUser, view: AuthView) => {
-    auth.login(user);
-    showToast(
-      view === AUTH_VIEW.register
-        ? AUTH_TEXT.registeredToast
-        : AUTH_TEXT.loggedInToast,
-    );
-  };
+  const handleSelectBatch = (nextTopicId: string, batch: Batch) =>
+    selectBatch(nextTopicId, batch.id);
 
   const closeDialog = () => setActiveDialog(null);
 
@@ -106,54 +60,36 @@ const HomePage = () => {
     <>
       <HeroSection
         catalogue={catalogue}
-        onOpenSubject={openSubject}
+        onOpenTopic={openTopic}
         onSelectBatch={handleSelectBatch}
-        onCreateAccount={() => openAuth(AUTH_VIEW.register)}
       />
       <LearningModelSection />
+      <TopicBreakdownSection
+        topic={listTopics(catalogue.subjects)[0] ?? null}
+      />
       <AiTestSection onStartSample={() => setActiveDialog('aiTest')} />
-      <CoursesSection catalogue={catalogue} onOpenSubject={handleOpenSubject} />
+      <TopicsSection catalogue={catalogue} onOpenTopic={openTopic} />
       <ProgramsSection
         onSeeTestFlow={() => setActiveDialog('aiTest')}
         onJoinWaitlist={() => setActiveDialog('modelPaper')}
       />
       <AboutSection />
       <TeamSection />
-      <CtaSection onCreateAccount={() => openAuth(AUTH_VIEW.register)} />
+      <CtaSection />
 
-      <CourseDialog
-        open={subject !== null && !isAuthDialogOpen && activeDialog === null}
-        subject={subject}
+      <TopicDialog
+        open={topicContext !== null && activeDialog === null}
+        context={topicContext}
         selection={selection}
         hasUnknownBatch={hasUnknownBatch}
-        onClose={closeCourse}
+        onClose={closeTopic}
         onSelectBatch={batch =>
-          subject && handleSelectBatch(subject.slug, batch)
+          topicContext && handleSelectBatch(topicContext.topic.id, batch)
         }
         onClearBatch={clearBatch}
-        onOpenAuth={openAuth}
         onEnrolmentChange={catalogue.reload}
       />
-      <AuthDialog
-        view={isAuthDialogOpen ? authView : null}
-        onViewChange={openAuth}
-        onClose={closeAuth}
-        onAuthenticated={handleAuthenticated}
-        intent={
-          selection
-            ? `${selection.topic.title} — ${selection.batch.scheduleLabel}`
-            : undefined
-        }
-      />
-      <AiTestDialog
-        open={activeDialog === 'aiTest'}
-        isLoggedIn={auth.isLoggedIn}
-        onClose={closeDialog}
-        onCreateProfile={() => {
-          closeDialog();
-          openAuth(AUTH_VIEW.register);
-        }}
-      />
+      <AiTestDialog open={activeDialog === 'aiTest'} onClose={closeDialog} />
       <ModelPaperDialog
         open={activeDialog === 'modelPaper'}
         onClose={closeDialog}

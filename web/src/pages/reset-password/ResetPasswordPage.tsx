@@ -17,7 +17,6 @@ import { Text } from '@components/ui/Text/Text';
 import {
   AUTH_QUERY_PARAM,
   AUTH_TEXT,
-  AUTH_VIEW,
   PASSWORD_MIN_LENGTH,
 } from '@constants/auth';
 import { APP_ROUTES } from '@constants/routes';
@@ -41,8 +40,6 @@ const resetPasswordSchema = z
   });
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
-
-const LOGIN_PATH = `${APP_ROUTES.HOME}?${AUTH_QUERY_PARAM.view}=${AUTH_VIEW.login}`;
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -98,7 +95,7 @@ const ResetPasswordPage = () => {
             <FieldStatus tone="success">
               {AUTH_TEXT.resetSuccessMessage}
             </FieldStatus>
-            <ButtonRouteLink to={LOGIN_PATH} endIcon="arrowRight">
+            <ButtonRouteLink to={APP_ROUTES.LOGIN} endIcon="arrowRight">
               {AUTH_TEXT.loginSubmitLabel}
             </ButtonRouteLink>
           </div>

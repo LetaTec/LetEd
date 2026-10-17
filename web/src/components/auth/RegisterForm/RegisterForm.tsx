@@ -31,18 +31,29 @@ import { toNullableString } from '@utils/formMapping';
 
 const MOBILE_PATTERN = /^\+?[0-9][0-9\s-]{8,16}[0-9]$/;
 
-const registerSchema = z.object({
-  fullName: z.string().trim().min(2, AUTH_TEXT.fullNameRequired),
-  dateOfBirth: z.string().min(1, AUTH_TEXT.dateOfBirthRequired),
-  mobile: z.string().trim().regex(MOBILE_PATTERN, AUTH_TEXT.mobileInvalid),
-  email: z.string().trim().pipe(z.email(AUTH_TEXT.emailInvalid)),
-  password: z.string().min(PASSWORD_MIN_LENGTH, AUTH_TEXT.passwordMinLength),
-  standard: z
-    .union([z.enum(STUDENT_STANDARD), z.literal('')])
-    .refine(value => value !== '', AUTH_TEXT.standardRequired),
-  stream: z.union([z.enum(STUDENT_STREAM), z.literal('')]),
-  address: z.string(),
-});
+const registerSchema = z
+  .object({
+    fullName: z.string().trim().min(2, AUTH_TEXT.fullNameRequired),
+    dateOfBirth: z.string().min(1, AUTH_TEXT.dateOfBirthRequired),
+    mobile: z.string().trim().regex(MOBILE_PATTERN, AUTH_TEXT.mobileInvalid),
+    email: z.string().trim().pipe(z.email(AUTH_TEXT.emailInvalid)),
+    password: z.string().min(PASSWORD_MIN_LENGTH, AUTH_TEXT.passwordMinLength),
+    standard: z
+      .union([z.enum(STUDENT_STANDARD), z.literal('')])
+      .refine(value => value !== '', AUTH_TEXT.standardRequired),
+    stream: z.union([z.enum(STUDENT_STREAM), z.literal('')]),
+    streamOther: z.string().trim().max(80),
+    address: z.string(),
+  })
+  .superRefine((values, ctx) => {
+    if (values.stream === STUDENT_STREAM.OTHER && values.streamOther === '') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['streamOther'],
+        message: AUTH_TEXT.streamOtherRequired,
+      });
+    }
+  });
 
 type RegisterFormInput = z.input<typeof registerSchema>;
 type RegisterFormValues = z.output<typeof registerSchema>;
@@ -60,6 +71,7 @@ export const RegisterForm = ({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
     formError,
     clearFormError,
@@ -74,9 +86,11 @@ export const RegisterForm = ({
       password: '',
       standard: '',
       stream: '',
+      streamOther: '',
       address: '',
     },
   });
+  const isOtherStream = watch('stream') === STUDENT_STREAM.OTHER;
 
   const onSubmit = handleSubmit(async values => {
     clearFormError();
@@ -91,6 +105,10 @@ export const RegisterForm = ({
         password: values.password,
         standard: values.standard,
         stream: values.stream === '' ? null : values.stream,
+        streamOther:
+          values.stream === STUDENT_STREAM.OTHER
+            ? toNullableString(values.streamOther)
+            : null,
         address: toNullableString(values.address),
       });
       onAuthenticated(user);
@@ -184,6 +202,17 @@ export const RegisterForm = ({
             {...register('stream')}
           />
         </FieldGroup>
+        {isOtherStream ? (
+          <FieldGroup fullWidth>
+            <Input
+              label={AUTH_TEXT.streamOtherLabel}
+              placeholder={AUTH_TEXT.streamOtherPlaceholder}
+              maxLength={80}
+              error={errors.streamOther?.message}
+              {...register('streamOther')}
+            />
+          </FieldGroup>
+        ) : null}
         <FieldGroup fullWidth>
           <Input
             label={AUTH_TEXT.addressLabel}

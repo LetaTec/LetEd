@@ -1,9 +1,9 @@
 import type { StatusColor } from './status';
 
-// URL search params for the course panel: the open subject and the batch the
+// URL search params for the topic panel: the open topic and the batch the
 // student intends to select. Kept in the URL so they survive authentication.
 export const CATALOGUE_QUERY_PARAM = {
-  subject: 'subject',
+  topic: 'topic',
   batch: 'batch',
 } as const;
 
@@ -75,9 +75,7 @@ export const CATALOGUE_TEXT = {
   topicWiseHeadline:
     'Learn topic by topic. Build confidence one concept at a time.',
   topicWiseNote:
-    'letaEd teaches one topic at a time. Each batch covers only the lessons listed for its topic — not the complete subject.',
-  subjectEyebrow: 'Subject',
-  learnTitle: 'Learn',
+    'SriDha Academy teaches one topic at a time. Each batch covers only the lessons listed for its topic — not the complete subject.',
   chapterLabel: 'Chapter',
   topicLabel: 'Topic',
   lessonsLabel: 'Lessons',
@@ -94,37 +92,28 @@ export const CATALOGUE_TEXT = {
   priceLabel: 'Price',
   toBeAnnounced: 'To be announced',
   priceOnRequest: 'Price to be announced',
-  comingSoon: 'Coming soon',
-  pricePrefix: 'From',
   selectBatch: 'Select batch',
   selectBatchLabel: (topic: string, schedule: string) =>
     `Select batch: ${topic}, ${schedule}`,
   viewBatches: 'View batches',
-  viewTopicDetails: 'Topics & batches',
+  viewTopicDetails: 'View batches',
   chooseAnotherBatch: 'Choose another batch',
-  continueToSignIn: 'Sign in to continue',
-  createAccountToContinue: 'Create account to continue',
-  signInRequired:
-    'Sign in or create a student account to select this batch. Your selection will be kept.',
   reviewEyebrow: 'Review / Enrolment',
+  topicEyebrow: (level: string | null) =>
+    level ? `Topic / ${level}` : 'Topic',
   reviewTitle: 'Review your',
   reviewTitleEmphasis: 'selection.',
   reserveSeat: 'Reserve seat',
   paymentPendingNote:
-    'Online payment is not live yet. Reserving records your seat for this batch; the letaEd team will contact you to complete payment.',
+    'Online payment is not live yet. Reserving records your seat for this batch; the SriDha Academy team will contact you to complete payment.',
   reservedTitle: 'Seat',
   reservedTitleEmphasis: 'reserved.',
   reservedToast: 'Seat reserved — payment pending',
   alreadyReservedMessage: 'You have already reserved a seat in this batch',
   viewMyLearning: 'Go to my learning',
-  noTopicsTitle: 'Topics are being scheduled',
-  noTopicsMessage:
-    'Topic-wise batches for this subject have not been published yet. Check back soon for the first topics.',
-  upcomingSubjectMessage:
-    'This learning path is planned for a later stage. Batches will be announced here.',
   batchNotFound: 'This batch is no longer available. Please choose another.',
   noBatchesMessage: 'Batches for this topic will be announced soon',
-  loadError: 'Course information is unavailable right now',
+  loadError: 'Topic information is unavailable right now',
   retry: 'Try again',
   seatsRemaining: (seats: number) =>
     seats === 1 ? '1 seat left' : `${seats} seats left`,

@@ -1,19 +1,27 @@
 .logo {
-  font-family: var(--font-serif);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-logo);
-  line-height: var(--leading-none);
+  display: block;
+  width: auto;
+  max-width: none;
 }
 
-.logo em {
-  font-style: italic;
-  color: var(--color-text-accent);
+.horizontal.md {
+  height: var(--height-logo-horizontal-md);
 }
 
-.md {
-  font-size: var(--text-display-2xs);
+@media (--viewport-sm) {
+  .horizontal.md {
+    height: var(--height-logo-horizontal-sm);
+  }
 }
 
-.lg {
-  font-size: var(--text-display-sm);
+.horizontal.lg {
+  height: var(--height-logo-horizontal-lg);
+}
+
+.stacked.md {
+  height: var(--height-logo-stacked-md);
+}
+
+.stacked.lg {
+  height: var(--height-logo-stacked-lg);
 }

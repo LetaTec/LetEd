@@ -1,7 +1,6 @@
-// URL search params that carry auth and selection state, so the intended
-// course and batch survive the sign-in dialog, a page refresh or a redirect.
+// redirect_to carries the page (including any chosen topic and batch) a
+// visitor was heading to, so sign-in returns them there.
 export const AUTH_QUERY_PARAM = {
-  view: 'auth',
   redirectTo: 'redirect_to',
   resetToken: 'token',
 } as const;
@@ -14,8 +13,6 @@ export const AUTH_VIEW = {
 
 export type AuthView = (typeof AUTH_VIEW)[keyof typeof AUTH_VIEW];
 
-export const AUTH_VIEWS: readonly AuthView[] = Object.values(AUTH_VIEW);
-
 export const AUTH_ERROR_CODE = {
   unauthenticated: 'UNAUTHENTICATED',
   sessionExpired: 'SESSION_EXPIRED',
@@ -25,19 +22,9 @@ export const AUTH_ERROR_CODE = {
 export const PASSWORD_MIN_LENGTH = 8;
 
 export const AUTH_TEXT = {
-  loginEyebrow: 'Student / Login',
-  loginTitle: 'Welcome',
-  loginTitleEmphasis: 'back.',
-  registerEyebrow: 'Student / Sign up',
-  registerTitle: 'Create your',
-  registerTitleEmphasis: 'account.',
-  forgotEyebrow: 'Student / Password',
-  forgotTitle: 'Reset your',
-  forgotTitleEmphasis: 'password.',
   resetEyebrow: 'Student / New password',
   resetTitle: 'Choose a new',
   resetTitleEmphasis: 'password.',
-  continueSelectionHint: 'Sign in or create an account to continue with',
   fullNameLabel: 'Student name',
   fullNamePlaceholder: 'Full name',
   dateOfBirthLabel: 'Date of birth',
@@ -49,6 +36,9 @@ export const AUTH_TEXT = {
   standardPlaceholder: 'Select',
   streamLabel: 'Stream',
   streamPlaceholder: 'Select',
+  streamOtherLabel: 'Your stream',
+  streamOtherPlaceholder: 'Write your stream',
+  streamOtherRequired: 'Tell us your stream',
   addressLabel: 'Address',
   addressPlaceholder: 'City / address',
   passwordLabel: 'Password',
@@ -64,11 +54,10 @@ export const AUTH_TEXT = {
   resetSubmitLabel: 'Update password',
   forgotPasswordLink: 'Forgot password?',
   haveAccountPrompt: 'Already have an account?',
-  noAccountPrompt: 'New to letaEd?',
-  switchToLogin: 'Sign in',
-  switchToRegister: 'Create an account',
+  noAccountPrompt: 'New to SriDha Academy?',
   backToLogin: 'Back to sign in',
-  registerFootnote: 'Your details are used only to manage your letaEd account',
+  registerFootnote:
+    'Your details are used only to manage your SriDha Academy account',
   forgotSuccessMessage:
     "If an account exists for that email, you'll receive a reset link shortly",
   resetSuccessMessage: 'Password updated. Sign in with your new password',
@@ -88,4 +77,18 @@ export const AUTH_TEXT = {
   dateOfBirthRequired: 'Enter your date of birth',
   mobileInvalid: 'Enter a valid mobile number',
   standardRequired: 'Select your standard or exam',
+} as const;
+
+// The sign-in screen visitors see before any other page.
+export const AUTH_PAGE_TEXT = {
+  kicker: 'Student access',
+  title: 'Big Subjects.',
+  titleEmphasis: 'Broken Into',
+  titleEnd: 'Small Victories',
+  lead: 'Topic-wise live classes, AI test papers and AI model papers. Sign in or create your free student account to continue.',
+  loginTab: 'Log in',
+  registerTab: 'Join for free',
+  loginHeading: 'Welcome back',
+  registerHeading: 'Create your student account',
+  forgotHeading: 'Reset your password',
 } as const;

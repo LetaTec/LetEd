@@ -150,4 +150,11 @@ export const MIGRATIONS: readonly Migration[] = [
       ALTER TABLE enquiries_next RENAME TO enquiries;
     `,
   },
+  {
+    // Students can choose "Other" as their stream and describe it.
+    id: '003_student_stream_other',
+    sql: `
+      ALTER TABLE student_profiles ADD COLUMN stream_other TEXT;
+    `,
+  },
 ];

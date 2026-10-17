@@ -2,6 +2,9 @@ export const APP_ROUTES = {
   HOME: '/',
   MY_LEARNING: '/my-learning',
   BATCHES: '/batches',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
 } as const;
 
@@ -10,7 +13,7 @@ export const HOME_SECTION_ID = {
   home: 'home',
   learningModel: 'learning-model',
   aiTest: 'ai-test',
-  courses: 'courses',
+  topics: 'topics',
   programs: 'programs',
   modelPaper: 'model-paper',
   about: 'about',

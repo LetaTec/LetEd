@@ -21,9 +21,9 @@ export const PAGE_TEXT = {
   myLearningGreeting: (name: string) => `Signed in as ${name}`,
   myLearningEmptyTitle: 'No topics selected yet',
   myLearningEmptyMessage:
-    'Browse the course list, open a subject and select a batch for the topic you want to learn first.',
+    'Browse the topics and select a batch for the topic you want to learn first',
   myLearningBrowse: 'Browse topics',
   myLearningLoadError: 'Your enrolments could not be loaded',
   myLearningPaymentNote:
-    'Online payment is not live yet. The letaEd team will contact you to complete payment for reserved seats.',
+    'Online payment is not live yet. The SriDha Academy team will contact you to complete payment for reserved seats.',
 } as const;

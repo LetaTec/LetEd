@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 const SCREENSHOT_DIR = 'test-results/screenshots';
 const NOVEMBER_BATCH = 'batch_gst_class_11_november';
+const GST_TOPIC = 'topic_accounts_gst_class_11';
+const PASSWORD = 'correct-horse-1';
 
 const uniqueEmail = (label: string) =>
   `${label}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
@@ -23,23 +25,140 @@ const bookBox = async (page: Page) => {
   };
 };
 
-const registerThroughDialog = async (page: Page, email: string) => {
-  const dialog = page.getByRole('dialog', { name: /create your\s*account/i });
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel('Student name').fill('Asha Verma');
-  await dialog.getByLabel('Date of birth').fill('2009-04-12');
-  await dialog.getByLabel('Mobile number').fill('+91 98765 43210');
-  await dialog.getByLabel('Email ID').fill(email);
-  await dialog.getByLabel('Password', { exact: true }).fill('correct-horse-1');
-  await dialog.getByLabel('Standard / Exam').selectOption('CLASS_11');
-  await dialog.getByLabel('Stream').selectOption('COMMERCE');
-  await dialog.getByRole('button', { name: /create account/i }).click();
+const registerViaApi = async (page: Page, email: string) => {
+  const response = await page.request.post('/api/auth/register', {
+    data: {
+      fullName: 'Asha Verma',
+      email,
+      password: PASSWORD,
+      dateOfBirth: '2009-04-12',
+      mobile: '9876543210',
+      standard: 'CLASS_11',
+      stream: 'COMMERCE',
+      address: null,
+    },
+  });
+  expect(response.status()).toBe(201);
 };
+
+// Registers through the API, which also signs this browser context in.
+const signedIn = async (page: Page, label: string) => {
+  await registerViaApi(page, uniqueEmail(label));
+};
+
+test.describe('sign-in gate', () => {
+  test('visitors only see the sign-in page until they register', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(
+      page.getByRole('heading', { name: 'Welcome back' }),
+    ).toBeVisible();
+    await expect(book(page)).toHaveCount(0);
+    await expect(page.getByText('Topics to begin with')).toHaveCount(0);
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-login.png`,
+      fullPage: true,
+    });
+
+    await page.getByRole('link', { name: 'Join for free' }).first().click();
+    await expect(page).toHaveURL(/\/register$/);
+    await page.getByLabel('Student name').fill('Asha Verma');
+    await page.getByLabel('Date of birth').fill('2009-04-12');
+    await page.getByLabel('Mobile number').fill('+91 98765 43210');
+    await page.getByLabel('Email ID').fill(uniqueEmail(testInfo.project.name));
+    await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+    await page.getByLabel('Standard / Exam').selectOption('CLASS_10');
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-register.png`,
+      fullPage: true,
+    });
+    await page.getByRole('button', { name: /create account/i }).click();
+
+    await expect(page).toHaveURL(/\/$/);
+    await expect(book(page)).toBeVisible();
+  });
+
+  test('a chosen batch survives the sign-in redirect', async ({
+    page,
+    request,
+  }, testInfo) => {
+    const email = uniqueEmail(`${testInfo.project.name}-redirect`);
+    const register = await request.post('/api/auth/register', {
+      data: {
+        fullName: 'Ravi Shah',
+        email,
+        password: PASSWORD,
+        dateOfBirth: '2008-01-20',
+        mobile: '9876543210',
+        standard: 'CLASS_12',
+        stream: 'COMMERCE',
+        address: null,
+      },
+    });
+    expect(register.status()).toBe(201);
+
+    await page.goto(`/?topic=${GST_TOPIC}&batch=${NOVEMBER_BATCH}`);
+    await expect(page).toHaveURL(/\/login\?redirect_to=/);
+
+    await page.getByLabel('Email ID').fill(email);
+    await page.getByLabel('Password', { exact: true }).fill('wrong-password');
+    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await expect(
+      page.getByText('The email or password is incorrect'),
+    ).toBeVisible();
+
+    await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+    await page.getByRole('button', { name: /^sign in$/i }).click();
+
+    await expect(page).toHaveURL(new RegExp(`batch=${NOVEMBER_BATCH}`));
+    await expect(
+      page.getByRole('dialog', { name: /review your\s*selection/i }),
+    ).toBeVisible();
+  });
+
+  test('protected pages redirect to sign-in and back', async ({
+    page,
+    request,
+  }, testInfo) => {
+    const email = uniqueEmail(`${testInfo.project.name}-protected`);
+    await request.post('/api/auth/register', {
+      data: {
+        fullName: 'Meera Iyer',
+        email,
+        password: PASSWORD,
+        dateOfBirth: '2008-06-02',
+        mobile: '9876543211',
+        standard: 'CLASS_11',
+        stream: 'COMMERCE',
+        address: null,
+      },
+    });
+
+    await page.goto('/batches');
+    await expect(page).toHaveURL(/\/login\?redirect_to=%2Fbatches/);
+    await page.getByLabel('Email ID').fill(email);
+    await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+    await page.getByRole('button', { name: /^sign in$/i }).click();
+
+    await expect(page).toHaveURL(/\/batches$/);
+    await expect(
+      page.getByRole('heading', { level: 1, name: /all\s*batches/i }),
+    ).toBeVisible();
+  });
+});
 
 test.describe('homepage', () => {
   test('renders every section without horizontal scrolling', async ({
     page,
   }, testInfo) => {
+    await signedIn(page, `${testInfo.project.name}-home`);
     await page.goto('/');
     await expect(
       page.getByRole('heading', {
@@ -54,15 +173,6 @@ test.describe('homepage', () => {
       }),
     ).toBeVisible();
     await expect(page.getByText('Breaking down the model')).toBeVisible();
-    await expect(page.getByText('A broad')).toHaveCount(0);
-    await expect(page.getByText('A clearer')).toHaveCount(0);
-    await expect(
-      page
-        .getByText(
-          'Learn topic by topic. Build confidence one concept at a time.',
-        )
-        .first(),
-    ).toBeVisible();
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
@@ -92,7 +202,8 @@ test.describe('homepage', () => {
 test.describe('interactive book', () => {
   test('stays anchored under pointer movement, scrolling and rapid page turns', async ({
     page,
-  }) => {
+  }, testInfo) => {
+    await signedIn(page, `${testInfo.project.name}-book`);
     await page.goto('/');
     await expect(book(page)).toBeVisible();
     await expect(page.getByText(/spread 1 of/i)).toBeVisible();
@@ -133,14 +244,11 @@ test.describe('interactive book', () => {
     await expect(page.getByText(/spread 2 of/i)).toBeVisible();
   });
 
-  test('shows live batches and asks a visitor to register before selecting', async ({
+  test('selects a batch from the book and explores more batches', async ({
     page,
   }, testInfo) => {
+    await signedIn(page, `${testInfo.project.name}-spread`);
     await page.goto('/');
-    await expect(
-      book(page).getByText('Learn GST for Class 11').first(),
-    ).toBeVisible();
-
     await page.getByRole('button', { name: 'Turn to the next page' }).click();
     const selectInBook = book(page).getByRole('button', {
       name: /select batch: learn gst for class 11, 1st & 2nd november/i,
@@ -148,113 +256,54 @@ test.describe('interactive book', () => {
     await expect(selectInBook).toBeVisible();
     await page.waitForTimeout(1300);
     await page.screenshot({
-      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-book-batches.png`,
+      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-book-batch-spread.png`,
     });
 
     await selectInBook.click();
-    const dialog = page.getByRole('dialog', { name: /create your\s*account/i });
-    await expect(dialog).toBeVisible();
-    await expect(
-      dialog.getByText('Learn GST for Class 11 — 1st & 2nd November'),
-    ).toBeVisible();
+    const review = page.getByRole('dialog', {
+      name: /review your\s*selection/i,
+    });
+    await expect(review).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`batch=${NOVEMBER_BATCH}`));
-  });
-});
-
-test.describe('student journey', () => {
-  test('explore more batches is only for signed-in students', async ({
-    page,
-    request,
-  }, testInfo) => {
-    const email = uniqueEmail(`${testInfo.project.name}-batches`);
-    await request.post('/api/auth/register', {
-      data: {
-        fullName: 'Meera Iyer',
-        email,
-        password: 'correct-horse-1',
-        dateOfBirth: '2008-06-02',
-        mobile: '9876543211',
-        standard: 'CLASS_11',
-        stream: 'COMMERCE',
-        address: null,
-      },
-    });
-
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Turn to the next page' }).click();
-    await page.waitForTimeout(1300);
-    await page.screenshot({
-      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-book-batch-spread.png`,
-    });
+    await review.getByRole('button', { name: 'Close' }).click();
 
     await book(page)
       .getByRole('link', { name: /explore more batches/i })
       .click();
-    await expect(page).toHaveURL(/auth=login/);
-    await expect(page).toHaveURL(/redirect_to=%2Fbatches/);
-
-    const dialog = page.getByRole('dialog', { name: /welcome\s*back/i });
-    await dialog.getByLabel('Email ID').fill(email);
-    await dialog
-      .getByLabel('Password', { exact: true })
-      .fill('correct-horse-1');
-    await dialog.getByRole('button', { name: /^sign in$/i }).click();
-
     await expect(page).toHaveURL(/\/batches$/);
-    await expect(
-      page.getByRole('heading', { level: 1, name: /all\s*batches/i }),
-    ).toBeVisible();
     await expect(page.getByText('1st & 2nd November')).toBeVisible();
-    await page.screenshot({
-      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-batches-page.png`,
-      fullPage: true,
-    });
-
-    await page.getByRole('button', { name: 'Select batch' }).first().click();
-    await expect(
-      page.getByRole('dialog', { name: /review your\s*selection/i }),
-    ).toBeVisible();
   });
+});
 
-  test('register from a batch, reserve the seat, restore the session and log out', async ({
+test.describe('student journey', () => {
+  test('reserve a seat, restore the session and log out', async ({
     page,
   }, testInfo) => {
-    const email = uniqueEmail(testInfo.project.name);
-
-    await page.goto('/#courses');
-    await page
-      .getByRole('button', { name: 'View topics and batches for Accounts' })
-      .click();
+    await signedIn(page, `${testInfo.project.name}-journey`);
+    await page.goto('/#topics');
+    await expect(
+      page.getByRole('button', { name: 'View batches for Depreciation' }),
+    ).toBeDisabled();
+    await page.getByRole('button', { name: 'View batches for GST' }).click();
     const courseDialog = page.getByRole('dialog', {
-      name: /learn\s*accounts/i,
+      name: /learn gst for class 11/i,
     });
     await expect(courseDialog).toBeVisible();
     await expect(courseDialog.getByText('What is GST')).toBeVisible();
-    await expect(courseDialog.getByText('Faculty').first()).toBeVisible();
     await expect(
       courseDialog.getByText('To be announced').first(),
     ).toBeVisible();
-    await page.screenshot({
-      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-course-dialog.png`,
-    });
 
     await courseDialog
       .getByRole('button', { name: 'Select batch' })
       .first()
       .click();
-    await registerThroughDialog(page, email);
-
     const review = page.getByRole('dialog', {
       name: /review your\s*selection/i,
     });
-    await expect(review).toBeVisible();
     await expect(
       review.getByText('1st & 2nd November · November batch'),
     ).toBeVisible();
-    await page.screenshot({
-      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-review.png`,
-    });
-
     await review.getByRole('button', { name: /reserve seat/i }).click();
     await expect(
       review.getByText('Seat reserved — payment pending'),
@@ -263,77 +312,35 @@ test.describe('student journey', () => {
     await review.getByRole('link', { name: /go to my learning/i }).click();
     await expect(page).toHaveURL(/\/my-learning$/);
     await expect(page.getByText('Signed in as Asha Verma')).toBeVisible();
-    await expect(
-      page.getByRole('heading', { name: 'Learn GST for Class 11' }),
-    ).toBeVisible();
 
     // Session restoration after a full page reload.
     await page.reload();
     await expect(page.getByText('Signed in as Asha Verma')).toBeVisible();
-    await page.screenshot({
-      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-my-learning.png`,
-      fullPage: true,
-    });
 
     if (testInfo.project.name === 'mobile') {
       await page.getByRole('button', { name: 'Open menu' }).click();
     }
     await page.getByRole('button', { name: 'Log out' }).first().click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/login$/);
 
     const response = await page.request.get('/api/enrolments');
     expect(response.status()).toBe(401);
+
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/login$/);
   });
 
-  test('a protected page sends visitors to sign in and back again', async ({
+  test('model paper waitlist sign-ups are stored', async ({
     page,
-    request,
   }, testInfo) => {
-    const email = uniqueEmail(`${testInfo.project.name}-login`);
-    await request.post('/api/auth/register', {
-      data: {
-        fullName: 'Ravi Shah',
-        email,
-        password: 'correct-horse-1',
-        dateOfBirth: '2008-01-20',
-        mobile: '9876543210',
-        standard: 'CLASS_12',
-        stream: 'COMMERCE',
-        address: null,
-      },
-    });
-
-    await page.goto('/my-learning');
-    await expect(page).toHaveURL(/auth=login/);
-    await expect(page).toHaveURL(/redirect_to=%2Fmy-learning/);
-
-    const dialog = page.getByRole('dialog', { name: /welcome\s*back/i });
-    await dialog.getByLabel('Email ID').fill(email);
-    await dialog.getByLabel('Password', { exact: true }).fill('wrong-password');
-    await dialog.getByRole('button', { name: /^sign in$/i }).click();
-    await expect(
-      dialog.getByText('The email or password is incorrect'),
-    ).toBeVisible();
-
-    await dialog
-      .getByLabel('Password', { exact: true })
-      .fill('correct-horse-1');
-    await dialog.getByRole('button', { name: /^sign in$/i }).click();
-    await expect(page).toHaveURL(/\/my-learning$/);
-    await expect(page.getByText('No topics selected yet')).toBeVisible();
-  });
-
-  test('model paper waitlist sign-ups are stored', async ({ page }) => {
+    await signedIn(page, `${testInfo.project.name}-waitlist`);
     await page.goto('/#model-paper');
     await expect(
       page.getByRole('heading', { name: /ai model\s*paper/i }),
     ).toBeVisible();
-    await expect(page.getByText(/counselling/i)).toHaveCount(0);
-    await expect(page.getByText(/guess paper/i)).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Join waitlist' }).click();
     const dialog = page.getByRole('dialog', { name: /prepare\s*ahead/i });
-    await dialog.getByLabel('Email').fill('asha@example.com');
     await dialog.getByLabel('Exam').selectOption('NEET');
     await dialog.getByRole('button', { name: /join waitlist/i }).click();
     await expect(

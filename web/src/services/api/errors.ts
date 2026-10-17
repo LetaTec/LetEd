@@ -2,7 +2,7 @@ import { isAxiosError } from 'axios';
 
 const API_VALIDATION_ERROR_CODE = 'REQUEST_VALIDATION_FAILED';
 const NETWORK_ERROR_MESSAGE =
-  'We could not reach letaEd. Check your connection and try again.';
+  'We could not reach SriDha Academy. Check your connection and try again.';
 
 type ApiValidationLocation = 'body' | 'query';
 

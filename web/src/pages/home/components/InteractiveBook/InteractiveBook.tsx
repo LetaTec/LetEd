@@ -23,7 +23,7 @@ export type InteractiveBookProps = Omit<BookPageActions, 'onRetry'> & {
 
 export const InteractiveBook = ({
   catalogue,
-  onOpenSubject,
+  onOpenTopic,
   onSelectBatch,
 }: InteractiveBookProps) => {
   const { subjects, isLoading, hasError, reload } = catalogue;
@@ -46,7 +46,7 @@ export const InteractiveBook = ({
   const didSwipe = useRef(false);
 
   const pageActions: BookPageActions = {
-    onOpenSubject,
+    onOpenTopic,
     onSelectBatch,
     onRetry: reload,
   };

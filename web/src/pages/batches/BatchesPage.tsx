@@ -31,7 +31,7 @@ const BatchesPage = () => {
 
   const handleSelectBatch = (context: TopicContext, batchId: string) => {
     const params = new URLSearchParams({
-      [CATALOGUE_QUERY_PARAM.subject]: context.subject.slug,
+      [CATALOGUE_QUERY_PARAM.topic]: context.topic.id,
       [CATALOGUE_QUERY_PARAM.batch]: batchId,
     });
     navigate(`${APP_ROUTES.HOME}?${params}`);

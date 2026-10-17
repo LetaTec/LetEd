@@ -1,7 +1,0 @@
-.status {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-3) 0;
-  border-top: var(--border-width-base) solid var(--color-border-strong);
-}

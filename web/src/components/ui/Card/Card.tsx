@@ -7,7 +7,7 @@ import styles from './Card.module.css';
 
 const cn = cx.bind(styles);
 
-export type CardVariant = 'tile' | 'panel' | 'profile' | 'note';
+export type CardVariant = 'tile' | 'panel' | 'profile' | 'note' | 'centered';
 
 export type CardProps = {
   variant?: CardVariant;
@@ -25,6 +25,7 @@ const CARD_HEADING_VARIANT = {
   panel: 'title',
   profile: 'item',
   note: 'item',
+  centered: 'item',
 } as const;
 
 const CARD_LABEL_VARIANT = {
@@ -32,9 +33,10 @@ const CARD_LABEL_VARIANT = {
   panel: 'label',
   profile: 'numeralSm',
   note: 'numeralSm',
+  centered: 'label',
 } as const;
 
-// Editorial card used for courses, programmes, notes and people. The parent
+// Editorial card used for topics, programmes, notes and people. The parent
 // CardGrid owns borders and backgrounds; the card owns its internal layout.
 export const Card = ({
   variant = 'tile',

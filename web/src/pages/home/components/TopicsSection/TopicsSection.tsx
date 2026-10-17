@@ -1,0 +1,46 @@
+import { TopicPreviewGrid } from '@components/catalogue/TopicPreviewGrid/TopicPreviewGrid';
+import { Section } from '@components/ui/Section/Section';
+import { SectionHead } from '@components/ui/SectionHead/SectionHead';
+import { TOPICS_TEXT } from '@constants/home';
+import { HOME_SECTION_ID } from '@constants/routes';
+import type { CatalogueState } from '@hooks/useCatalogue';
+import { listTopics } from '@services/catalogue';
+
+const TITLE_ID = 'topics-title';
+
+export type TopicsSectionProps = {
+  catalogue: CatalogueState;
+  onOpenTopic: (topicId: string) => void;
+};
+
+export const TopicsSection = ({
+  catalogue,
+  onOpenTopic,
+}: TopicsSectionProps) => {
+  const openTopicIds = new Set(
+    listTopics(catalogue.subjects)
+      .filter(context => context.topic.batches.length > 0)
+      .map(context => context.topic.id),
+  );
+
+  return (
+    <Section id={HOME_SECTION_ID.topics} labelledBy={TITLE_ID}>
+      <SectionHead
+        titleId={TITLE_ID}
+        title={
+          <>
+            {TOPICS_TEXT.title}
+            <br />
+            <em>{TOPICS_TEXT.titleEmphasis}</em>
+          </>
+        }
+        description={TOPICS_TEXT.description}
+      />
+      <TopicPreviewGrid
+        openTopicIds={openTopicIds}
+        onSelectTopic={onOpenTopic}
+        actionLabel={TOPICS_TEXT.openTopicLabel}
+      />
+    </Section>
+  );
+};

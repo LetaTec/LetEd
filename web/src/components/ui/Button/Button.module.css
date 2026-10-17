@@ -21,6 +21,14 @@
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+@media (--viewport-sm) {
+  .primary,
+  .secondary {
+    padding-inline: var(--padding-control-x-compact);
+  }
 }
 
 .primary {

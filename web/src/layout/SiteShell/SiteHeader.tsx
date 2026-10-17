@@ -6,12 +6,11 @@ import { BrandLogo } from '@components/brand/BrandLogo/BrandLogo';
 import { Button, ButtonRouteLink } from '@components/ui/Button/Button';
 import { Container } from '@components/ui/Container/Container';
 import { IconButton } from '@components/ui/IconButton/IconButton';
-import { AUTH_TEXT, AUTH_VIEW } from '@constants/auth';
+import { AUTH_TEXT } from '@constants/auth';
 import { HEADER_TEXT, NAV_LINKS } from '@constants/home';
 import { APP_ROUTES, toSectionHref } from '@constants/routes';
 import { useAuth } from '@context/AuthContext';
 import { useToast } from '@context/ToastContext';
-import { useAuthDialog } from '@hooks/useAuthDialog';
 import { logoutStudent } from '@services/auth';
 
 import styles from './SiteHeader.module.css';
@@ -19,9 +18,8 @@ import styles from './SiteHeader.module.css';
 const cn = cx.bind(styles);
 
 export const SiteHeader = () => {
-  const { isLoggedIn, clearSession } = useAuth();
+  const { clearSession } = useAuth();
   const { showToast } = useToast();
-  const { openAuth } = useAuthDialog();
   const location = useLocation();
   const navigate = useNavigate();
   const navId = useId();
@@ -49,12 +47,10 @@ export const SiteHeader = () => {
     try {
       await logoutStudent();
 
-      // Leave protected pages before clearing the session so the route guard
-      // does not bounce the student to the sign-in dialog. flushSync commits
+      // Go to the sign-in screen before clearing the session, so the route
+      // guard does not add a redirect back to this page. flushSync commits
       // the navigation immediately instead of as a deferred transition.
-      if (location.pathname !== APP_ROUTES.HOME) {
-        await navigate(APP_ROUTES.HOME, { flushSync: true });
-      }
+      await navigate(APP_ROUTES.LOGIN, { flushSync: true });
 
       clearSession();
       showToast(AUTH_TEXT.loggedOutToast);
@@ -67,14 +63,7 @@ export const SiteHeader = () => {
     }
   };
 
-  const openAuthFromMenu = (
-    view: (typeof AUTH_VIEW)[keyof typeof AUTH_VIEW],
-  ) => {
-    setIsMenuOpen(false);
-    openAuth(view);
-  };
-
-  const accountActions = isLoggedIn ? (
+  const accountActions = (
     <>
       <ButtonRouteLink
         variant="plain"
@@ -85,18 +74,6 @@ export const SiteHeader = () => {
       </ButtonRouteLink>
       <Button variant="primary" loading={isLoggingOut} onClick={handleLogout}>
         {HEADER_TEXT.logout}
-      </Button>
-    </>
-  ) : (
-    <>
-      <Button variant="plain" onClick={() => openAuthFromMenu(AUTH_VIEW.login)}>
-        {HEADER_TEXT.login}
-      </Button>
-      <Button
-        variant="primary"
-        onClick={() => openAuthFromMenu(AUTH_VIEW.register)}
-      >
-        {HEADER_TEXT.signUp}
       </Button>
     </>
   );

@@ -5,7 +5,7 @@ import styles from './CardGrid.module.css';
 
 const cn = cx.bind(styles);
 
-export type CardGridVariant = 'ruled' | 'tiled' | 'columns';
+export type CardGridVariant = 'ruled' | 'tiled' | 'columns' | 'boxed' | 'plain';
 
 export type CardGridProps = {
   variant?: CardGridVariant;

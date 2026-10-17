@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { AUTH_QUERY_PARAM, type AuthView } from '@constants/auth';
 import { CATALOGUE_QUERY_PARAM } from '@constants/catalogue';
 
-// The open subject and intended batch live in the URL so the selection is
-// preserved through sign-in, registration and page refreshes.
-export const useCourseSelection = () => {
+// The open topic and intended batch live in the URL so the selection is
+// shareable and survives refreshes and the sign-in redirect.
+export const useTopicSelection = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const update = useCallback(
@@ -21,24 +20,20 @@ export const useCourseSelection = () => {
     [setSearchParams],
   );
 
-  const openSubject = useCallback(
-    (subjectSlug: string) =>
+  const openTopic = useCallback(
+    (topicId: string) =>
       update(params => {
-        params.set(CATALOGUE_QUERY_PARAM.subject, subjectSlug);
+        params.set(CATALOGUE_QUERY_PARAM.topic, topicId);
         params.delete(CATALOGUE_QUERY_PARAM.batch);
       }),
     [update],
   );
 
   const selectBatch = useCallback(
-    (subjectSlug: string, batchId: string, authView?: AuthView) =>
+    (topicId: string, batchId: string) =>
       update(params => {
-        params.set(CATALOGUE_QUERY_PARAM.subject, subjectSlug);
+        params.set(CATALOGUE_QUERY_PARAM.topic, topicId);
         params.set(CATALOGUE_QUERY_PARAM.batch, batchId);
-
-        if (authView) {
-          params.set(AUTH_QUERY_PARAM.view, authView);
-        }
       }),
     [update],
   );
@@ -48,21 +43,21 @@ export const useCourseSelection = () => {
     [update],
   );
 
-  const closeCourse = useCallback(
+  const closeTopic = useCallback(
     () =>
       update(params => {
-        params.delete(CATALOGUE_QUERY_PARAM.subject);
+        params.delete(CATALOGUE_QUERY_PARAM.topic);
         params.delete(CATALOGUE_QUERY_PARAM.batch);
       }),
     [update],
   );
 
   return {
-    subjectSlug: searchParams.get(CATALOGUE_QUERY_PARAM.subject),
+    topicId: searchParams.get(CATALOGUE_QUERY_PARAM.topic),
     batchId: searchParams.get(CATALOGUE_QUERY_PARAM.batch),
-    openSubject,
+    openTopic,
     selectBatch,
     clearBatch,
-    closeCourse,
+    closeTopic,
   };
 };

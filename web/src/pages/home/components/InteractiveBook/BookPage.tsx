@@ -23,8 +23,8 @@ import styles from './BookPage.module.css';
 const cn = cx.bind(styles);
 
 export type BookPageActions = {
-  onOpenSubject: (subjectSlug: string) => void;
-  onSelectBatch: (subjectSlug: string, batch: Batch) => void;
+  onOpenTopic: (topicId: string) => void;
+  onSelectBatch: (topicId: string, batch: Batch) => void;
   onRetry: () => void;
 };
 
@@ -43,7 +43,7 @@ const getBatchMeta = (batch: Batch) =>
 
 export const BookPage = ({
   page,
-  onOpenSubject,
+  onOpenTopic,
   onSelectBatch,
   onRetry,
 }: BookPageProps) => {
@@ -76,12 +76,12 @@ export const BookPage = ({
       );
 
     case 'topic': {
-      const { subject, topic } = page.context;
+      const { topic } = page.context;
 
       return (
         <div className={cn('page')}>
           <Text as="div" variant="sheetLabel" tone="accent">
-            {BOOK_TEXT.topicLabel(subject.name, topic.level)}
+            {BOOK_TEXT.topicLabel(topic.level)}
           </Text>
           <Heading
             level={3}
@@ -100,10 +100,7 @@ export const BookPage = ({
             className={cn('list', 'listTight')}
           />
           <div className={cn('pageAction')}>
-            <Button
-              variant="editorial"
-              onClick={() => onOpenSubject(subject.slug)}
-            >
+            <Button variant="editorial" onClick={() => onOpenTopic(topic.id)}>
               {CATALOGUE_TEXT.viewTopicDetails}
             </Button>
           </div>
@@ -119,7 +116,7 @@ export const BookPage = ({
           </Text>
           {page.entries.length > 0 ? (
             <ul className={cn('batches')}>
-              {page.entries.map(({ subject, topic, batch }) => (
+              {page.entries.map(({ topic, batch }) => (
                 <li key={batch.id} className={cn('batch')}>
                   <Text as="div" variant="sheetLabel" tone="sheetMuted">
                     {topic.title} · {formatTopicPrice(topic.price)}
@@ -149,7 +146,7 @@ export const BookPage = ({
                         topic.title,
                         batch.scheduleLabel,
                       )}
-                      onClick={() => onSelectBatch(subject.slug, batch)}
+                      onClick={() => onSelectBatch(topic.id, batch)}
                     >
                       {CATALOGUE_TEXT.selectBatch}
                     </Button>
@@ -218,7 +215,7 @@ export const BookPage = ({
     case 'blank':
       return (
         <div className={cn('page', 'endPage')}>
-          <BrandLogo size="lg" />
+          <BrandLogo variant="stacked" size="md" />
         </div>
       );
 

@@ -1,0 +1,77 @@
+/* Sized so the whole sign-in screen fits a typical laptop viewport */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: var(--space-8);
+  padding-block: var(--space-3);
+}
+
+.copy {
+  max-width: var(--width-auth-copy);
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-bottom: var(--space-2);
+}
+
+.kickerRule {
+  width: var(--space-6);
+  height: var(--border-width-base);
+  background: currentColor;
+}
+
+.lead {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--text-base);
+}
+
+.panel {
+  padding: var(--space-3);
+  border: var(--border-width-base) solid var(--color-border-base);
+  background: var(--color-bg-sheet);
+}
+
+.panelTitle {
+  margin-bottom: var(--space-2);
+}
+
+.switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-top: var(--space-2);
+  padding-top: var(--space-1-5);
+  border-top: var(--border-width-base) solid var(--color-border-base);
+}
+
+.visual {
+  width: 100%;
+  max-width: var(--width-auth-collage);
+  justify-self: center;
+}
+
+@media (--viewport-md) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: var(--space-4);
+  }
+
+  .copy {
+    max-width: none;
+  }
+
+  .visual {
+    display: none;
+  }
+}
+
+@media (--viewport-sm) {
+  .panel {
+    padding: var(--space-3) var(--space-2);
+  }
+}

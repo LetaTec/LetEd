@@ -1,0 +1,34 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  border-bottom: var(--border-width-base) solid var(--color-border-header);
+  background: var(--color-bg-header);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--height-header);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.main {
+  flex: 1;
+}
+
+@media (--viewport-sm) {
+  .actions {
+    gap: var(--space-1);
+  }
+}

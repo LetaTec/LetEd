@@ -1,6 +1,6 @@
 # Repository Instructions
 
-These rules follow the pro-web conventions, adapted to letaEd. Differences from pro-web are called out explicitly.
+These rules follow the pro-web conventions, adapted to SriDha Academy. Differences from pro-web are called out explicitly.
 
 ## Repository layout
 
@@ -14,7 +14,8 @@ These rules follow the pro-web conventions, adapted to letaEd. Differences from 
 - Dependency direction: pages/layouts compose services, hooks, constants and components; services own backend calls; utilities stay pure and side-effect free.
 - Keep generic display formatting in `src/utils/*` (`currency`, `date`, `url`) or domain mappers. Components must not define local date, currency or entity formatters.
 - Use route-local `components/` folders (for example `pages/home/components`) for code used by one route. Promote to `src/components`, `src/hooks` or `src/services` only when reuse is real.
-- Selection and dialog state that must survive authentication (open subject, chosen batch, auth view, redirect target) lives in the URL. Use `useCourseSelection` and `useAuthDialog`; do not duplicate it in component state or storage.
+- Selection and dialog state that must survive authentication (open topic, chosen batch, redirect target) lives in the URL. Use `useTopicSelection` and the `redirect_to` query parameter; do not duplicate it in component state or storage.
+- Students see topics only. Never present a subject or a "course" in UI copy.
 
 ## Access control
 
@@ -41,7 +42,7 @@ These rules follow the pro-web conventions, adapted to letaEd. Differences from 
 - Reuse before building. Cards are always `Card` inside `CardGrid`. Section layout is `Section` + `SectionHead`. Text is `Text` / `Heading`. Buttons are `Button`, `ButtonLink`, `ButtonRouteLink`, `IconButton` or `ButtonBase` — never a raw `<button>`. Dialogs are `Modal` (native `<dialog>`). Icons are `Icon` with names from `src/constants/icons.ts` — never raw Unicode arrows.
 - Async actions pass `loading` to `Button`; the button keeps its width and shows a spinner.
 - Export public prop types as `ComponentNameProps`. No single-component `index.ts` barrels.
-- Use `BrandLogo` for the letaEd wordmark.
+- Use `BrandLogo` for the SriDha Academy wordmark.
 
 ## Import ordering
 
@@ -65,7 +66,7 @@ These rules follow the pro-web conventions, adapted to letaEd. Differences from 
 
 ## Responsive CSS (differs from pro-web)
 
-- CSS custom properties cannot be used inside media queries — `@media (max-width: var(--breakpoint-sm))` is ignored by browsers. letaEd declares shared breakpoints as custom media in `web/src/styles/breakpoints.css`, compiled by `postcss-custom-media`:
+- CSS custom properties cannot be used inside media queries — `@media (max-width: var(--breakpoint-sm))` is ignored by browsers. SriDha Academy declares shared breakpoints as custom media in `web/src/styles/breakpoints.css`, compiled by `postcss-custom-media`:
   - `@media (--viewport-md)`, `@media (--viewport-sm)`, `@media (--reduced-motion)`.
 - Do not invent component-specific breakpoints; add a custom media entry first.
 - Respect `prefers-reduced-motion` for every transition and animation.

@@ -1,9 +1,7 @@
 export { getCatalogue } from './api';
 export {
   findBatchContext,
-  findSubjectBySlug,
-  getSubjectStartingPrice,
-  hasTopics,
+  findTopicContext,
   isBatchOpen,
   listTopics,
 } from './mappers';
