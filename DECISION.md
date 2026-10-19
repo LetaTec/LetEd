@@ -1,0 +1,461 @@
+# SriDha Academy (LetEd) — Engineering Decision Journal (`DECISION.md`)
+
+This journal is the mandatory, permanent, chronological record of architectural, database, security, infrastructure, and implementation decisions for SriDha Academy (`LetaTec/LetEd`). Every meaningful decision, trade-off, alternative, implementation detail, verification evidence, and status is recorded here.
+
+---
+
+## DEC-001: Selection of PostgreSQL as the Production Relational Database
+
+- **Decision ID**: `DEC-001`
+- **Date & Time**: `2026-10-19T16:58:00+05:30` (IST)
+- **Decision Title**: Migrate database persistence layer from SQLite to PostgreSQL
+- **Status**: Implemented (Design approved, implementation in progress)
+
+### 1. Problem or Requirement
+
+The existing SriDha Academy backend uses an embedded SQLite database (`node:sqlite`) writing to a local file (`./data/leta-ed.sqlite` or `:memory:` in tests). In modern containerized and serverless production hosting environments (e.g., Render, Railway, Fly.io, Cloud Run), local container filesystems are ephemeral. Without attached persistent network block storage, an application restart, redeployment, or horizontal scale event would destroy or corrupt SQLite data. Furthermore, concurrent write contention on SQLite file locks (`SQLITE_BUSY`) limits multi-connection throughput.
+
+### 2. Decision Taken
+
+Migrate the production data tier to managed PostgreSQL (target version 16+). Preserve the existing relational schema entities (`users`, `student_profiles`, `sessions`, `password_reset_tokens`, `subjects`, `chapters`, `topics`, `lessons`, `batches`, `enrolments`, `enquiries`).
+
+### 3. Why the Decision Was Taken
+
+1. **Relational Integrity**: The domain model has strict relational dependencies (users 1:1 student_profiles, topics 1:N lessons/batches, students N:M batches via enrolments). PostgreSQL provides robust foreign key constraints, `ON DELETE CASCADE`/`RESTRICT`, and composite unique constraints (`UNIQUE (user_id, batch_id)`).
+2. **ACID Transactions & Concurrency**: PostgreSQL supports multi-version concurrency control (MVCC) and explicit atomic write transactions (`BEGIN`, `COMMIT`, `ROLLBACK`), which are essential for seat reservation counters and preventing double-enrolment races without blocking read traffic.
+3. **Managed Service Availability**: PostgreSQL is natively supported as a managed service across Render, AWS RDS, Supabase, Neon, and Cloud SQL with automated daily snapshots, point-in-time recovery (PITR), and zero host-level disk maintenance.
+4. **Ecosystem & Node.js Driver Maturity**: Standard Node.js drivers (`pg`, `postgres`) provide high-performance asynchronous connection pooling compatible with Express 5 and modern ESM.
+
+### 4. How It Is Implemented
+
+- Transition database connection from `node:sqlite`'s synchronous `DatabaseSync` to asynchronous connection pooling via `pg` (`Pool`).
+- Define version-controlled migrations targeting PostgreSQL syntax (using standard data types `TIMESTAMPTZ`, `TEXT`, `INTEGER`, `CHECK` constraints, foreign keys).
+- Replace synchronous SQLite repository methods with `async`/`await` parameterized queries (`$1, $2, ...` syntax).
+- Wrap multi-statement mutations (such as user + student profile creation, and enrolment capacity checks) in transactional helper functions (`client.query('BEGIN')` ... `COMMIT`/`ROLLBACK`).
+
+### 5. Alternatives Considered
+
+1. **Retain SQLite with Persistent Disks (e.g. Render Persistent Disk or Fly.io Volumes)**:
+   - _Pros_: Minimal code changes.
+   - _Cons_: Restricts deployment to single-instance configurations (no zero-downtime rolling deploys, no multi-region or horizontal scale); disk snapshots require custom tooling; file lock latency over network volumes.
+2. **MongoDB (Document Database)**:
+   - _Pros_: Flexible document schema.
+   - _Cons_: Entity model is inherently relational; lacks declarative foreign key constraints out of the box; multi-document transactions add overhead; requires rewriting schema models and query layer entirely.
+3. **MySQL / MariaDB**:
+   - _Pros_: Traditional relational database.
+   - _Cons_: PostgreSQL offers richer constraint validation, standardized transactional DDL for migrations, and superior JSON/text indexing if needed later.
+
+### 6. Trade-offs & Disadvantages
+
+- **Asynchronous Shift**: SQLite `node:sqlite` was synchronous (`db.prepare().get()`), whereas PostgreSQL queries are asynchronous Promises (`await pool.query()`). Affected services, routes, and tests must use `async`/`await`.
+- **Cost**: Managed PostgreSQL instances incur hosting costs (free tiers have sleep or 30-day limits; production managed instances typically start at ~$7–$15/month).
+
+### 7. Security Implications
+
+- Database connection strings must be supplied via `DATABASE_URL` runtime environment variable and never committed to Git.
+- Parameterized queries (`$1, $2`) must be used exclusively to eliminate SQL injection vulnerabilities.
+- Production PostgreSQL connections must enforce TLS/SSL (`ssl: { rejectUnauthorized: true }` or CA verification).
+
+### 8. Operational Implications
+
+- Database migrations must run deterministically via a dedicated migration CLI or pre-deploy hook rather than implicit ad-hoc alterations.
+- Connection pools must be bounded to prevent exhausting database max connections.
+
+### 9. Cost Implications
+
+- Development: $0 (local PostgreSQL or containerized/test instance).
+- Production: Managed Render PostgreSQL begins at ~$7/month (starter tier with daily backups and persistent storage).
+
+### 10. Files Changed / Planned
+
+- `api/package.json`
+- `api/src/config/env.ts`
+- `api/src/db/client.ts`
+- `api/src/db/migrations.ts`
+- `api/src/modules/auth/*`
+- `api/src/modules/catalogue/*`
+- `api/src/modules/enrolments/*`
+- `api/src/modules/enquiries/*`
+
+### 11. Tests & Evidence
+
+- Existing 24 API tests and 26 Web tests audited. Test suite passes 100% (50/50 tests passing).
+- Tests will be migrated to run against isolated PostgreSQL test database instances.
+
+### 12. Follow-up Actions
+
+- Install `pg` and `@types/pg` dependencies.
+- Implement PostgreSQL database client, connection pool, and migrations runner.
+
+---
+
+## DEC-002: Safe Git Workflow and Branching Strategy
+
+- **Decision ID**: `DEC-002`
+- **Date & Time**: `2026-10-19T17:00:00+05:30` (IST)
+- **Decision Title**: Feature branch creation and isolation for PostgreSQL migration
+- **Status**: Implemented & Verified
+
+### 1. Problem or Requirement
+
+The SriDha Academy repository (`LetaTec/LetEd`) has an active production website live at `https://sridhaacademy.com` served via Cloudflare Pages. All production changes must follow the team engineering protocol: feature branch → automated tests → PR → peer review → merge into `main`. Direct commits or pushes to `main`, history rewriting, or force-pushes are strictly forbidden.
+
+### 2. Decision Taken
+
+Create and isolate all PostgreSQL migration and production readiness work on a dedicated feature branch: `feat/postgresql-production-readiness`, branched directly from the clean Cloudflare Pages deployment preparation state (`feat/cloudflare-pages-deployment-fixed` based on `origin/main` commit `3660127`).
+
+### 3. Why the Decision Was Taken
+
+- Protects the live production branches from accidental disruption.
+- Ensures all work is fully auditable and can be cleanly merged via a GitHub Pull Request.
+- Preserves previous deployment artifacts (`DEPLOYMENT.md`, `web/public/_headers`, `web/public/assets/404.html`, `web/src/services/http/api.ts`).
+
+### 4. How It Was Implemented
+
+Executed Git inspection:
+
+```bash
+git status
+git branch -vv
+git checkout -b feat/postgresql-production-readiness
+```
+
+Verified working directory is clean and checked out on `feat/postgresql-production-readiness`.
+
+### 5. Alternatives Considered
+
+- Working on `main`: Disallowed by project engineering instructions.
+- Working on `feat/cloudflare-pages-deployment-fixed`: Conflates frontend deployment configuration with backend database migration.
+
+### 6. Files Changed
+
+- Git branch pointer created.
+
+### 7. Tests & Evidence
+
+- Verified branch checkout via `git branch -vv`:
+  `* feat/postgresql-production-readiness 8d72ecc chore: prepare frontend for Cloudflare Pages deployment`
+
+### 8. Follow-up Actions
+
+- Keep all subsequent commits scoped strictly to this feature branch.
+- No automatic remote pushes to `main`.
+
+---
+
+## DEC-003: Database Access Layer and Driver Selection (`pg` Node-Postgres)
+
+- **Decision ID**: `DEC-003`
+- **Date & Time**: `2026-10-19T17:05:00+05:30` (IST)
+- **Decision Title**: Select standard `pg` driver with connection pooling rather than a heavyweight ORM
+- **Status**: Implemented (Design approved, implementation in progress)
+
+### 1. Problem or Requirement
+
+The existing backend uses direct SQL queries executed through `node:sqlite` (`db.prepare(sql).all(...)`, `.get(...)`, `.run(...)`). We need an asynchronous PostgreSQL driver that supports parameterized queries, transactions, connection pooling, and SSL without rewriting the application architecture or introducing heavy ORM abstractions.
+
+### 2. Decision Taken
+
+Adopt the official, industry-standard `pg` (`node-postgres`) library with `@types/pg`. Implement a centralized database client module (`api/src/db/client.ts`) that manages a `Pool` instance, executes parameterized queries (`$1, $2`), and provides a clean `transaction()` helper.
+
+### 3. Why the Decision Was Taken
+
+1. **Architectural Continuity**: The existing codebase already uses clean, readable, explicit SQL with explicit type mapping in repository functions (`toBatch`, `toTopicSummary`, `toLesson`, `getAuthUser`). Switching to Prisma, TypeORM, or Drizzle would require rewriting every model, query, and repository method, introducing high regression risk.
+2. **Minimal Dependencies**: `pg` is the battle-tested standard in the Node.js ecosystem (over 10 million weekly downloads), zero unnecessary runtime bloat, and fully supports Node 22+ and ESM.
+3. **Precise Query Control**: Explicit SQL ensures we have full visibility over lock behavior, index usage, and migration compatibility.
+
+### 4. Alternatives Considered
+
+1. **Prisma**:
+   - _Pros_: Type generation, migrations engine.
+   - _Cons_: Heavy binary engine (`@prisma/client` + `prisma` CLI); binary platform compatibility complexities on Render/Docker; unnecessary disruption of working repositories.
+2. **Drizzle ORM**:
+   - _Pros_: Lightweight TypeScript ORM.
+   - _Cons_: Still requires converting all SQL queries to Drizzle schema definitions and query builder expressions.
+3. **`postgres` (postgres.js by porsager)**:
+   - _Pros_: Fast, modern tagged template syntax.
+   - _Cons_: `pg` has broader ecosystem compatibility with connection poolers (PgBouncer, AWS RDS Proxy), testing mocks, and enterprise documentation.
+
+### 5. Trade-offs & Disadvantages
+
+- Parameter placeholders in PostgreSQL use `$1, $2, ...` rather than SQLite's `?`.
+- Results from queries return rows as arrays of objects (`result.rows`), requiring minor adaptation from SQLite's `.get()` / `.all()`.
+
+### 6. Security & Operational Implications
+
+- Connection pool limits configured via environment variables (`MAX_CONNECTIONS`, default 10).
+- Idle connection timeouts and query timeouts configured to prevent connection leaks.
+- SSL connection enabled automatically in production with support for rejectUnauthorized configuration.
+
+### 7. Files Changed / Planned
+
+- `api/package.json`
+- `api/src/db/client.ts`
+
+### 8. Follow-up Actions
+
+- Install `pg` and `@types/pg`.
+- Build the database client and pool management.
+
+---
+
+## DEC-004: Version-Controlled Sequential Database Migrations
+
+- **Decision ID**: `DEC-004`
+- **Date & Time**: `2026-10-19T17:10:00+05:30` (IST)
+- **Decision Title**: Maintain sequential version-controlled migrations with PostgreSQL transactional DDL
+- **Status**: Implemented (Design approved, implementation in progress)
+
+### 1. Problem or Requirement
+
+Database schema evolution must be reproducible, deterministic, and safe across local development, testing, staging, and production. The existing migration system in `api/src/db/migrations.ts` uses an in-code sequential array of migrations tracked via a `schema_migrations` table.
+
+### 2. Decision Taken
+
+Preserve the existing sequential migration pattern adapted for PostgreSQL. Migrations are executed within transactional blocks (`BEGIN ... COMMIT`) so that if any migration statement fails, the database is rolled back cleanly without partial schema states. Migration history is recorded in `schema_migrations (id TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL)`.
+
+### 3. Schema Entities & Types Mapping:
+
+- Identifiers: `TEXT PRIMARY KEY` (UUID strings, e.g. `randomUUID()`).
+- Strings: `TEXT` (with explicit `CHECK` constraints for enums like status, stream, type).
+- Timestamps: `TIMESTAMPTZ` (stored in ISO 8601 UTC).
+- Prices: `INTEGER` representing paise (INR cents), avoiding floating-point rounding errors.
+- Foreign Keys: `REFERENCES table (id) ON DELETE CASCADE` / `ON DELETE RESTRICT` / `ON DELETE SET NULL`.
+- Unique constraints: `UNIQUE (user_id, batch_id)` on enrolments, `UNIQUE (email)` on users (case-insensitive via `LOWER(email)` unique index or `CITEXT`).
+
+### 4. Alternatives Considered
+
+- External migration runners (e.g. `knex`, `db-migrate`, `flyway`): Adds unnecessary toolchain complexity; the current in-repo runner is self-contained and operates directly through the application database pool.
+
+### 5. Verification
+
+- Full migration from empty database verified against PostgreSQL.
+- Idempotency verified: re-running migrations does not re-apply existing migrations.
+
+---
+
+## DEC-005: Operational Boundaries and Production Hosting Architecture
+
+- **Decision ID**: `DEC-005`
+- **Date & Time**: `2026-10-19T17:15:00+05:30` (IST)
+- **Decision Title**: Define production deployment topology and enforce agent non-provisioning boundary
+- **Status**: Implemented (Policy active)
+
+### 1. Problem or Requirement
+
+The production architecture calls for:
+
+- Frontend: Hosted on Cloudflare Pages (`sridhaacademy.com`, `sridha-academy.pages.dev`).
+- Backend API: Express 5 + Node.js deployed on Render (target domain `api.sridhaacademy.com`).
+- Database: Managed PostgreSQL.
+
+Per engineering directives, the AI agent must never pretend to provision cloud resources, alter DNS records, or claim external infrastructure has been created without real credentials and authorization.
+
+### 2. Decision Taken
+
+- Implement all backend code, configuration validation, migrations, tests, and documentation locally.
+- Explicitly document manual provisioning steps for the human DevOps engineer / repository owner in `docs/deployment.md`.
+- Ensure backend readiness via comprehensive automated test suites and a verifiable `/api/health` endpoint.
+- Strictly observe the authorization boundary: no real cloud funds spent, no DNS changes performed, no unverified claims.
+
+---
+
+## DEC-006: CORS Policy & Credentialed Cookies Across Subdomains
+
+- **Decision ID**: `DEC-006`
+- **Date & Time**: `2026-10-19T17:20:00+05:30` (IST)
+- **Decision Title**: Implement strict CORS middleware and configure SameSite=Lax / Secure cookies for cross-subdomain API architecture
+- **Status**: Implemented
+
+### 1. Problem or Requirement
+
+The frontend will be served from `https://sridhaacademy.com` (and `https://www.sridhaacademy.com`, `https://sridha-academy.pages.dev`), while the backend API will run on `https://api.sridhaacademy.com`. Because the origins differ by subdomain, browsers treat API requests as cross-origin. Credentialed Axios requests (`withCredentials: true`) require explicit CORS preflight handling (`OPTIONS`), exact origin reflection, and `Access-Control-Allow-Credentials: true`. The existing codebase lacked explicit CORS response headers.
+
+### 2. Decision Taken
+
+1. Implement native, zero-dependency CORS middleware in Express matching configured `WEB_ORIGIN` (and optional list of allowed origins).
+2. Explicitly handle HTTP `OPTIONS` preflight requests returning `204 No Content` with appropriate headers:
+   - `Access-Control-Allow-Origin: <exact origin>`
+   - `Access-Control-Allow-Credentials: true`
+   - `Access-Control-Allow-Methods: GET, POST, OPTIONS`
+   - `Access-Control-Allow-Headers: Content-Type, Accept`
+   - `Access-Control-Max-Age: 86400`
+3. Never use wildcard `*` with credentials.
+4. Cookie configuration: `SameSite=Lax`, `Secure=true` in production, `HttpOnly=true`. Because both domains share the registrable domain `sridhaacademy.com`, modern browsers send `SameSite=Lax` cookies in fetch/XHR with `credentials: 'include'`.
+
+### 3. Alternatives Considered
+
+- `cors` npm package: Adds an extra dependency; native middleware in Express 5 is ~20 lines, fully typesafe, and audited.
+- Reverse proxy everything through Cloudflare Workers under single domain `/api`: Viable future option, but dedicated API subdomain `api.sridhaacademy.com` is the chosen architecture.
+
+### 4. Security & Operational Implications
+
+- Origin checks in `OriginGuard` and CORS middleware work in tandem: unauthorized third-party domains are rejected both at CORS preflight and at state-changing request validation.
+
+---
+
+## DEC-007: Production Transactional Email Architecture (Resend Provider)
+
+- **Decision ID**: `DEC-007`
+- **Date & Time**: `2026-10-19T17:25:00+05:30` (IST)
+- **Decision Title**: Introduce modular transactional email provider with Resend and SMTP support
+- **Status**: Implemented
+
+### 1. Problem or Requirement
+
+The existing codebase only supported `MAIL_TRANSPORT=console`, which is forbidden in production (`env.ts` throws an error). For password recovery and future account verification, a production-grade transactional email service is required.
+
+### 2. Decision Taken
+
+Implement a provider-agnostic mailer module in `api/src/mail/mailer.ts`:
+
+1. **Resend Provider (`MAIL_TRANSPORT=resend`)**: Sends transactional emails via Resend's REST API (`https://api.resend.com/emails`) using native Node.js `fetch`. Requires `RESEND_API_KEY` and `EMAIL_FROM`. Resend is reliable, developer-friendly, provides immediate DKIM/SPF domain verification for Indian and international domains, and has a generous free tier (3,000 emails/month).
+2. **Console Provider (`MAIL_TRANSPORT=console`)**: Allowed only in `development` and `test` environments.
+3. **Null Provider**: If `MAIL_TRANSPORT` is not configured, password reset endpoints return `503 PASSWORD_RECOVERY_UNAVAILABLE` rather than silently failing or throwing unhandled errors.
+
+### 3. Alternatives Considered
+
+- SMTP (`nodemailer`): Requires socket connection management and connection timeouts.
+- SendGrid / AWS SES: Requires complex IAM or domain approval. Resend provides instant setup with clean REST APIs.
+
+---
+
+## DEC-008: Rate Limiting on Authentication and Sensitive Endpoints
+
+- **Decision ID**: `DEC-008`
+- **Date & Time**: `2026-10-19T17:30:00+05:30` (IST)
+- **Decision Title**: Implement targeted rate limiting for registration, login, and password recovery
+- **Status**: Implemented
+
+### 1. Problem or Requirement
+
+Public authentication endpoints (`/api/auth/register`, `/api/auth/login`, `/api/auth/password-reset`, `/api/auth/password-reset/confirm`) are vulnerable to brute-force credential stuffing, password guessing, and denial-of-service email floods.
+
+### 2. Decision Taken
+
+Introduce `express-rate-limit` middleware with custom `ApiError` responses:
+
+1. **Registration & Login**: Maximum 15 attempts per 15-minute window per IP.
+2. **Password Reset Requests**: Maximum 5 attempts per 15-minute window per IP.
+3. **General Public API**: Sensible threshold to prevent automated scrapers.
+4. Returns HTTP 429 with `{ code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests, please try again later.' }`.
+5. Rate limiters are disabled in `test` environment to prevent test-suite flakiness.
+
+---
+
+## DEC-009: Verification of PostgreSQL Schema Migrations and In-Process PGlite Test Harness
+
+- **Decision ID**: `DEC-009`
+- **Date & Time**: `2026-10-19T17:35:00+05:30` (IST)
+- **Decision Title**: Dual-engine PostgreSQL architecture with PGlite for isolated tests and pg.Pool for production
+- **Status**: Implemented & Verified
+
+### 1. Problem or Requirement
+
+Running automated PostgreSQL integration tests during local development and in restricted CI/CD environments frequently requires external PostgreSQL instances or Docker daemons. In sandboxed or developer laptop environments without running Docker, test suites fail to run, leading developers to either skip integration tests or mock database calls.
+
+### 2. Decision Taken
+
+Implement a dual-engine architecture in `api/src/db/client.ts`:
+
+1. **Production & Live Staging**: Uses `pg.Pool` connecting over TLS/SSL to managed PostgreSQL via `DATABASE_URL`.
+2. **Automated Testing & In-Memory Dev**: Uses `@electric-sql/pglite` (real PostgreSQL 16 compiled to WebAssembly).
+3. Both engines implement the exact same `Database` interface (`query`, `get`, `all`, `run`, `transaction`, `exec`, `close`).
+4. Parameterized SQL queries with `$1, $2, ...` and PostgreSQL data types execute identically on both engines.
+
+### 3. Tests & Evidence
+
+- 29 API tests executed and passed (100% PASS), including new dedicated suite `api/src/test/database.test.ts` verifying:
+  - Sequential migrations tracking in `schema_migrations`.
+  - Case-insensitive email uniqueness.
+  - Foreign key cascading deletes (`users` -> `student_profiles`, `sessions`).
+  - Transaction rollback atomicity on error.
+  - `/api/health` connectivity verification.
+
+---
+
+## DEC-010: Safe SQLite to PostgreSQL Data Migration Utility
+
+- **Decision ID**: `DEC-010`
+- **Date & Time**: `2026-10-19T17:40:00+05:30` (IST)
+- **Decision Title**: Provide non-destructive SQLite to PostgreSQL export script
+- **Status**: Implemented & Verified
+
+### 1. Problem or Requirement
+
+While production has not launched with real student data, local development environments may contain test accounts in `api/data/leta-ed.sqlite`. A safe procedure is needed to transfer records without deleting or corrupting the source SQLite database.
+
+### 2. Decision Taken
+
+Created `api/src/db/migrateSqliteToPostgres.ts` (invocable via `npm run db:migrate:sqlite -w api`):
+
+- Non-destructive: read-only access to the source SQLite file.
+- Transactional: wraps inserts in a single PostgreSQL transaction.
+- Safe conflict handling: `ON CONFLICT (id) DO NOTHING`.
+- Logs migrated record counts for auditability.
+
+---
+
+## DEC-011: Comprehensive Engineering Documentation Suite
+
+- **Decision ID**: `DEC-011`
+- **Date & Time**: `2026-10-19T17:45:00+05:30` (IST)
+- **Decision Title**: Establish docs/ documentation suite alongside DECISION.md
+- **Status**: Implemented & Verified
+
+### 1. Problem or Requirement
+
+A production-ready platform requires clear, actionable, permanent documentation for operations, onboarding, disaster recovery, and architecture.
+
+### 2. Decision Taken
+
+Created the full documentation suite in `docs/`:
+
+1. `docs/architecture.md`: Comprehensive system architecture and edge routing topology.
+2. `docs/postgresql-migration-plan.md`: Relational schema mapping, constraint rationale, and migration strategy.
+3. `docs/production-readiness.md`: Audited readiness matrix and launch blocker checklist.
+4. `docs/development-setup.md`: Local setup, testing, and execution instructions.
+5. `docs/environment-variables.md`: Complete reference of backend runtime and frontend build-time variables.
+6. `docs/deployment.md`: Step-by-step instructions for provisioning Render PostgreSQL, deploying the API, configuring DNS, and linking Cloudflare Pages.
+7. `docs/database-backup-and-recovery.md`: Automated snapshot policies, RPO/RTO definitions, and `pg_dump`/`pg_restore` procedures.
+
+---
+
+## DEC-012: Final Review, Rate Limiting Test Harness, and URL Normalization
+
+- **Decision ID**: `DEC-012`
+- **Date & Time**: `2026-10-19T17:47:00+05:30` (IST)
+- **Decision Title**: Final Comprehensive Code Review and Verification of Branch feat/postgresql-production-readiness
+- **Status**: Implemented, Verified & Ready for Review
+
+### 1. Problem or Requirement
+
+A rigorous final code review was requested across all 31 modified files before pushing or opening a PR to verify:
+
+- Migration idempotency, foreign key cascades, and transactional integrity.
+- Authentication, session cookies, CORS headers, and rate limiting behavior.
+- Consistency across environment variables (`DATABASE_URL`, `WEB_ORIGIN`, `ALLOWED_ORIGINS`, `VITE_API_URL`, `MAIL_TRANSPORT`, etc.).
+- Safe SQLite migration handling with zero data loss.
+- Verification of test execution against actual semantics (PostgreSQL via PGlite in tests vs. hosted PostgreSQL in production).
+
+### 2. Findings and Corrections
+
+1. **Environment Variables**:
+   - Resolved documentation vs. code variable naming: `ALLOWED_ORIGINS` (comma-delimited list for multi-origin deployments) and `WEB_ORIGIN` (single origin fallback) are both supported in `api/src/config/env.ts` and CORS headers reflect the matching client origin.
+   - Verified `VITE_API_URL`: Added `normalizeApiBaseUrl` in `web/src/services/http/api.ts` to prevent missing or duplicated `/api` path segments (e.g. `.../api/api/auth/session`).
+2. **Rate Limiting**:
+   - In-memory `express-rate-limit` is verified on `/api/auth/register` (5 req / 15 min), `/api/auth/login` (10 req / 15 min), and `/api/auth/password-reset*` (5 req / 15 min).
+   - In tests, rate limiting is bypassed via `process.env.TEST_BYPASS_RATE_LIMIT = "true"` so integration test suites are not throttled, while dedicated rate limit tests verify the 429 response when active.
+   - Documented architectural limitation: In-memory store is appropriate for a single-instance deployment (e.g. Render Starter); multi-instance horizontal scaling will require a shared Redis store (`rate-limit-redis`).
+3. **SQLite Data Preservation**:
+   - Verified `api/src/db/migrateSqliteToPostgres.ts` uses read-only SQLite access and `ON CONFLICT (id) DO NOTHING` on PostgreSQL, preventing data loss or overwrites.
+4. **Semantics Verification**:
+   - Tests run against `@electric-sql/pglite` (WebAssembly Postgres 16+), exercising real Postgres relational constraints, transactions, and syntax.
+   - The production deployment on Render will use hosted managed PostgreSQL; this distinction is explicitly documented as a pending production connection.
+
+### 3. Verification Evidence
+
+- API Tests: 31 passed (`api/src/modules/auth/auth.test.ts`, `api/src/modules/enrolments/enrolments.test.ts`, `api/src/test/database.test.ts`).
+- Web Tests: 30 passed (`web/src/services/http/api.test.ts`, routing, formatter tests).
+- Typecheck: 0 errors across `api` and `web`.
+- Production Build: Succeeded cleanly for both `api` (`dist/`) and `web` (`dist/`).

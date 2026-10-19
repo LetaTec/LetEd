@@ -8,8 +8,8 @@ import { getCatalogue } from './catalogue.repository.js';
 export const createCatalogueRouter = (context: AppContext) => {
   const router = Router();
 
-  router.get('/', (_req, res) => {
-    res.json({ subjects: getCatalogue(context) });
+  router.get('/', async (_req, res) => {
+    res.json({ subjects: await getCatalogue(context) });
   });
 
   return router;

@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { ApiError } from '@services/api/errors';
 
-import { API_CLIENT } from './api';
+import { API_CLIENT, normalizeApiBaseUrl } from './api';
 
 type InterceptorHandler = {
   fulfilled: (value: AxiosResponse) => AxiosResponse | Promise<AxiosResponse>;
@@ -22,6 +22,38 @@ const getFirstResponseInterceptor = (): InterceptorHandler => {
   ).handlers;
   return handlers[0];
 };
+
+describe('normalizeApiBaseUrl', () => {
+  it('defaults to /api when undefined or empty', () => {
+    expect(normalizeApiBaseUrl(undefined)).toBe('/api');
+    expect(normalizeApiBaseUrl('')).toBe('/api');
+    expect(normalizeApiBaseUrl('   ')).toBe('/api');
+  });
+
+  it('keeps /api intact without duplicate slashes', () => {
+    expect(normalizeApiBaseUrl('/api')).toBe('/api');
+    expect(normalizeApiBaseUrl('/api/')).toBe('/api');
+    expect(normalizeApiBaseUrl('/api///')).toBe('/api');
+  });
+
+  it('appends /api to domain roots if omitted', () => {
+    expect(normalizeApiBaseUrl('https://api.sridhaacademy.com')).toBe(
+      'https://api.sridhaacademy.com/api',
+    );
+    expect(normalizeApiBaseUrl('https://api.sridhaacademy.com/')).toBe(
+      'https://api.sridhaacademy.com/api',
+    );
+  });
+
+  it('preserves existing /api on domain roots and does not duplicate to /api/api', () => {
+    expect(normalizeApiBaseUrl('https://api.sridhaacademy.com/api')).toBe(
+      'https://api.sridhaacademy.com/api',
+    );
+    expect(normalizeApiBaseUrl('https://api.sridhaacademy.com/api/')).toBe(
+      'https://api.sridhaacademy.com/api',
+    );
+  });
+});
 
 describe('API_CLIENT response interceptor', () => {
   it('passes through successful JSON responses', async () => {

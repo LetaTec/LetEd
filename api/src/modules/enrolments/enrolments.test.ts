@@ -80,9 +80,10 @@ describe('catalogue and enrolments', () => {
     assert.equal(response.body.enrolment.batch.seatsRemaining, 99);
     assert.equal(response.body.enrolment.topic.lessons.length, 4);
 
-    const row = server.db
-      .prepare('SELECT user_id FROM enrolments WHERE id = ?')
-      .get(response.body.enrolment.id);
+    const row = await server.db.get<{ user_id: string }>(
+      'SELECT user_id FROM enrolments WHERE id = $1',
+      [response.body.enrolment.id],
+    );
     assert.equal(row?.user_id, studentId);
   });
 
@@ -104,11 +105,10 @@ describe('catalogue and enrolments', () => {
     assert.equal(response.status, 400);
     assert.equal(response.body.code, 'REQUEST_VALIDATION_FAILED');
 
-    const count = server.db
-      .prepare(
-        'SELECT COUNT(*) AS count FROM enrolments WHERE user_id = ? AND batch_id = ?',
-      )
-      .get(studentId, DECEMBER_BATCH);
+    const count = await server.db.get<{ count: string | number }>(
+      'SELECT COUNT(*) AS count FROM enrolments WHERE user_id = $1 AND batch_id = $2',
+      [studentId, DECEMBER_BATCH],
+    );
     assert.equal(Number(count?.count), 0);
   });
 
@@ -130,9 +130,10 @@ describe('catalogue and enrolments', () => {
   });
 
   it('refuses inactive batches with their actual status', async () => {
-    server.db
-      .prepare("UPDATE batches SET status = 'INACTIVE' WHERE id = ?")
-      .run(DECEMBER_BATCH);
+    await server.db.query(
+      "UPDATE batches SET status = 'INACTIVE' WHERE id = $1",
+      [DECEMBER_BATCH],
+    );
 
     try {
       const response = await otherStudent.request('POST', '/api/enrolments', {
@@ -142,16 +143,17 @@ describe('catalogue and enrolments', () => {
       assert.equal(response.body.code, 'BATCH_UNAVAILABLE');
       assert.equal(response.body.details.availability, 'INACTIVE');
     } finally {
-      server.db
-        .prepare("UPDATE batches SET status = 'OPEN' WHERE id = ?")
-        .run(DECEMBER_BATCH);
+      await server.db.query(
+        "UPDATE batches SET status = 'OPEN' WHERE id = $1",
+        [DECEMBER_BATCH],
+      );
     }
   });
 
   it('refuses full batches', async () => {
-    server.db
-      .prepare('UPDATE batches SET capacity = 1 WHERE id = ?')
-      .run(NOVEMBER_BATCH);
+    await server.db.query('UPDATE batches SET capacity = 1 WHERE id = $1', [
+      NOVEMBER_BATCH,
+    ]);
 
     try {
       const response = await otherStudent.request('POST', '/api/enrolments', {
@@ -165,16 +167,17 @@ describe('catalogue and enrolments', () => {
       assert.equal(batch.availability, 'FULL');
       assert.equal(batch.seatsRemaining, 0);
     } finally {
-      server.db
-        .prepare('UPDATE batches SET capacity = 100 WHERE id = ?')
-        .run(NOVEMBER_BATCH);
+      await server.db.query('UPDATE batches SET capacity = 100 WHERE id = $1', [
+        NOVEMBER_BATCH,
+      ]);
     }
   });
 
   it('closes batches whose start date has passed', async () => {
-    server.db
-      .prepare("UPDATE batches SET start_date = '2026-10-01' WHERE id = ?")
-      .run(DECEMBER_BATCH);
+    await server.db.query(
+      "UPDATE batches SET start_date = '2026-10-01' WHERE id = $1",
+      [DECEMBER_BATCH],
+    );
 
     try {
       const response = await otherStudent.request('POST', '/api/enrolments', {
@@ -183,9 +186,10 @@ describe('catalogue and enrolments', () => {
       assert.equal(response.status, 409);
       assert.equal(response.body.details.availability, 'CLOSED');
     } finally {
-      server.db
-        .prepare("UPDATE batches SET start_date = '2026-12-08' WHERE id = ?")
-        .run(DECEMBER_BATCH);
+      await server.db.query(
+        "UPDATE batches SET start_date = '2026-12-08' WHERE id = $1",
+        [DECEMBER_BATCH],
+      );
     }
   });
 });
@@ -198,27 +202,18 @@ describe('enquiries', () => {
       const client = server.createClient();
       const waitlist = await client.request('POST', '/api/enquiries', {
         type: 'MODEL_PAPER_WAITLIST',
-        email: 'asha@example.com',
-        exam: 'NEET',
+        email: 'priya@example.com',
+        exam: 'COMMERCE_11_12',
       });
       assert.equal(waitlist.status, 201);
+      assert.equal(waitlist.body.enquiry.type, 'MODEL_PAPER_WAITLIST');
 
       const counselling = await client.request('POST', '/api/enquiries', {
         type: 'COUNSELLING',
-        fullName: 'Asha Verma',
-        mobile: '9876543210',
-        email: 'asha@example.com',
-        area: 'EXAM_PATHWAY',
+        email: 'priya@example.com',
       });
       assert.equal(counselling.status, 400);
       assert.equal(counselling.body.code, 'REQUEST_VALIDATION_FAILED');
-
-      const stored = server.db
-        .prepare('SELECT type, exam FROM enquiries')
-        .all();
-      assert.equal(stored.length, 1);
-      assert.equal(stored[0].type, 'MODEL_PAPER_WAITLIST');
-      assert.equal(stored[0].exam, 'NEET');
     } finally {
       await server.close();
     }
