@@ -14,16 +14,16 @@ export const createEnrolmentsRouter = (context: AppContext) => {
 
   router.use(requireAuth);
 
-  router.get('/', (req, res) => {
+  router.get('/', async (req, res) => {
     const { userId } = getRequiredAuth(req.auth);
-    res.json({ enrolments: listEnrolments(context, userId) });
+    res.json({ enrolments: await listEnrolments(context, userId) });
   });
 
-  router.post('/', (req, res) => {
+  router.post('/', async (req, res) => {
     const { userId } = getRequiredAuth(req.auth);
     const { batchId } = validate(createEnrolmentSchema, req.body);
     res.status(201).json({
-      enrolment: createEnrolment(context, userId, batchId),
+      enrolment: await createEnrolment(context, userId, batchId),
     });
   });
 

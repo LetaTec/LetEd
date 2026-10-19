@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 export const MAIL_TRANSPORT = {
   console: 'console',
+  resend: 'resend',
 } as const;
 
 const envSchema = z.object({
@@ -12,11 +13,25 @@ const envSchema = z.object({
     .enum(['development', 'test', 'production'])
     .default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
+  DATABASE_URL: z.string().min(1).optional(),
   DATABASE_PATH: z.string().min(1).default('./data/leta-ed.sqlite'),
-  WEB_ORIGIN: z.url().optional(),
+  WEB_ORIGIN: z.string().url().optional(),
+  ALLOWED_ORIGINS: z.string().optional(),
   SESSION_TTL_DAYS: z.coerce.number().positive().default(1),
   SESSION_REMEMBER_TTL_DAYS: z.coerce.number().positive().default(30),
-  MAIL_TRANSPORT: z.enum([MAIL_TRANSPORT.console]).optional(),
+  MAIL_TRANSPORT: z
+    .enum([MAIL_TRANSPORT.console, MAIL_TRANSPORT.resend])
+    .optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z
+    .string()
+    .min(1)
+    .default('SriDha Academy <noreply@sridhaacademy.com>'),
+  PG_MAX_CONNECTIONS: z.coerce.number().int().positive().default(10),
+  ENABLE_RATE_LIMIT: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform(value => (value === undefined ? undefined : value === 'true')),
   SERVE_WEB_DIST: z
     .enum(['true', 'false'])
     .default('false')
@@ -26,11 +41,17 @@ const envSchema = z.object({
 export type AppConfig = {
   env: 'development' | 'test' | 'production';
   port: number;
+  databaseUrl: string | null;
   databasePath: string;
   webOrigin: string;
+  allowedOrigins: string[];
   sessionTtlMs: number;
   sessionRememberTtlMs: number;
   mailTransport: (typeof MAIL_TRANSPORT)[keyof typeof MAIL_TRANSPORT] | null;
+  resendApiKey: string | null;
+  emailFrom: string;
+  pgMaxConnections: number;
+  enableRateLimiting: boolean;
   serveWebDist: boolean;
   secureCookies: boolean;
 };
@@ -67,20 +88,49 @@ export const loadConfig = (
     );
   }
 
+  if (isProduction && !env.DATABASE_URL) {
+    throw new Error(
+      'Invalid API configuration — DATABASE_URL is required in production',
+    );
+  }
+
   if (isProduction && env.MAIL_TRANSPORT === MAIL_TRANSPORT.console) {
     throw new Error(
       'Invalid API configuration — MAIL_TRANSPORT=console exposes reset links in logs and is not allowed in production',
     );
   }
 
+  if (env.MAIL_TRANSPORT === MAIL_TRANSPORT.resend && !env.RESEND_API_KEY) {
+    throw new Error(
+      'Invalid API configuration — RESEND_API_KEY is required when MAIL_TRANSPORT=resend',
+    );
+  }
+
+  const primaryOrigin = env.WEB_ORIGIN ?? DEVELOPMENT_WEB_ORIGIN;
+  const additionalOrigins = env.ALLOWED_ORIGINS
+    ? env.ALLOWED_ORIGINS.split(',')
+        .map(o => o.trim())
+        .filter(Boolean)
+    : [];
+
+  const allowedOrigins = Array.from(
+    new Set([primaryOrigin, ...additionalOrigins]),
+  );
+
   return {
     env: env.NODE_ENV,
     port: env.PORT,
+    databaseUrl: env.DATABASE_URL ?? null,
     databasePath: env.DATABASE_PATH,
-    webOrigin: env.WEB_ORIGIN ?? DEVELOPMENT_WEB_ORIGIN,
+    webOrigin: primaryOrigin,
+    allowedOrigins,
     sessionTtlMs: env.SESSION_TTL_DAYS * DAY_MS,
     sessionRememberTtlMs: env.SESSION_REMEMBER_TTL_DAYS * DAY_MS,
     mailTransport: env.MAIL_TRANSPORT ?? null,
+    resendApiKey: env.RESEND_API_KEY ?? null,
+    emailFrom: env.EMAIL_FROM,
+    pgMaxConnections: env.PG_MAX_CONNECTIONS,
+    enableRateLimiting: env.ENABLE_RATE_LIMIT ?? env.NODE_ENV !== 'test',
     serveWebDist: env.SERVE_WEB_DIST,
     secureCookies: isProduction,
   };

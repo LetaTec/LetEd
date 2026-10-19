@@ -1,5 +1,5 @@
 import type { AppContext } from '../../app/context.js';
-import type { Database } from '../../db/client.js';
+import type { DatabaseClient } from '../../db/client.js';
 
 export const BATCH_AVAILABILITY = {
   open: 'OPEN',
@@ -106,16 +106,13 @@ export const resolveBatchAvailability = (
   return BATCH_AVAILABILITY.open;
 };
 
-const countActiveEnrolments = (db: Database) =>
-  new Map(
-    db
-      .prepare(
-        `SELECT batch_id, COUNT(*) AS taken FROM enrolments
-         WHERE status <> 'CANCELLED' GROUP BY batch_id`,
-      )
-      .all()
-      .map(row => [String(row.batch_id), Number(row.taken)]),
+const countActiveEnrolments = async (db: DatabaseClient) => {
+  const rows = await db.all(
+    `SELECT batch_id, COUNT(*) AS taken FROM enrolments
+     WHERE status <> 'CANCELLED' GROUP BY batch_id`,
   );
+  return new Map(rows.map(row => [String(row.batch_id), Number(row.taken)]));
+};
 
 export const toBatch = (
   row: Row,
@@ -161,31 +158,33 @@ const groupBy = <T>(rows: Row[], key: string, map: (row: Row) => T) =>
     return groups;
   }, new Map<string, T[]>());
 
-export const getCatalogue = ({ db, now }: AppContext): Subject[] => {
+export const getCatalogue = async ({
+  db,
+  now,
+}: AppContext): Promise<Subject[]> => {
   const today = toDateOnly(now());
-  const taken = countActiveEnrolments(db);
+  const taken = await countActiveEnrolments(db);
 
-  const lessonsByTopic = groupBy(
-    db.prepare('SELECT * FROM lessons ORDER BY position').all(),
-    'topic_id',
-    toLesson,
+  const [lessonsRows, batchesRows, topicsRows, chaptersRows, subjectsRows] =
+    await Promise.all([
+      db.all('SELECT * FROM lessons ORDER BY position'),
+      db.all('SELECT * FROM batches ORDER BY position'),
+      db.all('SELECT * FROM topics ORDER BY position'),
+      db.all('SELECT * FROM chapters ORDER BY position'),
+      db.all('SELECT * FROM subjects ORDER BY position'),
+    ]);
+
+  const lessonsByTopic = groupBy(lessonsRows, 'topic_id', toLesson);
+  const batchesByTopic = groupBy(batchesRows, 'topic_id', row =>
+    toBatch(row, taken.get(String(row.id)) ?? 0, today),
   );
-  const batchesByTopic = groupBy(
-    db.prepare('SELECT * FROM batches ORDER BY position').all(),
-    'topic_id',
-    row => toBatch(row, taken.get(String(row.id)) ?? 0, today),
-  );
-  const topicsByChapter = groupBy(
-    db.prepare('SELECT * FROM topics ORDER BY position').all(),
-    'chapter_id',
-    (row): Topic => ({
-      ...toTopicSummary(row),
-      lessons: lessonsByTopic.get(String(row.id)) ?? [],
-      batches: batchesByTopic.get(String(row.id)) ?? [],
-    }),
-  );
+  const topicsByChapter = groupBy(topicsRows, 'chapter_id', (row): Topic => ({
+    ...toTopicSummary(row),
+    lessons: lessonsByTopic.get(String(row.id)) ?? [],
+    batches: batchesByTopic.get(String(row.id)) ?? [],
+  }));
   const chaptersBySubject = groupBy(
-    db.prepare('SELECT * FROM chapters ORDER BY position').all(),
+    chaptersRows,
     'subject_id',
     (row): Chapter => ({
       id: String(row.id),
@@ -194,31 +193,33 @@ export const getCatalogue = ({ db, now }: AppContext): Subject[] => {
     }),
   );
 
-  return db
-    .prepare('SELECT * FROM subjects ORDER BY position')
-    .all()
-    .map((row): Subject => ({
-      id: String(row.id),
-      slug: String(row.slug),
-      name: String(row.name),
-      description: String(row.description),
-      status: row.status === 'UPCOMING' ? 'UPCOMING' : 'AVAILABLE',
-      listPrice: toPrice(row.list_price_paise, row.list_price_tax_label),
-      chapters: chaptersBySubject.get(String(row.id)) ?? [],
-    }));
+  return subjectsRows.map((row): Subject => ({
+    id: String(row.id),
+    slug: String(row.slug),
+    name: String(row.name),
+    description: String(row.description),
+    status: row.status === 'UPCOMING' ? 'UPCOMING' : 'AVAILABLE',
+    listPrice: toPrice(row.list_price_paise, row.list_price_tax_label),
+    chapters: chaptersBySubject.get(String(row.id)) ?? [],
+  }));
 };
 
-export const getBatchRow = (db: Database, batchId: string) =>
-  db.prepare('SELECT * FROM batches WHERE id = ?').get(batchId) ?? null;
-
-export const countActiveEnrolmentsForBatch = (db: Database, batchId: string) =>
-  Number(
-    db
-      .prepare(
-        `SELECT COUNT(*) AS taken FROM enrolments
-         WHERE batch_id = ? AND status <> 'CANCELLED'`,
-      )
-      .get(batchId)?.taken ?? 0,
+export const getBatchRow = async (db: DatabaseClient, batchId: string) => {
+  return (
+    (await db.get('SELECT * FROM batches WHERE id = $1', [batchId])) ?? null
   );
+};
+
+export const countActiveEnrolmentsForBatch = async (
+  db: DatabaseClient,
+  batchId: string,
+) => {
+  const row = await db.get(
+    `SELECT COUNT(*) AS taken FROM enrolments
+     WHERE batch_id = $1 AND status <> 'CANCELLED'`,
+    [batchId],
+  );
+  return Number(row?.taken ?? 0);
+};
 
 export { toDateOnly };

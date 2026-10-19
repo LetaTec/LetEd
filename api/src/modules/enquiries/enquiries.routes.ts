@@ -34,20 +34,21 @@ const enquirySchema = z.strictObject({
 export const createEnquiriesRouter = ({ db, now }: AppContext) => {
   const router = Router();
 
-  router.post('/', (req, res) => {
+  router.post('/', async (req, res) => {
     const input = validate(enquirySchema, req.body);
     const id = randomUUID();
 
-    db.prepare(
+    await db.query(
       `INSERT INTO enquiries (id, type, email, exam, user_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).run(
-      id,
-      input.type,
-      input.email,
-      input.exam,
-      req.auth?.userId ?? null,
-      now().toISOString(),
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        id,
+        input.type,
+        input.email,
+        input.exam,
+        req.auth?.userId ?? null,
+        now().toISOString(),
+      ],
     );
 
     res.status(201).json({ enquiry: { id, type: input.type } });

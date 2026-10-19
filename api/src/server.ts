@@ -4,8 +4,8 @@ import { openDatabase, runMigrations } from './db/client.js';
 import { createMailer } from './mail/mailer.js';
 
 const config = loadConfigFromEnvironment();
-const db = openDatabase(config.databasePath);
-runMigrations(db);
+const db = await openDatabase(config.databaseUrl, config.pgMaxConnections);
+await runMigrations(db);
 
 const mailer = createMailer(config);
 
@@ -27,8 +27,8 @@ const server = app.listen(config.port, () => {
 });
 
 const shutdown = () => {
-  server.close(() => {
-    db.close();
+  server.close(async () => {
+    await db.close();
     process.exit(0);
   });
 };

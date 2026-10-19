@@ -1,6 +1,13 @@
 import axios, { AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+export const normalizeApiBaseUrl = (rawUrl?: string): string => {
+  if (!rawUrl) return '/api';
+  const trimmed = rawUrl.trim().replace(/\/+$/, '');
+  if (trimmed === '' || trimmed === '/api') return '/api';
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
   console.warn(

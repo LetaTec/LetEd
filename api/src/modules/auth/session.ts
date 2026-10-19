@@ -1,6 +1,7 @@
 import type { CookieOptions, RequestHandler, Response } from 'express';
 
 import type { AppContext } from '../../app/context.js';
+import type { DatabaseClient } from '../../db/client.js';
 import { ApiError, ERROR_CODE } from '../../http/errors.js';
 import { generateToken, hashToken } from './tokens.js';
 
@@ -24,7 +25,7 @@ const cookieOptions = (
   ...(expiresAt ? { expires: expiresAt } : {}),
 });
 
-export const createSession = (
+export const createSession = async (
   context: AppContext,
   userId: string,
   rememberMe: boolean,
@@ -36,11 +37,10 @@ export const createSession = (
     : context.config.sessionTtlMs;
   const expiresAt = new Date(now.getTime() + ttl);
 
-  context.db
-    .prepare(
-      'INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)',
-    )
-    .run(hashToken(token), userId, now.toISOString(), expiresAt.toISOString());
+  await context.db.query(
+    'INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)',
+    [hashToken(token), userId, now.toISOString(), expiresAt.toISOString()],
+  );
 
   return { token, expiresAt };
 };
@@ -61,12 +61,22 @@ export const clearSessionCookie = (context: AppContext, res: Response) => {
   res.clearCookie(SESSION_COOKIE, cookieOptions(context));
 };
 
-export const deleteSession = (context: AppContext, sessionId: string) => {
-  context.db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
+export const deleteSession = async (
+  context: AppContext,
+  sessionId: string,
+  client?: DatabaseClient,
+) => {
+  const db = client ?? context.db;
+  await db.query('DELETE FROM sessions WHERE id = $1', [sessionId]);
 };
 
-export const deleteUserSessions = (context: AppContext, userId: string) => {
-  context.db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
+export const deleteUserSessions = async (
+  context: AppContext,
+  userId: string,
+  client?: DatabaseClient,
+) => {
+  const db = client ?? context.db;
+  await db.query('DELETE FROM sessions WHERE user_id = $1', [userId]);
 };
 
 // Resolves the session cookie on every request. An unknown or expired token is
@@ -74,35 +84,40 @@ export const deleteUserSessions = (context: AppContext, userId: string) => {
 // visitor who never signed in.
 export const createSessionMiddleware =
   (context: AppContext): RequestHandler =>
-  (req, res, next) => {
-    const token: unknown = req.cookies?.[SESSION_COOKIE];
-    req.auth = null;
-    req.sessionState = 'none';
+  async (req, res, next) => {
+    try {
+      const token: unknown = req.cookies?.[SESSION_COOKIE];
+      req.auth = null;
+      req.sessionState = 'none';
 
-    if (typeof token !== 'string' || token.length === 0) {
-      next();
-      return;
-    }
-
-    const sessionId = hashToken(token);
-    const row = context.db
-      .prepare('SELECT user_id, expires_at FROM sessions WHERE id = ?')
-      .get(sessionId);
-
-    if (!row || new Date(String(row.expires_at)) <= context.now()) {
-      if (row) {
-        deleteSession(context, sessionId);
+      if (typeof token !== 'string' || token.length === 0) {
+        next();
+        return;
       }
 
-      clearSessionCookie(context, res);
-      req.sessionState = 'expired';
-      next();
-      return;
-    }
+      const sessionId = hashToken(token);
+      const row = await context.db.get<{ user_id: string; expires_at: string }>(
+        'SELECT user_id, expires_at FROM sessions WHERE id = $1',
+        [sessionId],
+      );
 
-    req.auth = { userId: String(row.user_id), sessionId };
-    req.sessionState = 'active';
-    next();
+      if (!row || new Date(String(row.expires_at)) <= context.now()) {
+        if (row) {
+          await deleteSession(context, sessionId);
+        }
+
+        clearSessionCookie(context, res);
+        req.sessionState = 'expired';
+        next();
+        return;
+      }
+
+      req.auth = { userId: String(row.user_id), sessionId };
+      req.sessionState = 'active';
+      next();
+    } catch (error) {
+      next(error);
+    }
   };
 
 export const requireAuth: RequestHandler = (req, _res, next) => {

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import type { AppContext } from '../../app/context.js';
-import { transaction } from '../../db/client.js';
+import { transaction, type DatabaseClient } from '../../db/client.js';
 import { ApiError, ERROR_CODE } from '../../http/errors.js';
 import type { LoginInput, RegisterInput } from './auth.schema.js';
 import {
@@ -36,20 +36,25 @@ const emailAlreadyRegistered = () =>
   );
 
 const isUniqueViolation = (error: unknown) =>
-  error instanceof Error && /UNIQUE constraint failed/.test(error.message);
+  error instanceof Error &&
+  (/duplicate key/i.test(error.message) ||
+    /unique constraint/i.test(error.message) ||
+    /UNIQUE constraint failed/.test(error.message) ||
+    (error as any).code === '23505');
 
-export const getAuthUser = (
+export const getAuthUser = async (
   { db }: AppContext,
   userId: string,
-): AuthUser | null => {
-  const row = db
-    .prepare(
-      `SELECT u.id, u.email, s.id AS student_id, s.full_name, s.standard, s.stream, s.stream_other
-       FROM users u
-       JOIN student_profiles s ON s.user_id = u.id
-       WHERE u.id = ?`,
-    )
-    .get(userId);
+  client?: DatabaseClient,
+): Promise<AuthUser | null> => {
+  const runner = client ?? db;
+  const row = await runner.get(
+    `SELECT u.id, u.email, s.id AS student_id, s.full_name, s.standard, s.stream, s.stream_other
+     FROM users u
+     JOIN student_profiles s ON s.user_id = u.id
+     WHERE u.id = $1`,
+    [userId],
+  );
 
   if (!row) {
     return null;
@@ -73,9 +78,10 @@ export const registerStudent = async (
   input: RegisterInput,
 ): Promise<AuthUser> => {
   const { db } = context;
-  const existing = db
-    .prepare('SELECT id FROM users WHERE email = ?')
-    .get(input.email);
+  const existing = await db.get(
+    'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
+    [input.email],
+  );
 
   if (existing) {
     throw emailAlreadyRegistered();
@@ -86,27 +92,29 @@ export const registerStudent = async (
   const timestamp = context.now().toISOString();
 
   try {
-    transaction(db, () => {
-      db.prepare(
-        'INSERT INTO users (id, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-      ).run(userId, input.email, passwordHash, timestamp, timestamp);
+    await transaction(db, async tx => {
+      await tx.query(
+        'INSERT INTO users (id, email, password_hash, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)',
+        [userId, input.email, passwordHash, timestamp, timestamp],
+      );
 
-      db.prepare(
+      await tx.query(
         `INSERT INTO student_profiles
           (id, user_id, full_name, date_of_birth, mobile, standard, stream, stream_other, address, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).run(
-        randomUUID(),
-        userId,
-        input.fullName,
-        input.dateOfBirth,
-        input.mobile,
-        input.standard,
-        input.stream,
-        input.streamOther,
-        input.address,
-        timestamp,
-        timestamp,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          randomUUID(),
+          userId,
+          input.fullName,
+          input.dateOfBirth,
+          input.mobile,
+          input.standard,
+          input.stream,
+          input.streamOther,
+          input.address,
+          timestamp,
+          timestamp,
+        ],
       );
     });
   } catch (error) {
@@ -119,7 +127,7 @@ export const registerStudent = async (
     throw error;
   }
 
-  const user = getAuthUser(context, userId);
+  const user = await getAuthUser(context, userId);
 
   if (!user) {
     throw new Error(`Registered user ${userId} could not be loaded`);
@@ -132,15 +140,17 @@ export const authenticateStudent = async (
   context: AppContext,
   input: LoginInput,
 ): Promise<AuthUser> => {
-  const row = context.db
-    .prepare('SELECT id, password_hash FROM users WHERE email = ?')
-    .get(input.email);
+  const row = await context.db.get(
+    'SELECT id, password_hash FROM users WHERE LOWER(email) = LOWER($1)',
+    [input.email],
+  );
 
   const isValid = row
     ? await verifyPassword(input.password, String(row.password_hash))
     : await verifyAgainstDummyHash(input.password);
 
-  const user = isValid && row ? getAuthUser(context, String(row.id)) : null;
+  const user =
+    isValid && row ? await getAuthUser(context, String(row.id)) : null;
 
   if (!user) {
     throw new ApiError(
@@ -165,9 +175,10 @@ export const requestPasswordReset = async (
     );
   }
 
-  const row = context.db
-    .prepare('SELECT id FROM users WHERE email = ?')
-    .get(email);
+  const row = await context.db.get(
+    'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
+    [email],
+  );
 
   // Always respond the same way so the endpoint cannot be used to discover
   // which emails are registered.
@@ -179,22 +190,20 @@ export const requestPasswordReset = async (
   const token = generateToken();
   const now = context.now();
 
-  transaction(context.db, () => {
-    context.db
-      .prepare(
-        'UPDATE password_reset_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL',
-      )
-      .run(now.toISOString(), userId);
-    context.db
-      .prepare(
-        'INSERT INTO password_reset_tokens (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)',
-      )
-      .run(
+  await transaction(context.db, async tx => {
+    await tx.query(
+      'UPDATE password_reset_tokens SET used_at = $1 WHERE user_id = $2 AND used_at IS NULL',
+      [now.toISOString(), userId],
+    );
+    await tx.query(
+      'INSERT INTO password_reset_tokens (id, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)',
+      [
         hashToken(token),
         userId,
         now.toISOString(),
         new Date(now.getTime() + RESET_TOKEN_TTL_MS).toISOString(),
-      );
+      ],
+    );
   });
 
   const resetUrl = new URL('/reset-password', context.config.webOrigin);
@@ -209,11 +218,10 @@ export const confirmPasswordReset = async (
 ) => {
   const tokenId = hashToken(token);
   const now = context.now();
-  const row = context.db
-    .prepare(
-      'SELECT user_id, expires_at, used_at FROM password_reset_tokens WHERE id = ?',
-    )
-    .get(tokenId);
+  const row = await context.db.get(
+    'SELECT user_id, expires_at, used_at FROM password_reset_tokens WHERE id = $1',
+    [tokenId],
+  );
 
   if (!row || row.used_at !== null || new Date(String(row.expires_at)) <= now) {
     throw new ApiError(
@@ -226,16 +234,16 @@ export const confirmPasswordReset = async (
   const userId = String(row.user_id);
   const passwordHash = await hashPassword(password);
 
-  transaction(context.db, () => {
-    context.db
-      .prepare(
-        'UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?',
-      )
-      .run(passwordHash, now.toISOString(), userId);
-    context.db
-      .prepare('UPDATE password_reset_tokens SET used_at = ? WHERE id = ?')
-      .run(now.toISOString(), tokenId);
+  await transaction(context.db, async tx => {
+    await tx.query(
+      'UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3',
+      [passwordHash, now.toISOString(), userId],
+    );
+    await tx.query(
+      'UPDATE password_reset_tokens SET used_at = $1 WHERE id = $2',
+      [now.toISOString(), tokenId],
+    );
     // A password change signs the account out everywhere.
-    deleteUserSessions(context, userId);
+    await deleteUserSessions(context, userId, tx);
   });
 };

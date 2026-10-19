@@ -3,10 +3,13 @@ import { seedCatalogue } from './catalogueSeed.js';
 import { openDatabase, runMigrations } from './client.js';
 
 const config = loadConfigFromEnvironment();
-const db = openDatabase(config.databasePath);
+const db = await openDatabase(config.databaseUrl ?? config.databasePath);
 
-runMigrations(db);
-seedCatalogue(db);
-db.close();
+await runMigrations(db);
+await seedCatalogue(db);
+await db.close();
 
-console.log('[db] catalogue seeded - %s', config.databasePath);
+console.log(
+  '[db] catalogue seeded - %s',
+  config.databaseUrl ? 'PostgreSQL' : config.databasePath,
+);

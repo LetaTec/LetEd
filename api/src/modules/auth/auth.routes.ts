@@ -31,36 +31,34 @@ export const createAuthRouter = (context: AppContext) => {
   router.post('/register', async (req, res) => {
     const input = validate(registerSchema, req.body);
     const user = await registerStudent(context, input);
-    setSessionCookie(context, res, createSession(context, user.id, false));
+    const session = await createSession(context, user.id, false);
+    setSessionCookie(context, res, session);
     res.status(201).json({ user });
   });
 
   router.post('/login', async (req, res) => {
     const input = validate(loginSchema, req.body);
     const user = await authenticateStudent(context, input);
-    setSessionCookie(
-      context,
-      res,
-      createSession(context, user.id, input.rememberMe),
-    );
+    const session = await createSession(context, user.id, input.rememberMe);
+    setSessionCookie(context, res, session);
     res.json({ user });
   });
 
-  router.post('/logout', (req, res) => {
+  router.post('/logout', async (req, res) => {
     if (req.auth) {
-      deleteSession(context, req.auth.sessionId);
+      await deleteSession(context, req.auth.sessionId);
     }
 
     clearSessionCookie(context, res);
     res.status(204).end();
   });
 
-  router.get('/session', requireAuth, (req, res) => {
+  router.get('/session', requireAuth, async (req, res) => {
     const auth = getRequiredAuth(req.auth);
-    const user = getAuthUser(context, auth.userId);
+    const user = await getAuthUser(context, auth.userId);
 
     if (!user) {
-      deleteSession(context, auth.sessionId);
+      await deleteSession(context, auth.sessionId);
       clearSessionCookie(context, res);
       throw new ApiError(
         401,

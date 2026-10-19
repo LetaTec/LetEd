@@ -190,50 +190,59 @@ export const CATALOGUE_SEED: readonly SeedSubject[] = [
 
 // Idempotent: re-running updates catalogue rows in place and never touches
 // users, sessions or enrolments.
-export const seedCatalogue = (db: Database) => {
-  const upsertSubject = db.prepare(`
+export const seedCatalogue = async (db: Database): Promise<void> => {
+  const upsertSubjectSql = `
     INSERT INTO subjects (id, slug, name, description, status, list_price_paise, list_price_tax_label, position)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (id) DO UPDATE SET
-      slug = excluded.slug, name = excluded.name, description = excluded.description,
-      status = excluded.status, list_price_paise = excluded.list_price_paise,
-      list_price_tax_label = excluded.list_price_tax_label, position = excluded.position
-  `);
-  const upsertChapter = db.prepare(`
-    INSERT INTO chapters (id, subject_id, title, position) VALUES (?, ?, ?, ?)
+      slug = EXCLUDED.slug, name = EXCLUDED.name, description = EXCLUDED.description,
+      status = EXCLUDED.status, list_price_paise = EXCLUDED.list_price_paise,
+      list_price_tax_label = EXCLUDED.list_price_tax_label, position = EXCLUDED.position
+  `;
+
+  const upsertChapterSql = `
+    INSERT INTO chapters (id, subject_id, title, position) VALUES ($1, $2, $3, $4)
     ON CONFLICT (id) DO UPDATE SET
-      subject_id = excluded.subject_id, title = excluded.title, position = excluded.position
-  `);
-  const upsertTopic = db.prepare(`
+      subject_id = EXCLUDED.subject_id, title = EXCLUDED.title, position = EXCLUDED.position
+  `;
+
+  const upsertTopicSql = `
     INSERT INTO topics (id, chapter_id, title, summary, level, price_paise, price_tax_label, position)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (id) DO UPDATE SET
-      chapter_id = excluded.chapter_id, title = excluded.title, summary = excluded.summary,
-      level = excluded.level, price_paise = excluded.price_paise,
-      price_tax_label = excluded.price_tax_label, position = excluded.position
-  `);
-  const upsertLesson = db.prepare(`
-    INSERT INTO lessons (id, topic_id, title, duration_minutes, position) VALUES (?, ?, ?, ?, ?)
+      chapter_id = EXCLUDED.chapter_id, title = EXCLUDED.title, summary = EXCLUDED.summary,
+      level = EXCLUDED.level, price_paise = EXCLUDED.price_paise,
+      price_tax_label = EXCLUDED.price_tax_label, position = EXCLUDED.position
+  `;
+
+  const upsertLessonSql = `
+    INSERT INTO lessons (id, topic_id, title, duration_minutes, position) VALUES ($1, $2, $3, $4, $5)
     ON CONFLICT (id) DO UPDATE SET
-      topic_id = excluded.topic_id, title = excluded.title,
-      duration_minutes = excluded.duration_minutes, position = excluded.position
-  `);
-  const upsertBatch = db.prepare(`
+      topic_id = EXCLUDED.topic_id, title = EXCLUDED.title,
+      duration_minutes = EXCLUDED.duration_minutes, position = EXCLUDED.position
+  `;
+
+  const upsertBatchSql = `
     INSERT INTO batches (id, topic_id, name, schedule_label, start_date, start_time, session_count,
       session_duration_minutes, instructor_name, capacity, status, position)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     ON CONFLICT (id) DO UPDATE SET
-      topic_id = excluded.topic_id, name = excluded.name, schedule_label = excluded.schedule_label,
-      start_date = excluded.start_date, start_time = excluded.start_time,
-      session_count = excluded.session_count,
-      session_duration_minutes = excluded.session_duration_minutes,
-      instructor_name = excluded.instructor_name, capacity = excluded.capacity,
-      status = excluded.status, position = excluded.position
-  `);
+      topic_id = EXCLUDED.topic_id, name = EXCLUDED.name, schedule_label = EXCLUDED.schedule_label,
+      start_date = EXCLUDED.start_date, start_time = EXCLUDED.start_time,
+      session_count = EXCLUDED.session_count,
+      session_duration_minutes = EXCLUDED.session_duration_minutes,
+      instructor_name = EXCLUDED.instructor_name, capacity = EXCLUDED.capacity,
+      status = EXCLUDED.status, position = EXCLUDED.position
+  `;
 
-  transaction(db, () => {
-    CATALOGUE_SEED.forEach((subject, subjectIndex) => {
-      upsertSubject.run(
+  await transaction(db, async tx => {
+    for (
+      let subjectIndex = 0;
+      subjectIndex < CATALOGUE_SEED.length;
+      subjectIndex++
+    ) {
+      const subject = CATALOGUE_SEED[subjectIndex];
+      await tx.query(upsertSubjectSql, [
         subject.id,
         subject.slug,
         subject.name,
@@ -242,13 +251,28 @@ export const seedCatalogue = (db: Database) => {
         subject.listPricePaise,
         subject.listPriceTaxLabel,
         subjectIndex,
-      );
+      ]);
 
-      subject.chapters.forEach((chapter, chapterIndex) => {
-        upsertChapter.run(chapter.id, subject.id, chapter.title, chapterIndex);
+      for (
+        let chapterIndex = 0;
+        chapterIndex < subject.chapters.length;
+        chapterIndex++
+      ) {
+        const chapter = subject.chapters[chapterIndex];
+        await tx.query(upsertChapterSql, [
+          chapter.id,
+          subject.id,
+          chapter.title,
+          chapterIndex,
+        ]);
 
-        chapter.topics.forEach((topic, topicIndex) => {
-          upsertTopic.run(
+        for (
+          let topicIndex = 0;
+          topicIndex < chapter.topics.length;
+          topicIndex++
+        ) {
+          const topic = chapter.topics[topicIndex];
+          await tx.query(upsertTopicSql, [
             topic.id,
             chapter.id,
             topic.title,
@@ -257,20 +281,30 @@ export const seedCatalogue = (db: Database) => {
             topic.pricePaise,
             topic.priceTaxLabel,
             topicIndex,
-          );
+          ]);
 
-          topic.lessons.forEach((lesson, lessonIndex) => {
-            upsertLesson.run(
+          for (
+            let lessonIndex = 0;
+            lessonIndex < topic.lessons.length;
+            lessonIndex++
+          ) {
+            const lesson = topic.lessons[lessonIndex];
+            await tx.query(upsertLessonSql, [
               lesson.id,
               topic.id,
               lesson.title,
               lesson.durationMinutes,
               lessonIndex,
-            );
-          });
+            ]);
+          }
 
-          topic.batches.forEach((batch, batchIndex) => {
-            upsertBatch.run(
+          for (
+            let batchIndex = 0;
+            batchIndex < topic.batches.length;
+            batchIndex++
+          ) {
+            const batch = topic.batches[batchIndex];
+            await tx.query(upsertBatchSql, [
               batch.id,
               topic.id,
               batch.name,
@@ -283,10 +317,10 @@ export const seedCatalogue = (db: Database) => {
               batch.capacity,
               batch.status,
               batchIndex,
-            );
-          });
-        });
-      });
-    });
+            ]);
+          }
+        }
+      }
+    }
   });
 };

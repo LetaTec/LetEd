@@ -22,11 +22,16 @@ export type TestClient = {
 
 export const startTestServer = async ({
   withMailer = true,
+  enableRateLimiting = false,
   now = () => new Date('2026-10-10T09:00:00Z'),
-}: { withMailer?: boolean; now?: () => Date } = {}) => {
-  const db = openDatabase(':memory:');
-  runMigrations(db);
-  seedCatalogue(db);
+}: {
+  withMailer?: boolean;
+  enableRateLimiting?: boolean;
+  now?: () => Date;
+} = {}) => {
+  const db = await openDatabase(':memory:');
+  await runMigrations(db);
+  await seedCatalogue(db);
 
   const sentEmails: SentResetEmail[] = [];
   const mailer: Mailer | null = withMailer
@@ -38,7 +43,11 @@ export const startTestServer = async ({
     : null;
 
   const clock = { now };
-  const config = loadConfig({ NODE_ENV: 'test', WEB_ORIGIN: TEST_WEB_ORIGIN });
+  const config = loadConfig({
+    NODE_ENV: 'test',
+    WEB_ORIGIN: TEST_WEB_ORIGIN,
+    ENABLE_RATE_LIMIT: enableRateLimiting ? 'true' : 'false',
+  });
   const app = createApp({ db, config, mailer, now: () => clock.now() });
   const server = app.listen(0);
   await new Promise(resolve => server.once('listening', resolve));
@@ -87,9 +96,13 @@ export const startTestServer = async ({
     sentEmails,
     createClient,
     close: () =>
-      new Promise<void>(resolve => {
-        server.close(() => {
-          db.close();
+      new Promise<void>((resolve, reject) => {
+        server.close(async err => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          await db.close();
           resolve();
         });
       }),

@@ -15,6 +15,7 @@ export const ERROR_CODE = {
   batchUnavailable: 'BATCH_UNAVAILABLE',
   batchFull: 'BATCH_FULL',
   alreadyEnrolled: 'ALREADY_ENROLLED',
+  rateLimitExceeded: 'RATE_LIMIT_EXCEEDED',
   notFound: 'NOT_FOUND',
   internalError: 'INTERNAL_ERROR',
 } as const;

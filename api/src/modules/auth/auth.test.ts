@@ -39,18 +39,18 @@ describe('auth', () => {
     assert.equal(session.status, 200);
     assert.equal(session.body.user.id, response.body.user.id);
 
-    const profiles = server.db
-      .prepare(
-        'SELECT COUNT(*) AS count FROM student_profiles WHERE user_id = ?',
-      )
-      .get(response.body.user.id);
+    const profiles = await server.db.get<{ count: string | number }>(
+      'SELECT COUNT(*) AS count FROM student_profiles WHERE user_id = $1',
+      [response.body.user.id],
+    );
     assert.equal(Number(profiles?.count), 1);
   });
 
-  it('never stores the raw password or session token', () => {
-    const user = server.db
-      .prepare('SELECT password_hash FROM users WHERE email = ?')
-      .get('asha@example.com');
+  it('never stores the raw password or session token', async () => {
+    const user = await server.db.get<{ password_hash: string }>(
+      'SELECT password_hash FROM users WHERE LOWER(email) = LOWER($1)',
+      ['asha@example.com'],
+    );
     assert.match(String(user?.password_hash), /^scrypt\$/);
     assert.ok(!String(user?.password_hash).includes('correct-horse-1'));
   });

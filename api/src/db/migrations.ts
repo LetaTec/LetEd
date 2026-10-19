@@ -11,11 +11,13 @@ export const MIGRATIONS: readonly Migration[] = [
     sql: `
       CREATE TABLE users (
         id TEXT PRIMARY KEY,
-        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
       );
+
+      CREATE UNIQUE INDEX users_email_lower_idx ON users (LOWER(email));
 
       CREATE TABLE student_profiles (
         id TEXT PRIMARY KEY,
@@ -26,15 +28,15 @@ export const MIGRATIONS: readonly Migration[] = [
         standard TEXT NOT NULL,
         stream TEXT,
         address TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
       );
 
       CREATE TABLE sessions (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-        created_at TEXT NOT NULL,
-        expires_at TEXT NOT NULL
+        created_at TIMESTAMPTZ NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL
       );
 
       CREATE INDEX sessions_user_id_idx ON sessions (user_id);
@@ -42,9 +44,9 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE TABLE password_reset_tokens (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-        created_at TEXT NOT NULL,
-        expires_at TEXT NOT NULL,
-        used_at TEXT
+        created_at TIMESTAMPTZ NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ
       );
 
       CREATE INDEX password_reset_tokens_user_id_idx
@@ -108,8 +110,8 @@ export const MIGRATIONS: readonly Migration[] = [
         batch_id TEXT NOT NULL REFERENCES batches (id) ON DELETE RESTRICT,
         status TEXT NOT NULL
           CHECK (status IN ('PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED')),
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL,
         UNIQUE (user_id, batch_id)
       );
 
@@ -123,7 +125,7 @@ export const MIGRATIONS: readonly Migration[] = [
         mobile TEXT,
         subject TEXT,
         user_id TEXT REFERENCES users (id) ON DELETE SET NULL,
-        created_at TEXT NOT NULL
+        created_at TIMESTAMPTZ NOT NULL
       );
     `,
   },
@@ -138,7 +140,7 @@ export const MIGRATIONS: readonly Migration[] = [
         email TEXT NOT NULL,
         exam TEXT NOT NULL,
         user_id TEXT REFERENCES users (id) ON DELETE SET NULL,
-        created_at TEXT NOT NULL
+        created_at TIMESTAMPTZ NOT NULL
       );
 
       INSERT INTO enquiries_next (id, type, email, exam, user_id, created_at)
