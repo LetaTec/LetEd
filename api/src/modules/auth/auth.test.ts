@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 
+import { loadConfig } from '../../config/env.js';
 import {
   startTestServer,
   TEST_WEB_ORIGIN,
@@ -279,6 +280,69 @@ describe('auth', () => {
       password: 'new-password-2',
     });
     assert.equal(login.status, 200);
+  });
+
+  it('rejects session check when cookie is omitted or has invalid format', async () => {
+    const rawClient = server.createClient();
+    rawClient.clearCookies();
+
+    const noCookie = await rawClient.request('GET', '/api/auth/session');
+    assert.equal(noCookie.status, 401);
+    assert.equal(noCookie.body.code, 'UNAUTHENTICATED');
+
+    const invalidCookie = await rawClient.request(
+      'GET',
+      '/api/auth/session',
+      undefined,
+      { Cookie: 'leta_session=' },
+    );
+    assert.equal(invalidCookie.status, 401);
+    assert.equal(invalidCookie.body.code, 'UNAUTHENTICATED');
+
+    const bogusCookie = await rawClient.request(
+      'GET',
+      '/api/auth/session',
+      undefined,
+      { Cookie: 'leta_session=bogus-non-existent-token' },
+    );
+    assert.equal(bogusCookie.status, 401);
+    assert.equal(bogusCookie.body.code, 'SESSION_EXPIRED');
+  });
+
+  it('configures SameSite=None, Secure, and Partitioned cookies in production for cross-site browser support', () => {
+    const prodConfig = loadConfig({
+      NODE_ENV: 'production',
+      WEB_ORIGIN: 'https://sridhaacademy.com',
+      ALLOWED_ORIGINS: 'https://www.sridhaacademy.com',
+      DATABASE_URL: 'postgres://localhost/test',
+    });
+
+    assert.equal(prodConfig.secureCookies, true);
+    assert.equal(prodConfig.cookieSameSite, 'none');
+    assert.ok(prodConfig.allowedOrigins.includes('https://sridhaacademy.com'));
+    assert.ok(
+      prodConfig.allowedOrigins.includes('https://www.sridhaacademy.com'),
+    );
+  });
+
+  it('allows credentialed CORS for both apex and www domains and rejects unauthorized origins', async () => {
+    const client = server.createClient();
+
+    const apexPreflight = await client.request(
+      'OPTIONS',
+      '/api/auth/session',
+      undefined,
+      { Origin: TEST_WEB_ORIGIN },
+    );
+    assert.equal(apexPreflight.status, 204);
+
+    const evilOrigin = await client.request(
+      'GET',
+      '/api/auth/session',
+      undefined,
+      { Origin: 'https://evil-site.com' },
+    );
+    assert.equal(evilOrigin.status, 401);
   });
 });
 

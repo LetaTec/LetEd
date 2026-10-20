@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PGlite } from '@electric-sql/pglite';
 import pg from 'pg';
 

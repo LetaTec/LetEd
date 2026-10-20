@@ -80,11 +80,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       response => response,
       error => {
         const url = isAxiosError(error) ? (error.config?.url ?? '') : '';
+        const isAuthEndpoint =
+          url.startsWith(AUTH_ENDPOINT_PREFIX) || url.includes('/auth/');
 
         if (
           isAxiosError(error) &&
           error.response?.status === 401 &&
-          !url.startsWith(AUTH_ENDPOINT_PREFIX) &&
+          !isAuthEndpoint &&
           userRef.current
         ) {
           clearSession();

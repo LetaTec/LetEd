@@ -17,6 +17,7 @@ import {
   type Batch,
   type Lesson,
   type Price,
+  type Row,
 } from '../catalogue/catalogue.repository.js';
 
 export const ENROLMENT_STATUS = {
@@ -53,7 +54,7 @@ const loadEnrolments = async (
   enrolmentId?: string,
 ): Promise<Enrolment[]> => {
   const today = toDateOnly(now());
-  const rows = await db.all<any>(
+  const rows = await db.all<Row>(
     `SELECT e.id AS enrolment_id, e.status AS enrolment_status, e.created_at AS enrolment_created_at,
             b.*, t.id AS t_id, t.title AS t_title, t.summary AS t_summary, t.level AS t_level,
             t.price_paise AS t_price_paise, t.price_tax_label AS t_price_tax_label,

@@ -36,6 +36,8 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform(value => value === 'true'),
+  COOKIE_SAMESITE: z.enum(['lax', 'none', 'strict']).optional(),
+  COOKIE_DOMAIN: z.string().min(1).optional(),
 });
 
 export type AppConfig = {
@@ -54,6 +56,8 @@ export type AppConfig = {
   enableRateLimiting: boolean;
   serveWebDist: boolean;
   secureCookies: boolean;
+  cookieSameSite: 'lax' | 'none' | 'strict';
+  cookieDomain?: string;
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -106,16 +110,34 @@ export const loadConfig = (
     );
   }
 
-  const primaryOrigin = env.WEB_ORIGIN ?? DEVELOPMENT_WEB_ORIGIN;
+  const normalizeOrigin = (origin: string): string =>
+    origin.trim().replace(/\/+$/, '');
+
+  const primaryOrigin = normalizeOrigin(
+    env.WEB_ORIGIN ?? DEVELOPMENT_WEB_ORIGIN,
+  );
   const additionalOrigins = env.ALLOWED_ORIGINS
-    ? env.ALLOWED_ORIGINS.split(',')
-        .map(o => o.trim())
-        .filter(Boolean)
+    ? env.ALLOWED_ORIGINS.split(',').map(normalizeOrigin).filter(Boolean)
     : [];
 
-  const allowedOrigins = Array.from(
-    new Set([primaryOrigin, ...additionalOrigins]),
-  );
+  const originList = [primaryOrigin, ...additionalOrigins];
+  for (const origin of [...originList]) {
+    if (
+      origin === 'https://sridhaacademy.com' &&
+      !originList.includes('https://www.sridhaacademy.com')
+    ) {
+      originList.push('https://www.sridhaacademy.com');
+    }
+    if (
+      origin === 'https://www.sridhaacademy.com' &&
+      !originList.includes('https://sridhaacademy.com')
+    ) {
+      originList.push('https://sridhaacademy.com');
+    }
+  }
+
+  const allowedOrigins = Array.from(new Set(originList));
+  const cookieSameSite = env.COOKIE_SAMESITE ?? (isProduction ? 'none' : 'lax');
 
   return {
     env: env.NODE_ENV,
@@ -133,6 +155,8 @@ export const loadConfig = (
     enableRateLimiting: env.ENABLE_RATE_LIMIT ?? env.NODE_ENV !== 'test',
     serveWebDist: env.SERVE_WEB_DIST,
     secureCookies: isProduction,
+    cookieSameSite,
+    cookieDomain: env.COOKIE_DOMAIN,
   };
 };
 

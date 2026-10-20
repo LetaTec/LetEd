@@ -459,3 +459,77 @@ A rigorous final code review was requested across all 31 modified files before p
 - Web Tests: 30 passed (`web/src/services/http/api.test.ts`, routing, formatter tests).
 - Typecheck: 0 errors across `api` and `web`.
 - Production Build: Succeeded cleanly for both `api` (`dist/`) and `web` (`dist/`).
+
+---
+
+## DEC-013: Production Cross-Site Cookie Policy, Origin Normalization, and Safe Auth Lifecycle
+
+- **Decision ID**: `DEC-013`
+- **Date & Time**: `2026-10-20T18:12:00+05:30` (IST)
+- **Decision Title**: Production Cross-Site Session Cookie Configuration, Origin Normalization, and Safe Diagnostic Logging
+- **Status**: Implemented & Locally Verified (Production Verification Pending Deployment)
+
+### 1. Symptoms & Incident Report
+
+During production testing on live environments:
+
+- Frontend: `https://sridhaacademy.com` / `https://www.sridhaacademy.com` (Cloudflare Pages)
+- Backend: `https://sridha-academy-api.onrender.com` (Render)
+- Observed Symptoms:
+  - Registration succeeded (`POST /api/auth/register` returned 201).
+  - Immediately afterward, `GET /api/auth/session` and `GET /api/enrolments` returned HTTP 401 Unauthorized.
+  - The client displayed "Your session has expired. Please sign in again." and dropped the student back to `/login`.
+  - Logging in with valid credentials returned 200, but the session immediately failed on the next API call with 401.
+  - Re-registering with the same email returned HTTP 409 Conflict, proving the initial registration record had persisted cleanly in the PostgreSQL database.
+
+### 2. Root Cause Analysis
+
+1. **Cross-Site Cookie Suppression (`SameSite=Lax`)**:
+   - The frontend origin (`sridhaacademy.com`) and Render backend origin (`onrender.com`) are cross-site (different eTLD+1).
+   - In `api/src/modules/auth/session.ts`, session cookies were configured with `sameSite: 'lax'`.
+   - By web standards (RFC 6265bis) and modern browser security policies (Chrome, Safari, Firefox), `SameSite=Lax` cookies are **strictly omitted** on cross-site XHR / Fetch / Axios requests.
+   - Consequently, `withCredentials: true` requests to `https://sridha-academy-api.onrender.com` arrived at Render with **no `Cookie` header**, causing `requireAuth` to return 401 Unauthorized on every subsequent call.
+2. **Frontend Interceptor Cascade**:
+   - In `web/src/context/AuthContext.tsx`, an Axios response interceptor for HTTP 401 on non-auth routes caught the 401 from `/api/enrolments`, invoked `clearSession()`, and showed the session expired toast.
+   - On page refresh, `getCurrentSession()` was also called without cookies, failing with 401 and keeping the user in an anonymous state.
+3. **CORS Headers and Origin Discrepancies**:
+   - CORS middleware required exact match against `originSet`. If `ALLOWED_ORIGINS` had trailing slashes or omitted `www.sridhaacademy.com`, requests from the www subdomain were rejected.
+
+### 3. Decisions & Fixes Implemented
+
+1. **Cross-Site Production Cookie Attributes**:
+   - In `api/src/config/env.ts` and `api/src/modules/auth/session.ts`:
+     - In production (`NODE_ENV === 'production'` or `secureCookies === true`), cookies default to `sameSite: 'none'`, `secure: true`, and `partitioned: true` (CHIPS).
+     - In development/test, cookies default to `sameSite: 'lax'`, `secure: false`, and `partitioned: false` (to support plain HTTP `http://localhost:5173`).
+     - Added `COOKIE_SAMESITE` environment variable override (`lax` | `none` | `strict`) and optional `COOKIE_DOMAIN`.
+2. **Origin Normalization & Sibling Domain Pairing**:
+   - In `api/src/config/env.ts`:
+     - Normalizes all origins in `WEB_ORIGIN` and `ALLOWED_ORIGINS` by trimming whitespace and stripping trailing slashes.
+     - Automatically ensures that if `https://sridhaacademy.com` is present, `https://www.sridhaacademy.com` is also permitted (and vice versa).
+   - In `api/src/app/app.ts`:
+     - Added `Vary: Origin` header to prevent CDN/cache origin poisoning.
+     - Allowed `X-Requested-With` in CORS preflight headers.
+3. **Safe Diagnostic Logging**:
+   - In `api/src/modules/auth/session.ts`:
+     - Added non-sensitive diagnostic logging in `createSessionMiddleware` reporting booleans (`hasCookie`, `hasSessionRecord`), route path, and method.
+     - Never logs raw tokens, hashes, passwords, or PII.
+4. **Robust Auth Endpoint Interceptor Exclusion**:
+   - In `web/src/context/AuthContext.tsx`:
+     - Expanded `isAuthEndpoint` checking to match any path containing `/auth/`, ensuring auth endpoints never falsely trigger the session-expired interceptor.
+
+### 4. Alternatives Considered
+
+1. _Bearer Tokens in JavaScript localStorage / sessionStorage_:
+   - Rejected: Storing tokens in client storage exposes students to token theft via Cross-Site Scripting (XSS). HttpOnly cookies provide vastly superior defense-in-depth.
+2. _Disabling Authentication or Bypassing requireAuth_:
+   - Rejected: Violates core security boundaries and privacy policies.
+3. _Same-Site Subdomain Architecture (`api.sridhaacademy.com`)_:
+   - Evaluated as the gold-standard permanent architecture. Once `api.sridhaacademy.com` DNS is configured, the request becomes first-party same-site, avoiding third-party cookie restrictions entirely.
+   - The code now natively supports both topologies: cross-site on `onrender.com` now via `SameSite=None; Secure; Partitioned`, and same-site on `api.sridhaacademy.com` via `COOKIE_SAMESITE=lax` (or default `none`).
+
+### 5. Verification Evidence
+
+- `npm run typecheck`: 0 errors across `api` and `web`.
+- `npm run lint`: 0 errors, 0 warnings across all TypeScript and React files.
+- `npm run test`: **64/64 tests passed (34 API, 30 Web)**.
+- `npm run build`: Both `api` (tsc) and `web` (vite) built clean production bundles.
