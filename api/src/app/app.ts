@@ -50,9 +50,10 @@ const createCorsMiddleware = (
       );
       res.setHeader(
         'Access-Control-Allow-Headers',
-        'Content-Type, Authorization, Cookie, Accept',
+        'Content-Type, Authorization, Cookie, Accept, X-Requested-With',
       );
       res.setHeader('Access-Control-Max-Age', '86400');
+      res.setHeader('Vary', 'Origin');
     }
 
     if (req.method === 'OPTIONS') {

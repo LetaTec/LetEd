@@ -17,13 +17,20 @@ export type RequestAuth = {
 const cookieOptions = (
   { config }: AppContext,
   expiresAt?: Date,
-): CookieOptions => ({
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: config.secureCookies,
-  path: '/',
-  ...(expiresAt ? { expires: expiresAt } : {}),
-});
+): CookieOptions => {
+  const sameSite = config.cookieSameSite;
+  const isSecure = config.secureCookies || sameSite === 'none';
+
+  return {
+    httpOnly: true,
+    sameSite,
+    secure: isSecure,
+    path: '/',
+    ...(isSecure && sameSite === 'none' ? { partitioned: true } : {}),
+    ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
+    ...(expiresAt ? { expires: expiresAt } : {}),
+  };
+};
 
 export const createSession = async (
   context: AppContext,
@@ -87,35 +94,64 @@ export const createSessionMiddleware =
   async (req, res, next) => {
     try {
       const token: unknown = req.cookies?.[SESSION_COOKIE];
+      const hasCookie = typeof token === 'string' && token.length > 0;
       req.auth = null;
       req.sessionState = 'none';
 
-      if (typeof token !== 'string' || token.length === 0) {
+      if (!hasCookie) {
+        if (
+          req.path.startsWith('/auth/session') ||
+          req.path.startsWith('/enrolments')
+        ) {
+          console.info('[auth] session check: no cookie present', {
+            path: req.path,
+            method: req.method,
+            origin: req.get('origin') ?? 'unknown',
+          });
+        }
         next();
         return;
       }
 
-      const sessionId = hashToken(token);
-      const row = await context.db.get<{ user_id: string; expires_at: string }>(
-        'SELECT user_id, expires_at FROM sessions WHERE id = $1',
-        [sessionId],
-      );
+      const sessionId = hashToken(token as string);
+      const row = await context.db.get<{
+        user_id: string;
+        expires_at: string | Date;
+      }>('SELECT user_id, expires_at FROM sessions WHERE id = $1', [sessionId]);
 
-      if (!row || new Date(String(row.expires_at)) <= context.now()) {
+      const expiresAt =
+        row?.expires_at instanceof Date
+          ? row.expires_at
+          : row
+            ? new Date(String(row.expires_at))
+            : null;
+
+      if (!row || !expiresAt || expiresAt <= context.now()) {
         if (row) {
           await deleteSession(context, sessionId);
         }
 
         clearSessionCookie(context, res);
         req.sessionState = 'expired';
+        console.info('[auth] session check: expired or invalid token', {
+          path: req.path,
+          hasSessionRecord: Boolean(row),
+        });
         next();
         return;
       }
 
       req.auth = { userId: String(row.user_id), sessionId };
       req.sessionState = 'active';
+      console.info('[auth] session check: active session resolved', {
+        path: req.path,
+      });
       next();
     } catch (error) {
+      console.error('[auth] session check error', {
+        path: req.path,
+        error: error instanceof Error ? error.message : 'unknown',
+      });
       next(error);
     }
   };

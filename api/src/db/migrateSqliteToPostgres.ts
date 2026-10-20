@@ -1,9 +1,15 @@
-import { existsSync, readFileSync } from 'node:fs';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 import { loadConfigFromEnvironment } from '../config/env.js';
-import { openDatabase, runMigrations, type Database, type DatabaseClient } from './client.js';
+import {
+  openDatabase,
+  runMigrations,
+  type Database,
+  type DatabaseClient,
+} from './client.js';
 
 /**
  * Safe, repeatable data migration script to copy existing local development

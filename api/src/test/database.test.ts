@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 
-import { openDatabase, runMigrations } from '../db/client.js';
+import { runMigrations } from '../db/client.js';
 import { startTestServer } from './testServer.js';
 
 describe('database & migrations (PostgreSQL)', () => {

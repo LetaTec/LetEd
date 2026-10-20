@@ -40,7 +40,7 @@ const isUniqueViolation = (error: unknown) =>
   (/duplicate key/i.test(error.message) ||
     /unique constraint/i.test(error.message) ||
     /UNIQUE constraint failed/.test(error.message) ||
-    (error as any).code === '23505');
+    ('code' in error && error.code === '23505'));
 
 export const getAuthUser = async (
   { db }: AppContext,

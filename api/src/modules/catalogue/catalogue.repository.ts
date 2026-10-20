@@ -64,7 +64,7 @@ export type Subject = {
   chapters: Chapter[];
 };
 
-type Row = Record<string, unknown>;
+export type Row = Record<string, unknown>;
 
 const toNullableString = (value: unknown) =>
   value === null || value === undefined ? null : String(value);
