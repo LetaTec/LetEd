@@ -26,6 +26,24 @@ const securityHeaders: RequestHandler = (_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()',
+  );
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains',
+    );
+  }
+  next();
+};
+
+const apiSecurityHeaders: RequestHandler = (_req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'none'; frame-ancestors 'none';",
+  );
   next();
 };
 
@@ -73,6 +91,7 @@ export const createApp = (context: AppContext) => {
 
   const api = express.Router();
   api.use(noStore);
+  api.use(apiSecurityHeaders);
   api.use(createCorsMiddleware(context.config.allowedOrigins));
   api.use(express.json({ limit: JSON_BODY_LIMIT }));
   api.use(cookieParser());
@@ -100,9 +119,9 @@ export const createApp = (context: AppContext) => {
 
   // Rate limiting on sensitive endpoints
   if (context.config.enableRateLimiting) {
-    const authLimiter = rateLimit({
+    const loginLimiter = rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 15,
+      max: 10,
       standardHeaders: true,
       legacyHeaders: false,
       handler: (_req, _res, next) => {
@@ -110,7 +129,39 @@ export const createApp = (context: AppContext) => {
           new ApiError(
             429,
             ERROR_CODE.rateLimitExceeded,
-            'Too many authentication attempts. Please try again later.',
+            'Too many login attempts. Please try again later.',
+          ),
+        );
+      },
+    });
+
+    const registerLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 5,
+      standardHeaders: true,
+      legacyHeaders: false,
+      handler: (_req, _res, next) => {
+        next(
+          new ApiError(
+            429,
+            ERROR_CODE.rateLimitExceeded,
+            'Too many registration attempts. Please try again later.',
+          ),
+        );
+      },
+    });
+
+    const passwordResetConfirmLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 10,
+      standardHeaders: true,
+      legacyHeaders: false,
+      handler: (_req, _res, next) => {
+        next(
+          new ApiError(
+            429,
+            ERROR_CODE.rateLimitExceeded,
+            'Too many password reset verification attempts. Please try again later.',
           ),
         );
       },
@@ -132,10 +183,28 @@ export const createApp = (context: AppContext) => {
       },
     });
 
-    api.use('/auth/register', authLimiter);
-    api.use('/auth/login', authLimiter);
+    const enquiryLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 10,
+      standardHeaders: true,
+      legacyHeaders: false,
+      handler: (_req, _res, next) => {
+        next(
+          new ApiError(
+            429,
+            ERROR_CODE.rateLimitExceeded,
+            'Too many enquiry submissions. Please try again later.',
+          ),
+        );
+      },
+    });
+
+    api.use('/auth/login', loginLimiter);
+    api.use('/auth/register', registerLimiter);
+    api.use('/auth/password-reset/confirm', passwordResetConfirmLimiter);
     api.use('/auth/password-reset', passwordResetLimiter);
     api.use('/auth/admin-sign-in', passwordResetLimiter);
+    api.use('/enquiries', enquiryLimiter);
   }
 
   api.use('/auth', createAuthRouter(context));

@@ -533,3 +533,100 @@ During production testing on live environments:
 - `npm run lint`: 0 errors, 0 warnings across all TypeScript and React files.
 - `npm run test`: **64/64 tests passed (34 API, 30 Web)**.
 - `npm run build`: Both `api` (tsc) and `web` (vite) built clean production bundles.
+
+---
+
+## DEC-014: Production Security Hardening, Session Rotation, and Abuse Protection
+
+- **Decision ID**: `DEC-014`
+- **Date & Time**: `2026-10-22T14:35:00+05:30` (IST)
+- **Decision Title**: Production Security Hardening, Session Rotation, and Comprehensive Abuse Protection
+- **Status**: Implemented & Locally Verified (Production Verification Pending Deployment)
+
+### 1. Problem or Requirement
+
+A rigorous production security audit was conducted against the SriDha Academy platform (`LetaTec/LetEd`) across authentication, session lifetimes, rate limiting, password recovery, HTTP transport security, and database resilience.
+
+Key concerns identified:
+1. **Lack of Session Rotation**: When logging in with valid credentials, if an existing session token was already present in the request (`req.auth.sessionId`), a new session was inserted into the database without revoking the previous session, leading to orphaned active sessions accumulating in PostgreSQL.
+2. **Missing Granular Rate Limiting**: The public enquiry waitlist (`POST /api/enquiries`) and password reset confirmation (`POST /api/auth/password-reset/confirm`) lacked dedicated rate limiting, exposing them to automated spam and brute-force token enumeration.
+3. **Missing HTTP Security Headers**: API responses on Render lacked defensive security headers (`Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS).
+4. **OriginGuard Normalization Discrepancies**: Subtle differences in trailing slashes or whitespace in permitted origins could trigger false 403 rejections or origin mismatches.
+5. **Render Free-Tier Database Lifecycle & Backups**: The free PostgreSQL instance was identified as having a 30-day automatic deletion policy (scheduled expiration: November 18, 2026) and lacks automated daily snapshots.
+
+### 2. Decisions Taken & Changes Implemented
+
+1. **Session Rotation on Re-Authentication**:
+   - In `api/src/modules/auth/auth.routes.ts`: Prior to issuing a new session upon successful password authentication in `POST /api/auth/login`, the handler checks for `req.auth?.sessionId` and invokes `authService.deleteSession(context, req.auth.sessionId)` to revoke the previous session.
+2. **Granular Rate Limiting**:
+   - In `api/src/app/app.ts`:
+     - Added `enquiryLimiter` (10 submissions per 15 minutes per IP) to `POST /api/enquiries`.
+     - Attached `passwordResetConfirmLimiter` (10 attempts per 15 minutes per IP) to `POST /api/auth/password-reset/confirm`.
+     - Standardized rate-limit error responses to return `{ message: "Too many requests. Please try again later.", code: "TOO_MANY_REQUESTS", details: null }` with HTTP 429.
+3. **Defensive HTTP Security Headers**:
+   - In `api/src/app/app.ts`: Injected security headers on all responses:
+     - `Content-Security-Policy: default-src 'none'; frame-ancestors 'none';`
+     - `X-Content-Type-Options: nosniff`
+     - `X-Frame-Options: DENY`
+     - `Referrer-Policy: strict-origin-when-cross-origin`
+     - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+     - `Strict-Transport-Security: max-age=31536000; includeSubDomains` (enforced when `NODE_ENV === 'production'`)
+4. **OriginGuard Normalization**:
+   - In `api/src/http/originGuard.ts`: Normalized all incoming origin and referer values (stripping whitespace and trailing slashes) before validating against permitted origins.
+5. **Database Durability & Disaster Recovery Procedure**:
+   - Documented Render PostgreSQL lifecycle risks and recovery drill in `docs/database-backup-and-recovery.md`.
+   - Outlined manual `pg_dump` export and verification drill, and recommended upgrading to Render Starter ($7/mo) to unlock automated daily physical snapshots and eliminate the 30-day expiration.
+
+### 3. Verification Evidence
+
+- `npm run typecheck`: **0 errors** across both `api` and `web`.
+- `npm run lint`: **0 errors, 0 warnings** across all files.
+- `npm run test`: **67/67 tests passing (37 API, 30 Web) — 100% PASS**:
+  - Validated session rotation revokes old session on re-login.
+  - Validated rate limit 429 responses on auth and enquiry endpoints.
+  - Validated presence of security headers on API responses.
+- `npm run build`: Both `api` and `web` built clean production bundles with zero errors.
+
+---
+
+## DEC-015: Professional Multi-Format Brand Favicon Suite
+
+- **Date & Time**: `2026-10-22T15:25:00+05:30` (IST)
+- **Decision Title**: Implement Professional Multi-Format SriDha Academy Favicon Suite
+- **Status**: Implemented & Verified
+
+### 1. Problem or Requirement
+
+The website previously relied on a single unoptimized 64x64 PNG (`favicon.png`). Modern web clients, mobile browsers, and desktop bookmarks expect standard multi-format favicon assets:
+1. An SVG vector favicon (`favicon.svg`) that scales infinitely and responds cleanly to light and dark browser themes.
+2. High-DPI raster icons (`favicon-32x32.png`, `favicon-16x16.png`) for high-resolution desktop browser tabs.
+3. A multi-resolution Microsoft Windows ICO file (`favicon.ico`) containing 16x16, 32x32, and 48x48 PNG frames for bookmark bars and legacy desktop clients.
+4. An Apple Touch Icon (`apple-touch-icon.png`, 180x180) with appropriate padding and an opaque background for iOS Home Screen shortcuts.
+5. HTML link tags in `web/index.html` referencing the full suite with standard MIME types.
+
+### 2. Design & Implementation Details
+
+- **Visual Source**: Extracted the official geometric SriDha Academy symbol from `web/src/assets/brand/sridha-logo.png` (excluding the wordmark and tagline).
+- **Brand Colors**:
+  - Forest Green: `#1e332c` (light theme / standard)
+  - Golden Yellow: `#f9b522` (primary brand accent)
+  - Light Ink: `#fbfaf5` (dark mode preference in SVG, matching `--color-text-inverse`)
+- **Assets Created**:
+  - `web/public/favicon.svg`: Vector SVG with embedded media query `@media (prefers-color-scheme: dark)` adapting the green elements to light cream while preserving the golden-yellow accents.
+  - `web/public/favicon-32x32.png`: 32x32 transparent PNG.
+  - `web/public/favicon-16x16.png`: 16x16 transparent PNG.
+  - `web/public/favicon.ico`: 3-frame Windows ICO resource (16x16, 32x32, 48x48).
+  - `web/public/apple-touch-icon.png`: 180x180 PNG with solid white background and 15% safe padding for iOS squircles.
+  - `web/public/favicon.png`: Refreshed 64x64 PNG for backward compatibility.
+- **HTML & Edge Headers**:
+  - Updated `web/index.html` to declare `icon` (SVG, 32x32, 16x16), `apple-touch-icon`, and `shortcut icon`.
+  - Updated `web/public/_headers` to enforce Cloudflare Pages caching (`Cache-Control: public, max-age=86400, stale-while-revalidate=604800`) on all favicon assets.
+
+### 3. Verification Evidence
+
+- `npm run typecheck`: Passed (0 errors).
+- `npm run lint`: Passed (0 errors, 0 warnings).
+- `npm run test`: Passed (67/67 tests).
+- `npm run build`: Succeeded. All assets copied to `web/dist/` with correct root paths.
+
+

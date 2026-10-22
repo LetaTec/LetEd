@@ -107,6 +107,8 @@ export const startTestServer = async ({
     clock,
     sentEmails,
     sentSignInLinks,
+    port,
+    baseUrl,
     createClient,
     close: () =>
       new Promise<void>((resolve, reject) => {

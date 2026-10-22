@@ -17,6 +17,8 @@ Configure these in the backend hosting environment (e.g. Render Dashboard under 
 | `ALLOWED_ORIGINS`           | Backend | Optional                            | `""`                                         | Comma-separated list of additional permitted frontend origins (e.g. `https://www.sridhaacademy.com,https://sridha-academy.pages.dev`).                                                                                                                             |
 | `SESSION_TTL_DAYS`          | Backend | Optional                            | `1`                                          | Session lifetime in days for regular student logins.                                                                                                                                                                                                               |
 | `SESSION_REMEMBER_TTL_DAYS` | Backend | Optional                            | `30`                                         | Extended session lifetime in days when "Remember me" is checked.                                                                                                                                                                                                   |
+| `COOKIE_SAMESITE`           | Backend | Optional                            | `none` (in prod), `lax` (in dev)             | Cookie SameSite policy (`none`, `lax`, `strict`). Use `none` for cross-origin hosting, `lax` when using `api.sridhaacademy.com`.                                                                                                                                   |
+| `COOKIE_DOMAIN`             | Backend | Optional                            | `undefined`                                  | Explicit cookie domain attribute (e.g. `.sridhaacademy.com`). Leave unset unless sharing cookies across subdomains.                                                                                                                                                |
 | `MAIL_TRANSPORT`            | Backend | Optional                            | `null`                                       | Mail delivery provider: `console` (development/test only) or `resend`. In production, `console` is forbidden.                                                                                                                                                      |
 | `RESEND_API_KEY`            | Backend | Required if `MAIL_TRANSPORT=resend` | `null`                                       | Resend API key (`re_...`) for transactional password recovery emails. **Confidential.**                                                                                                                                                                            |
 | `EMAIL_FROM`                | Backend | Optional                            | `SriDha Academy <noreply@sridhaacademy.com>` | Sender name and address for transactional emails. Must match verified domain in Resend.                                                                                                                                                                            |
@@ -33,10 +35,10 @@ Configure these in the Cloudflare Pages Dashboard under **Settings** → **Envir
 > [!IMPORTANT]
 > All variables prefixed with `VITE_` are embedded directly into compiled JavaScript assets during `npm run build`. Never put secret keys, database credentials, or private tokens in `VITE_*` variables.
 
-| Variable       | Scope    | Required / Optional        | Default Value | Description                                                                                |
-| :------------- | :------- | :------------------------- | :------------ | :----------------------------------------------------------------------------------------- |
-| `VITE_API_URL` | Frontend | **Required in production** | `/api`        | Base URL of the backend API, including `/api` suffix: `https://api.sridhaacademy.com/api`. |
-| `NODE_VERSION` | Frontend | Recommended                | `22`          | Directs Cloudflare Pages build container to use Node.js 22 LTS.                            |
+| Variable       | Scope    | Required / Optional        | Default Value | Description                                                                                                                                 |
+| :------------- | :------- | :------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| `VITE_API_URL` | Frontend | **Required in production** | `/api`        | Base URL of the backend API, including `/api` suffix: `https://api.sridhaacademy.com/api` or `https://sridha-academy-api.onrender.com/api`. |
+| `NODE_VERSION` | Frontend | Recommended                | `22`          | Directs Cloudflare Pages build container to use Node.js 22 LTS.                                                                             |
 
 ---
 
@@ -55,12 +57,17 @@ MAIL_TRANSPORT=console
 # MAIL_TRANSPORT=resend
 # RESEND_API_KEY=re_your_api_key_here
 # EMAIL_FROM=SriDha Academy <noreply@sridhaacademy.com>
+# Optional cookie overrides:
+# COOKIE_SAMESITE=none
+# COOKIE_DOMAIN=.sridhaacademy.com
 ```
 
 ### Safe `web/.env.example`
 
 ```env
 # Cloudflare Pages production:
+# VITE_API_URL=https://sridha-academy-api.onrender.com/api
+# Or with custom domain:
 # VITE_API_URL=https://api.sridhaacademy.com/api
 # Local development:
 VITE_API_URL=http://localhost:4000/api

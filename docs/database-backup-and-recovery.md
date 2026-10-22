@@ -1,104 +1,150 @@
-# SriDha Academy (LetEd) — Database Backup & Recovery Plan
+# SriDha Academy (LetEd) — Database Backup & Disaster Recovery Plan
 
-## 1. Backup Strategy Overview
+This document establishes the official database durability, backup procedures, and disaster recovery plan for the SriDha Academy PostgreSQL database.
 
-To guarantee student data persistence, transactional safety, and business continuity, SriDha Academy employs a two-tier backup strategy:
+---
 
-1. **Automated Managed Provider Snapshots**: Full automated daily physical snapshots maintained by Render Managed PostgreSQL.
-2. **Logical Dumps (`pg_dump`)**: Automated or on-demand portable SQL dumps before schema migrations or major releases.
+## 1. Critical Operational Notice: Render Database Tier & Expiration
+
+> [!CAUTION]
+> **RENDER FREE-TIER EXPIRATION & BACKUP WARNING**
+>
+> 1. **30-Day Lifecycle**: Render free-tier PostgreSQL databases are ephemeral and automatically deleted **30 days after creation** (identified expiration: **November 18, 2026**). Once deleted, data cannot be recovered by Render support.
+> 2. **No Automated Backups on Free Tier**: Render's automated daily snapshot service and Point-In-Time-Recovery (PITR) are **ONLY available on paid plans** (Starter tier, starting at $7/month).
+> 3. **Action Required**: Prior to launching student registrations or before the 30-day limit, the database instance must be upgraded to **Starter Tier** ($7/mo) in the Render Dashboard, or an automated offsite `pg_dump` cron must be established immediately.
 
 ---
 
 ## 2. Recovery Objectives
 
 - **Recovery Point Objective (RPO)**:
-  - Managed Starter Tier: Maximum 24 hours of data loss (daily automated backup).
-  - Managed Pro/Point-in-Time-Recovery (PITR) Tier: Under 5 minutes of data loss (continuous WAL archiving).
+  - *Starter Tier ($7/mo)*: Maximum 24 hours of data loss (daily automated backup).
+  - *Pro Tier (PITR)*: Maximum 5 minutes of data loss (continuous WAL archiving).
+  - *Free Tier with Manual `pg_dump`*: Equal to the time elapsed since the last manual dump.
 - **Recovery Time Objective (RTO)**:
-  - Point-in-time restore or snapshot recovery completed within 15–30 minutes.
+  - Under 30 minutes to provision a replacement database and restore data.
 
 ---
 
-## 3. Managed Provider Backups (Render)
+## 3. Tier Comparison & Capabilities
 
-### Features & Retention
-
-- **Frequency**: Automatic daily snapshots taken during the daily maintenance window.
-- **Retention Period**:
-  - Starter Plan: 7 daily snapshots retained.
-  - Standard/Pro Plan: 30 days retention with Point-in-Time-Recovery (PITR).
-- **Storage Location**: Encrypted at rest (AES-256) in cloud object storage isolated from the compute instance.
-
-### Restoring from Render Dashboard
-
-1. Open [Render Dashboard](https://dashboard.render.com/) → Navigate to your PostgreSQL database: `sridha-academy-db`.
-2. Select the **Backups** tab.
-3. Locate the snapshot corresponding to the desired restore timestamp.
-4. Click **Restore Backup**.
-5. Render can restore the snapshot into a new database instance or restore over the existing instance.
-6. If restored into a new database instance, update the `DATABASE_URL` environment variable on `sridha-academy-api` to point to the restored database.
+| Feature | Render Free Tier | Render Starter Tier ($7/mo) | Render Standard/Pro Tier |
+| :--- | :--- | :--- | :--- |
+| **Instance Expiration** | **Deletes after 30 days** | **Persistent (No expiration)** | **Persistent (No expiration)** |
+| **Automated Backups** | **None** | Daily automated snapshots | Continuous WAL + daily snapshots |
+| **Backup Retention** | None | 7 daily snapshots | 30 days retention with PITR |
+| **One-Click Restore** | Unavailable | Supported via Render Dashboard | Supported via Render Dashboard |
+| **RAM & CPU** | 256 MB RAM, shared CPU | 1 GB RAM, 0.5 CPU | 4 GB+ RAM, dedicated CPU |
+| **Recommended Usage** | Testing / prototyping only | Production launch minimum | High-traffic scale |
 
 ---
 
-## 4. Manual / Pre-Deployment Logical Backups (`pg_dump`)
+## 4. Manual Backup Procedure (`pg_dump`)
 
-Before executing database schema migrations or manual data interventions, take an explicit logical dump:
+Whenever performing schema updates, migrations, or operating on an unmanaged tier, take an explicit logical dump.
 
-### Step 1: Create Backup
+### Step 1: Export Compressed Custom-Format Dump
 
-Run from a secure administrative terminal:
+Run from an administrative terminal with `pg_dump` (PostgreSQL 16+) installed:
 
 ```bash
+# Set your connection URI (never commit this string)
+export DATABASE_URL="postgres://user:password@host/dbname"
+
+# Take the logical backup
 pg_dump "$DATABASE_URL" \
   --format=custom \
   --no-owner \
   --no-privileges \
-  --file="backup_sridha_$(date +%Y%m%d_%H%M%S).dump"
+  --file="sridha_prod_backup_$(date +%Y%m%d_%H%M%S).dump"
 ```
 
 ### Step 2: Test Backup Integrity
 
-Verify the dump file is valid:
+Verify that the dump file is uncorrupted and contains valid table schemas:
 
 ```bash
-pg_restore --list backup_sridha_*.dump > /dev/null
-echo "Backup verification status: OK"
+pg_restore --list sridha_prod_backup_*.dump > /dev/null
+if [ $? -eq 0 ]; then
+  echo "✅ Backup integrity verified successfully"
+else
+  echo "❌ Backup verification failed: corrupt dump file"
+fi
 ```
 
-### Step 3: Offsite Storage
+### Step 3: Encrypt and Store Offsite
 
-- Store pre-release dump files in an encrypted AWS S3 / Cloudflare R2 bucket with object versioning enabled.
-- **Never commit `.dump`, `.sql`, or `.sqlite` files to the Git repository.**
+To protect student personal records and password hashes:
+
+```bash
+# Encrypt with GPG before uploading to S3 or Cloudflare R2
+gpg --symmetric --cipher-algo AES256 sridha_prod_backup_*.dump
+
+# Store in private bucket (e.g. AWS S3 or Cloudflare R2 with Object Lock)
+aws s3 cp sridha_prod_backup_*.dump.gpg s3://sridha-academy-backups-private/
+```
+
+> [!WARNING]
+> Never commit `.dump`, `.sql`, or `.gpg` files to Git. Verify that `*.dump` and `*.sql` are listed in `.gitignore`.
 
 ---
 
-## 5. Recovery Procedure (Logical Restore)
+## 5. Safe Disaster Recovery & Restoration Drill
 
-To restore from a logical `.dump` file to a target PostgreSQL database:
+To ensure backups are recoverable without touching or endangering production data, perform this restoration drill against an isolated local or temporary test database:
 
-```bash
-# 1. Terminate active connections (optional, for clean restore)
-# 2. Restore schema and data:
-pg_restore \
-  --dbname="$DATABASE_URL" \
-  --clean \
-  --if-exists \
-  --no-owner \
-  --no-privileges \
-  backup_sridha_YYYYMMDD_HHMMSS.dump
-```
+### Recovery Drill Steps
 
-Verify table counts after restore:
+1. **Spin up an empty target test database**:
+   ```bash
+   # Example: using local Docker PostgreSQL
+   docker run --name pg-drill -e POSTGRES_PASSWORD=drillpass -p 5433:5432 -d postgres:16
+   export DRILL_DATABASE_URL="postgres://postgres:drillpass@localhost:5433/postgres"
+   ```
 
-```sql
-SELECT count(*) FROM users;
-SELECT count(*) FROM student_profiles;
-SELECT count(*) FROM enrolments;
-```
+2. **Execute restoration into the drill database**:
+   ```bash
+   pg_restore \
+     --dbname="$DRILL_DATABASE_URL" \
+     --clean \
+     --if-exists \
+     --no-owner \
+     --no-privileges \
+     sridha_prod_backup_YYYYMMDD_HHMMSS.dump
+   ```
+
+3. **Verify record counts and schema integrity**:
+   ```sql
+   psql "$DRILL_DATABASE_URL" -c "
+     SELECT 'users' as table_name, count(*) as count FROM users
+     UNION ALL
+     SELECT 'student_profiles', count(*) FROM student_profiles
+     UNION ALL
+     SELECT 'enrolments', count(*) FROM enrolments
+     UNION ALL
+     SELECT 'enquiries', count(*) FROM enquiries;
+   "
+   ```
+
+4. **Verify application startup with restored data**:
+   - Temporarily point `DATABASE_URL` in local `.env` to the drill database.
+   - Run `npm run test` or start `npm run dev -w api`.
+   - Verify that test accounts can authenticate with their original credentials.
+
+5. **Clean up drill environment**:
+   ```bash
+   docker stop pg-drill && docker rm pg-drill
+   ```
 
 ---
 
-## 6. Disaster Recovery Responsibilities & Monitoring
+## 6. How to Upgrade on Render
 
-- **Weekly Verification**: The DevOps engineer inspects the Render Backups tab every Monday to ensure automated snapshots are actively succeeding.
-- **Access Control**: Database credentials (`DATABASE_URL`) are restricted to production administrative staff and stored exclusively in password managers / cloud secret stores.
+To eliminate the 30-day expiration and enable automated backups:
+
+1. Log in to [Render Dashboard](https://dashboard.render.com/).
+2. Select PostgreSQL database `sridha-academy-db`.
+3. In the database overview, click **Upgrade Plan**.
+4. Select **Starter** ($7/month) or higher.
+5. Click **Change Plan**.
+6. Render transitions the instance with zero downtime. Automated daily backups will immediately begin appearing in the **Backups** tab.
