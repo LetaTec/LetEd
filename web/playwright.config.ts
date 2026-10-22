@@ -25,14 +25,18 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'npm run db:seed && npm run dev',
+      command: 'npm run dev',
       cwd: '../api',
       url: `${API_URL}/api/health`,
       reuseExistingServer: false,
       env: {
         NODE_ENV: 'development',
         PORT: '4100',
-        DATABASE_PATH: './data/e2e.sqlite',
+        // Always a throwaway in-memory database, seeded by the API on startup,
+        // even when api/.env points at a real PostgreSQL database.
+        DATABASE_URL: ':memory:',
+        // The suite registers more accounts than the sign-up limit allows.
+        ENABLE_RATE_LIMIT: 'false',
         WEB_ORIGIN: WEB_URL,
         MAIL_TRANSPORT: 'console',
       },
