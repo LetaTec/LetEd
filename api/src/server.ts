@@ -7,10 +7,19 @@ import {
   runMigrations,
 } from './db/client.js';
 import { createMailer } from './mail/mailer.js';
+import { syncSuperAdmins } from './modules/auth/roles.js';
 
 const config = loadConfigFromEnvironment();
 const db = await openDatabase(config.databaseUrl, config.pgMaxConnections);
 await runMigrations(db);
+
+// SUPER_ADMIN_EMAILS is the source of truth for who is a super admin.
+const superAdminCount = await syncSuperAdmins(
+  db,
+  config.superAdminEmails,
+  new Date(),
+);
+console.log('[auth] super admin accounts: %d', superAdminCount);
 
 // An in-memory database starts empty on every run and no other process can
 // reach it, so the server loads the catalogue itself. The seed is idempotent.

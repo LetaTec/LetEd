@@ -4,6 +4,8 @@ import type { AppContext } from '../../app/context.js';
 import { ApiError, ERROR_CODE } from '../../http/errors.js';
 import { validate } from '../../http/validate.js';
 import {
+  adminSignInConfirmSchema,
+  adminSignInRequestSchema,
   loginSchema,
   passwordResetConfirmSchema,
   passwordResetRequestSchema,
@@ -11,9 +13,11 @@ import {
 } from './auth.schema.js';
 import {
   authenticateStudent,
+  confirmAdminSignIn,
   confirmPasswordReset,
   getAuthUser,
   registerStudent,
+  requestAdminSignIn,
   requestPasswordReset,
 } from './auth.service.js';
 import {
@@ -84,6 +88,25 @@ export const createAuthRouter = (context: AppContext) => {
     await confirmPasswordReset(context, token, password);
     clearSessionCookie(context, res);
     res.status(204).end();
+  });
+
+  // Password-free sign-in for super admins: request an emailed link, then
+  // exchange its token for a session.
+  router.post('/admin-sign-in', async (req, res) => {
+    const { email } = validate(adminSignInRequestSchema, req.body);
+    await requestAdminSignIn(context, email);
+    res.status(202).json({
+      message:
+        "If this email belongs to a SriDha Academy team account, you'll receive a sign-in link shortly",
+    });
+  });
+
+  router.post('/admin-sign-in/confirm', async (req, res) => {
+    const { token } = validate(adminSignInConfirmSchema, req.body);
+    const user = await confirmAdminSignIn(context, token);
+    const session = await createSession(context, user.id, false);
+    setSessionCookie(context, res, session);
+    res.json({ user });
   });
 
   return router;

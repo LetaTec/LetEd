@@ -9,23 +9,27 @@ import {
   verifyAgainstDummyHash,
   verifyPassword,
 } from './password.js';
+import { toUserRole, USER_ROLE, type UserRole } from './roles.js';
 import { deleteUserSessions } from './session.js';
 import { generateToken, hashToken } from './tokens.js';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const SIGN_IN_LINK_TTL_MS = 15 * 60 * 1000;
 
-// The authenticated account (users.id) is the canonical identity. Each account
-// owns exactly one student profile, created in the same transaction.
+// The authenticated account (users.id) is the canonical identity. Every
+// student account owns exactly one student profile, created in the same
+// transaction; a super admin account may have none.
 export type AuthUser = {
   id: string;
   email: string;
+  role: UserRole;
   student: {
     id: string;
     fullName: string;
     standard: string;
     stream: string | null;
     streamOther: string | null;
-  };
+  } | null;
 };
 
 const emailAlreadyRegistered = () =>
@@ -49,9 +53,9 @@ export const getAuthUser = async (
 ): Promise<AuthUser | null> => {
   const runner = client ?? db;
   const row = await runner.get(
-    `SELECT u.id, u.email, s.id AS student_id, s.full_name, s.standard, s.stream, s.stream_other
+    `SELECT u.id, u.email, u.role, s.id AS student_id, s.full_name, s.standard, s.stream, s.stream_other
      FROM users u
-     JOIN student_profiles s ON s.user_id = u.id
+     LEFT JOIN student_profiles s ON s.user_id = u.id
      WHERE u.id = $1`,
     [userId],
   );
@@ -60,16 +64,29 @@ export const getAuthUser = async (
     return null;
   }
 
+  const role = toUserRole(row.role);
+
+  // A student account without its profile is incomplete; only super admins
+  // may exist without one.
+  if (row.student_id === null && role !== USER_ROLE.superAdmin) {
+    return null;
+  }
+
   return {
     id: String(row.id),
     email: String(row.email),
-    student: {
-      id: String(row.student_id),
-      fullName: String(row.full_name),
-      standard: String(row.standard),
-      stream: row.stream === null ? null : String(row.stream),
-      streamOther: row.stream_other === null ? null : String(row.stream_other),
-    },
+    role,
+    student:
+      row.student_id === null
+        ? null
+        : {
+            id: String(row.student_id),
+            fullName: String(row.full_name),
+            standard: String(row.standard),
+            stream: row.stream === null ? null : String(row.stream),
+            streamOther:
+              row.stream_other === null ? null : String(row.stream_other),
+          },
   };
 };
 
@@ -145,9 +162,11 @@ export const authenticateStudent = async (
     [input.email],
   );
 
-  const isValid = row
-    ? await verifyPassword(input.password, String(row.password_hash))
-    : await verifyAgainstDummyHash(input.password);
+  // Accounts without a password (super admins) sign in with an emailed link.
+  const isValid =
+    row && row.password_hash !== null
+      ? await verifyPassword(input.password, String(row.password_hash))
+      : await verifyAgainstDummyHash(input.password);
 
   const user =
     isValid && row ? await getAuthUser(context, String(row.id)) : null;
@@ -246,4 +265,107 @@ export const confirmPasswordReset = async (
     // A password change signs the account out everywhere.
     await deleteUserSessions(context, userId, tx);
   });
+};
+
+const signInLinkUnavailable = () =>
+  new ApiError(
+    503,
+    ERROR_CODE.signInLinkUnavailable,
+    'Email sign-in is not available yet. Please try again later.',
+  );
+
+const invalidSignInLink = () =>
+  new ApiError(
+    400,
+    ERROR_CODE.invalidSignInLink,
+    'This sign-in link is invalid or has expired. Request a new one.',
+  );
+
+// Emails a one-time sign-in link to a super admin. Any other email gets the
+// same response and no email, so the endpoint cannot reveal who is an admin.
+export const requestAdminSignIn = async (
+  context: AppContext,
+  email: string,
+) => {
+  if (!context.mailer) {
+    throw signInLinkUnavailable();
+  }
+
+  const row = await context.db.get(
+    'SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND role = $2',
+    [email, USER_ROLE.superAdmin],
+  );
+
+  if (!row) {
+    return;
+  }
+
+  const userId = String(row.id);
+  const token = generateToken();
+  const now = context.now();
+
+  // Only the newest link works.
+  await transaction(context.db, async tx => {
+    await tx.query(
+      'UPDATE sign_in_links SET used_at = $1 WHERE user_id = $2 AND used_at IS NULL',
+      [now.toISOString(), userId],
+    );
+    await tx.query(
+      'INSERT INTO sign_in_links (id, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)',
+      [
+        hashToken(token),
+        userId,
+        now.toISOString(),
+        new Date(now.getTime() + SIGN_IN_LINK_TTL_MS).toISOString(),
+      ],
+    );
+  });
+
+  const signInUrl = new URL('/admin-sign-in', context.config.webOrigin);
+  signInUrl.searchParams.set('token', token);
+  await context.mailer.sendAdminSignInLink(email, signInUrl.toString());
+};
+
+// Exchanges a sign-in link for the account it was issued to. Each link works
+// once, expires after 15 minutes and only while the account is a super admin.
+export const confirmAdminSignIn = async (
+  context: AppContext,
+  token: string,
+): Promise<AuthUser> => {
+  const tokenId = hashToken(token);
+  const now = context.now();
+  const row = await context.db.get(
+    `SELECT l.user_id, l.expires_at, l.used_at, u.role
+     FROM sign_in_links l
+     JOIN users u ON u.id = l.user_id
+     WHERE l.id = $1`,
+    [tokenId],
+  );
+
+  if (
+    !row ||
+    row.used_at !== null ||
+    new Date(String(row.expires_at)) <= now ||
+    toUserRole(row.role) !== USER_ROLE.superAdmin
+  ) {
+    throw invalidSignInLink();
+  }
+
+  // Claim the link atomically, so two clicks cannot both sign in.
+  const claimed = await context.db.query(
+    'UPDATE sign_in_links SET used_at = $1 WHERE id = $2 AND used_at IS NULL RETURNING id',
+    [now.toISOString(), tokenId],
+  );
+
+  if (claimed.rows.length !== 1) {
+    throw invalidSignInLink();
+  }
+
+  const user = await getAuthUser(context, String(row.user_id));
+
+  if (!user) {
+    throw invalidSignInLink();
+  }
+
+  return user;
 };

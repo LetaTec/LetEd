@@ -10,6 +10,8 @@ export const ERROR_CODE = {
   emailAlreadyRegistered: 'EMAIL_ALREADY_REGISTERED',
   invalidResetToken: 'INVALID_RESET_TOKEN',
   passwordRecoveryUnavailable: 'PASSWORD_RECOVERY_UNAVAILABLE',
+  invalidSignInLink: 'INVALID_SIGN_IN_LINK',
+  signInLinkUnavailable: 'SIGN_IN_LINK_UNAVAILABLE',
   originNotAllowed: 'ORIGIN_NOT_ALLOWED',
   batchNotFound: 'BATCH_NOT_FOUND',
   batchUnavailable: 'BATCH_UNAVAILABLE',

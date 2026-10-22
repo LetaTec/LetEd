@@ -135,6 +135,7 @@ export const createApp = (context: AppContext) => {
     api.use('/auth/register', authLimiter);
     api.use('/auth/login', authLimiter);
     api.use('/auth/password-reset', passwordResetLimiter);
+    api.use('/auth/admin-sign-in', passwordResetLimiter);
   }
 
   api.use('/auth', createAuthRouter(context));
