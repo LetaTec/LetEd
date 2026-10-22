@@ -94,6 +94,8 @@ export const startTestServer = async ({
     db,
     clock,
     sentEmails,
+    port,
+    baseUrl,
     createClient,
     close: () =>
       new Promise<void>((resolve, reject) => {

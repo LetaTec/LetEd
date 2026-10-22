@@ -171,7 +171,7 @@ describe('database & migrations (PostgreSQL)', () => {
       assert.equal(lastResponse.body.code, 'RATE_LIMIT_EXCEEDED');
       assert.match(
         lastResponse.body.message,
-        /Too many authentication attempts/,
+        /Too many login attempts/,
       );
     } finally {
       await rateLimitedServer.close();
