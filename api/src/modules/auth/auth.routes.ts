@@ -39,6 +39,9 @@ export const createAuthRouter = (context: AppContext) => {
   router.post('/login', async (req, res) => {
     const input = validate(loginSchema, req.body);
     const user = await authenticateStudent(context, input);
+    if (req.auth) {
+      await deleteSession(context, req.auth.sessionId);
+    }
     const session = await createSession(context, user.id, input.rememberMe);
     setSessionCookie(context, res, session);
     res.json({ user });

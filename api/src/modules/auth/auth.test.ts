@@ -344,6 +344,77 @@ describe('auth', () => {
     );
     assert.equal(evilOrigin.status, 401);
   });
+
+  it('rotates session by revoking the old session in database upon re-login', async () => {
+    const client = server.createClient();
+    const login1 = await client.request('POST', '/api/auth/login', {
+      email: 'asha@example.com',
+      password: 'new-password-2',
+    });
+    assert.equal(login1.status, 200);
+    const oldCookie = login1.setCookie;
+    assert.ok(oldCookie);
+
+    // Re-login with the active session cookie
+    const login2 = await client.request('POST', '/api/auth/login', {
+      email: 'asha@example.com',
+      password: 'new-password-2',
+    });
+    assert.equal(login2.status, 200);
+    const newCookie = login2.setCookie;
+    assert.ok(newCookie);
+    assert.notEqual(oldCookie, newCookie);
+
+    // The old session cookie was revoked by session rotation and must now be rejected
+    const oldClient = server.createClient();
+    const oldAttempt = await oldClient.request(
+      'GET',
+      '/api/auth/session',
+      undefined,
+      { Cookie: oldCookie.split(';')[0] },
+    );
+    assert.equal(oldAttempt.status, 401);
+  });
+
+  it('sets comprehensive HTTP security headers and API Content-Security-Policy', async () => {
+    const response = await fetch(`${server.baseUrl}/api/health`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(response.headers.get('x-frame-options'), 'DENY');
+    assert.equal(
+      response.headers.get('content-security-policy'),
+      "default-src 'none'; frame-ancestors 'none';",
+    );
+    assert.equal(
+      response.headers.get('permissions-policy'),
+      'camera=(), microphone=(), geolocation=()',
+    );
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+  });
+
+  it('rate limits public enquiry submissions when rate limiting is enabled', async () => {
+    const rateLimitedServer = await startTestServer({
+      enableRateLimiting: true,
+    });
+
+    try {
+      const client = rateLimitedServer.createClient();
+      let lastRes: any;
+      for (let i = 0; i < 11; i++) {
+        lastRes = await client.request('POST', '/api/enquiries', {
+          type: 'MODEL_PAPER_WAITLIST',
+          email: `spam${i}@example.com`,
+          exam: 'JEE',
+        });
+      }
+
+      assert.equal(lastRes.status, 429);
+      assert.equal(lastRes.body.code, 'RATE_LIMIT_EXCEEDED');
+      assert.match(lastRes.body.message, /Too many enquiry submissions/);
+    } finally {
+      await rateLimitedServer.close();
+    }
+  });
 });
 
 describe('auth without a mail transport', () => {

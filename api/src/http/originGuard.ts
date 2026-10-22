@@ -14,7 +14,8 @@ export const createOriginGuard =
       return;
     }
 
-    const origin = req.get('origin');
+    const rawOrigin = req.get('origin');
+    const origin = rawOrigin ? rawOrigin.trim().replace(/\/+$/, '') : null;
 
     if (origin && !allowedOrigins.includes(origin)) {
       next(
