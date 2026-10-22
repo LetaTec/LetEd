@@ -4,8 +4,10 @@
 }
 
 .topic {
+  position: relative;
   display: block;
   width: 100%;
+  overflow: hidden;
   color: inherit;
   text-align: inherit;
 }
@@ -15,6 +17,37 @@
 }
 
 /* Coming-soon topics stay fully readable; only the cursor changes */
-.topicSoon:disabled {
+.topicSoon {
   cursor: default;
+}
+
+/* Batch details fade in over the card; the layout never moves */
+.overlay {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.topic:hover .overlay,
+.topic:focus-visible .overlay {
+  opacity: 1;
+}
+
+/* Touch screens have no hover: tapping an open card opens its batches */
+@media (--no-hover) {
+  .overlay {
+    display: none;
+  }
+}
+
+@media (--reduced-motion) {
+  .overlay {
+    transition: none;
+  }
+}
+
+/* Fee above the next start date on an open topic */
+.offer {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-0-5);
 }

@@ -4,6 +4,7 @@ import cx from 'classnames/bind';
 import { BrandLogo } from '@components/brand/BrandLogo/BrandLogo';
 import { Container } from '@components/ui/Container/Container';
 import { Text } from '@components/ui/Text/Text';
+import { ADMIN_SIGN_IN_TEXT } from '@constants/auth';
 import { AUTH_FOOTER_TEXT } from '@constants/landing';
 import { APP_ROUTES } from '@constants/routes';
 
@@ -69,6 +70,9 @@ export const AuthFooter = () => {
             </Link>
             <Link to={APP_ROUTES.FORGOT_PASSWORD} className={cn('link')}>
               {AUTH_FOOTER_TEXT.forgotPassword}
+            </Link>
+            <Link to={APP_ROUTES.ADMIN_SIGN_IN} className={cn('link')}>
+              {ADMIN_SIGN_IN_TEXT.footerLink}
             </Link>
           </nav>
         </div>

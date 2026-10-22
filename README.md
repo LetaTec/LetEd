@@ -8,12 +8,18 @@ SriDha Academy (repository: LetEd): topic-wise online classes, AI test papers an
 
 Sections, in order:
 
-1. **Hero** — "Big Subjects. _Broken Into_ Small Victories", with the interactive book alongside.
-2. **Our model** — "Big Subjects. Broken Into Small Victories." with four cards: Big Subjects, Broken Into, Small Victories and Test Paper.
-3. **AI Test Paper** — explains generated test papers. "Start a sample test" invites visitors to create a profile.
-4. **Topics** — one searchable card per topic from the live catalogue. A topic with batches opens its lessons and batches; the others show "Batches opening soon".
+1. **Hero** — "Big Subjects. _Broken Into_ Small Victories", a **Find your topic** search (matches topic names and subtopics; an open topic opens its batches) and the interactive book alongside.
+2. **Topic animation** — a whole subject breaking into topics.
+3. **AI Test Paper** — a five-question sample test (Accounts, Physics, Maths, Chemistry) with a five-minute timer and a score out of five.
+4. **Topics** — one searchable card per topic. Hovering a card shows **What we will teach** with its four subtopics; a topic with batches opens its lessons and batches, the others show "Batches opening soon".
 5. **The three paths** — Online Classes, AI Test Paper and AI Model Paper. "Join waitlist" opens the AI model paper waitlist form.
-6. **About**, **Team** and a closing **Create your student account** call to action.
+6. **About**, **Team** and a closing call to action.
+
+### Sign-in page
+
+1. **Sign-in or registration form**, with the four **topics running now** beside it (same hover subtopics).
+2. **Our model** — "Big Subjects. Broken Into Small Victories." with four cards: Big Subjects, Broken Into, Small Victories and Test Paper.
+3. **How SriDha Academy works**, in three chapters, and the footer.
 
 Student counselling is not offered and has been removed from the site and the API.
 
@@ -40,7 +46,7 @@ Visitors see only the sign-in screens until they log in or create an account.
 
 | Path               | Who                | What                                                          |
 | ------------------ | ------------------ | ------------------------------------------------------------- |
-| `/login`           | signed-out         | Sign-in page: form, 3D topic machine animation, topic cards   |
+| `/login`           | signed-out         | Sign-in page: form, topics running now, our model             |
 | `/register`        | signed-out         | Student registration (10th–12th, CA, CS, NEET, JEE, Bank PO)  |
 | `/forgot-password` | signed-out         | Request a password-reset email                                |
 | `/reset-password`  | anyone with a link | Choose a new password from a reset email                      |

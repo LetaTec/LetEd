@@ -1,0 +1,8 @@
+.panel {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.title {
+  margin-bottom: var(--space-1-5);
+}

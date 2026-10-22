@@ -17,10 +17,8 @@ export const TopicsSection = ({
   catalogue,
   onOpenTopic,
 }: TopicsSectionProps) => {
-  const openTopicIds = new Set(
-    listTopics(catalogue.subjects)
-      .filter(context => context.topic.batches.length > 0)
-      .map(context => context.topic.id),
+  const catalogueTopics = listTopics(catalogue.subjects).map(
+    context => context.topic,
   );
 
   return (
@@ -37,7 +35,7 @@ export const TopicsSection = ({
         description={TOPICS_TEXT.description}
       />
       <TopicPreviewGrid
-        openTopicIds={openTopicIds}
+        catalogueTopics={catalogueTopics}
         onSelectTopic={onOpenTopic}
         actionLabel={TOPICS_TEXT.openTopicLabel}
       />

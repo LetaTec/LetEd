@@ -26,6 +26,9 @@ const ModelPaperPage = lazy(() => import('@pages/model-paper/ModelPaperPage'));
 const ResetPasswordPage = lazy(
   () => import('@pages/reset-password/ResetPasswordPage'),
 );
+const AdminSignInPage = lazy(
+  () => import('@pages/admin-sign-in/AdminSignInPage'),
+);
 const NotFoundPage = lazy(() => import('@pages/not-found/NotFoundPage'));
 
 const SuspendedOutlet = () => (
@@ -62,6 +65,7 @@ export const routes: RouteObject[] = [
             ],
           },
           { path: APP_ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
+          { path: APP_ROUTES.ADMIN_SIGN_IN, element: <AdminSignInPage /> },
         ],
       },
     ],

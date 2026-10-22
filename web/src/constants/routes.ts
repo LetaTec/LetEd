@@ -9,18 +9,24 @@ export const APP_ROUTES = {
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+  ADMIN_SIGN_IN: '/admin-sign-in',
 } as const;
 
 // In-page anchors on the homepage, shared by the header, footer and CTAs.
 export const HOME_SECTION_ID = {
   home: 'home',
-  learningModel: 'learning-model',
   aiTest: 'ai-test',
   topics: 'topics',
   programs: 'programs',
   modelPaper: 'model-paper',
   about: 'about',
   team: 'team',
+} as const;
+
+// Sections of the sign-in pages: the form at the top, and the model below.
+export const AUTH_SECTION_ID = {
+  access: 'student-access',
+  model: 'our-model',
 } as const;
 
 // Anchors on the About page.

@@ -1,6 +1,6 @@
 import cx from 'classnames/bind';
 
-import { ButtonLink } from '@components/ui/Button/Button';
+import { ButtonRouteLink } from '@components/ui/Button/Button';
 import { Card } from '@components/ui/Card/Card';
 import { CardGrid } from '@components/ui/CardGrid/CardGrid';
 import { Heading } from '@components/ui/Heading/Heading';
@@ -8,9 +8,9 @@ import { Photo } from '@components/ui/Photo/Photo';
 import { Reveal } from '@components/ui/Reveal/Reveal';
 import { Section } from '@components/ui/Section/Section';
 import { Text } from '@components/ui/Text/Text';
-import { LEARNING_MODEL_TEXT } from '@constants/home';
+import { LEARNING_MODEL_TEXT } from '@constants/landing';
 import { STUDENT_PHOTOS } from '@constants/photos';
-import { HOME_SECTION_ID, toSectionHref } from '@constants/routes';
+import { APP_ROUTES, AUTH_SECTION_ID, toPageSection } from '@constants/routes';
 
 import styles from './LearningModelSection.module.css';
 
@@ -18,8 +18,10 @@ const cn = cx.bind(styles);
 
 const TITLE_ID = 'learning-model-title';
 
+// The SriDha Academy model, under the sign-in form. "Browse topics" returns
+// the visitor to the topics panel beside the form.
 export const LearningModelSection = () => (
-  <Section id={HOME_SECTION_ID.learningModel} divider labelledBy={TITLE_ID}>
+  <Section id={AUTH_SECTION_ID.model} divider labelledBy={TITLE_ID}>
     <Reveal className={cn('grid')}>
       <Text as="div" variant="numeral">
         {LEARNING_MODEL_TEXT.index}
@@ -35,13 +37,13 @@ export const LearningModelSection = () => (
           {LEARNING_MODEL_TEXT.body}
         </Text>
         <div>
-          <ButtonLink
+          <ButtonRouteLink
             variant="editorial"
-            href={toSectionHref(HOME_SECTION_ID.topics)}
+            to={toPageSection(APP_ROUTES.LOGIN, AUTH_SECTION_ID.access)}
             endIcon="arrowRight"
           >
             {LEARNING_MODEL_TEXT.action}
-          </ButtonLink>
+          </ButtonRouteLink>
         </div>
       </div>
     </Reveal>

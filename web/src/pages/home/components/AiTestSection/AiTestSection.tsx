@@ -1,6 +1,7 @@
+import { useRef } from 'react';
 import cx from 'classnames/bind';
 
-import { TestPaperPreview } from '@components/assessment/TestPaperPreview/TestPaperPreview';
+import { SampleTestPaper } from '@components/assessment/SampleTestPaper/SampleTestPaper';
 import { Button } from '@components/ui/Button/Button';
 import { Heading } from '@components/ui/Heading/Heading';
 import { Reveal } from '@components/ui/Reveal/Reveal';
@@ -15,11 +16,20 @@ const cn = cx.bind(styles);
 
 const TITLE_ID = 'ai-test-title';
 
-export type AiTestSectionProps = {
-  onStartSample: () => void;
-};
+// "Start a sample test" brings the sample paper into view and puts keyboard
+// focus on its first answer.
+export const AiTestSection = () => {
+  const paperRef = useRef<HTMLDivElement>(null);
 
-export const AiTestSection = ({ onStartSample }: AiTestSectionProps) => {
+  const handleStartSample = () => {
+    const paper = paperRef.current;
+    if (!paper) return;
+    paper.scrollIntoView({ block: 'center' });
+    paper
+      .querySelector<HTMLInputElement>('input')
+      ?.focus({ preventScroll: true });
+  };
+
   return (
     <Section id={HOME_SECTION_ID.aiTest} tone="inverse" labelledBy={TITLE_ID}>
       <div className={cn('grid')}>
@@ -46,15 +56,17 @@ export const AiTestSection = ({ onStartSample }: AiTestSectionProps) => {
             tone="inverse"
             endIcon="arrowRight"
             className={cn('action')}
-            onClick={onStartSample}
+            onClick={handleStartSample}
           >
             {AI_TEST_TEXT.action}
           </Button>
         </Reveal>
 
-        <Reveal>
-          <TestPaperPreview />
-        </Reveal>
+        <div ref={paperRef}>
+          <Reveal>
+            <SampleTestPaper />
+          </Reveal>
+        </div>
       </div>
     </Section>
   );

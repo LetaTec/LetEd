@@ -7,11 +7,13 @@ import { StatList } from '@components/ui/StatList/StatList';
 import { Text } from '@components/ui/Text/Text';
 import { HERO_TEXT } from '@constants/home';
 import { APP_ROUTES, HOME_SECTION_ID, toSectionHref } from '@constants/routes';
+import { listTopics } from '@services/catalogue';
 
 import {
   InteractiveBook,
   type InteractiveBookProps,
 } from '../InteractiveBook/InteractiveBook';
+import { TopicSearch } from '../TopicSearch/TopicSearch';
 import styles from './HeroSection.module.css';
 
 const cn = cx.bind(styles);
@@ -36,6 +38,14 @@ export const HeroSection = (bookProps: HeroSectionProps) => (
         <Text as="p" variant="lead" tone="muted" className={cn('lead')}>
           {HERO_TEXT.lead}
         </Text>
+        <div className={cn('searchArea')}>
+          <TopicSearch
+            catalogueTopics={listTopics(bookProps.catalogue.subjects).map(
+              context => context.topic,
+            )}
+            onOpenTopic={bookProps.onOpenTopic}
+          />
+        </div>
         <div className={cn('actions')}>
           <ButtonLink
             href={toSectionHref(HOME_SECTION_ID.topics)}

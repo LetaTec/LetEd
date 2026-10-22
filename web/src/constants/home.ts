@@ -43,50 +43,17 @@ export const HERO_TEXT = {
   lead: 'A focused learning environment for students preparing for school, competitive examinations and professional pathways — taught topic by topic',
   primaryAction: 'Explore learning',
   secondaryAction: 'My learning',
+  // Topic search in the hero
+  searchLabel: 'Find your topic',
+  searchPlaceholder: 'Search a topic or subtopic, e.g. Suspense account',
+  searchEmpty: 'No topic matches yet. Try GST or Trial balance',
+  searchResultsLabel: 'Matching topics',
+  searchOpen: 'Batches open',
+  searchSoon: 'Batches opening soon',
   stats: [
     { value: '03', label: 'Learning paths' },
     { value: '04', label: 'Topics ready' },
     { value: '100', label: 'Students / batch' },
-  ],
-} as const;
-
-// Second section: the approved breakdown of the SriDha Academy learning model.
-export const LEARNING_MODEL_TEXT = {
-  index: '01 /',
-  title: 'Big Subjects. Broken Into',
-  titleEmphasis: 'Small Victories.',
-  lead: 'Breaking down the model',
-  body: 'Learn topic by topic. Build confidence one concept at a time.',
-  action: 'Browse topics',
-  blocks: [
-    {
-      index: '01',
-      photo: 'overwhelmed',
-      title: 'Big Subjects',
-      description:
-        'Subjects like Mathematics, Accounts, Science, Economics and other subjects related to professional courses can feel overwhelming when students have to learn everything at once',
-    },
-    {
-      index: '02',
-      photo: 'reading',
-      title: 'Broken Into',
-      description:
-        'Instead of teaching the entire subject as one big package, you divide it into individual chapters and topics',
-    },
-    {
-      index: '03',
-      photo: 'smiling',
-      title: 'Small Victories',
-      description:
-        'Every time a student understands a difficult concept, completes a chapter, or solves a problem independently, they achieve a small win',
-    },
-    {
-      index: '04',
-      photo: 'writing',
-      title: 'Test Paper',
-      description:
-        'We develop online test papers for students so they can track their progress. This is done with the help of in-house AI tools.',
-    },
   ],
 } as const;
 

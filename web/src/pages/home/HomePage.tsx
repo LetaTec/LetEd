@@ -17,7 +17,6 @@ import { AboutSection } from './components/AboutSection/AboutSection';
 import { AiTestDialog } from './components/AiTestDialog/AiTestDialog';
 import { AiTestSection } from './components/AiTestSection/AiTestSection';
 import { HeroSection } from './components/HeroSection/HeroSection';
-import { LearningModelSection } from './components/LearningModelSection/LearningModelSection';
 import { ProgramsSection } from './components/ProgramsSection/ProgramsSection';
 import { TeamSection } from './components/TeamSection/TeamSection';
 import { TopicBreakdownSection } from './components/TopicBreakdownSection/TopicBreakdownSection';
@@ -55,11 +54,10 @@ const HomePage = () => {
         onOpenTopic={openTopic}
         onSelectBatch={handleSelectBatch}
       />
-      <LearningModelSection />
       <TopicBreakdownSection
         topic={listTopics(catalogue.subjects)[0] ?? null}
       />
-      <AiTestSection onStartSample={() => setActiveDialog('aiTest')} />
+      <AiTestSection />
       <TopicsSection catalogue={catalogue} onOpenTopic={openTopic} />
       <ProgramsSection
         onSeeTestFlow={() => setActiveDialog('aiTest')}

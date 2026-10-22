@@ -6,3 +6,4 @@
 @custom-media --viewport-md (max-width: 56.25em);
 @custom-media --viewport-sm (max-width: 35em);
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
+@custom-media --no-hover (hover: none);

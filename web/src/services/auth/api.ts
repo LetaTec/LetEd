@@ -1,6 +1,8 @@
 import { API_CLIENT } from '@services/http/api';
 
 import type {
+  AdminSignInConfirmRequest,
+  AdminSignInRequest,
   AuthUser,
   LoginRequest,
   PasswordResetConfirmRequest,
@@ -32,3 +34,12 @@ export const confirmPasswordReset = async (
 ) => {
   await API_CLIENT.post('/auth/password-reset/confirm', body);
 };
+
+// Super admins sign in with a one-time link emailed to them.
+export const requestAdminSignIn = async (body: AdminSignInRequest) => {
+  await API_CLIENT.post('/auth/admin-sign-in', body);
+};
+
+export const confirmAdminSignIn = async (body: AdminSignInConfirmRequest) =>
+  (await API_CLIENT.post<AuthUserResponse>('/auth/admin-sign-in/confirm', body))
+    .data.user;

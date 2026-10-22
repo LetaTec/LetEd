@@ -1,4 +1,4 @@
-import { TestPaperPreview } from '@components/assessment/TestPaperPreview/TestPaperPreview';
+import { SampleTestPaper } from '@components/assessment/SampleTestPaper/SampleTestPaper';
 import { FeatureInProgress } from '@components/roadmap/FeatureInProgress/FeatureInProgress';
 import { AI_TEST_ROADMAP } from '@constants/roadmap';
 
@@ -8,7 +8,7 @@ const AiTestPage = () => (
   <FeatureInProgress
     id="ai-test"
     roadmap={AI_TEST_ROADMAP}
-    visual={<TestPaperPreview />}
+    visual={<SampleTestPaper />}
   />
 );
 

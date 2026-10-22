@@ -94,10 +94,7 @@
   --width-copy-lead: 470px;
   --width-modal: 570px;
   --width-auth-copy: 540px;
-  --width-auth-collage: 600px;
-  --aspect-topic-machine: 7 / 6;
-  --mask-topic-machine-x: 22%;
-  --mask-topic-machine-y: 10%;
+  --width-auth-topics: 600px;
   --width-feature-plate: 460px;
   --width-book: 820px;
   --width-cta-title: 1000px;
@@ -245,6 +242,7 @@
 
   --z-content: 1;
   --z-book-spine: 60;
+  --z-dropdown: 80;
   --z-header: 90;
   --z-progress: 120;
   --z-modal: 200;
