@@ -51,7 +51,7 @@
 
 .visual {
   width: 100%;
-  max-width: var(--width-auth-collage);
+  max-width: var(--width-auth-topics);
   justify-self: center;
 }
 
@@ -65,8 +65,10 @@
     max-width: none;
   }
 
+  /* The topics panel stacks under the form */
   .visual {
-    display: none;
+    max-width: none;
+    justify-self: stretch;
   }
 }
 

@@ -1,25 +1,23 @@
-import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
 
+import { ClosingCta } from '@components/brand/ClosingCta/ClosingCta';
 import { ModelPaperDialog } from '@components/enquiries/ModelPaperDialog/ModelPaperDialog';
+import { CTA_TEXT } from '@constants/home';
+import { APP_ROUTES, HOME_SECTION_ID, toPageSection } from '@constants/routes';
 import { useCatalogue } from '@hooks/useCatalogue';
 import { useTopicSelection } from '@hooks/useTopicSelection';
 import {
   findBatchContext,
   findTopicContext,
-  listTopics,
   type Batch,
 } from '@services/catalogue';
 
 import { AboutSection } from './components/AboutSection/AboutSection';
 import { AiTestDialog } from './components/AiTestDialog/AiTestDialog';
 import { AiTestSection } from './components/AiTestSection/AiTestSection';
-import { CtaSection } from './components/CtaSection/CtaSection';
 import { HeroSection } from './components/HeroSection/HeroSection';
-import { LearningModelSection } from './components/LearningModelSection/LearningModelSection';
 import { ProgramsSection } from './components/ProgramsSection/ProgramsSection';
 import { TeamSection } from './components/TeamSection/TeamSection';
-import { TopicBreakdownSection } from './components/TopicBreakdownSection/TopicBreakdownSection';
 import { TopicDialog } from './components/TopicDialog/TopicDialog';
 import { TopicsSection } from './components/TopicsSection/TopicsSection';
 
@@ -27,7 +25,6 @@ type HomeDialog = 'modelPaper' | 'aiTest';
 
 const HomePage = () => {
   const catalogue = useCatalogue();
-  const location = useLocation();
   const { topicId, batchId, openTopic, selectBatch, clearBatch, closeTopic } =
     useTopicSelection();
   const [activeDialog, setActiveDialog] = useState<HomeDialog | null>(null);
@@ -43,14 +40,6 @@ const HomePage = () => {
   const hasUnknownBatch =
     !catalogue.isLoading && Boolean(batchId) && selection === null;
 
-  // Sections render client-side, so honour an incoming #anchor once mounted.
-  useEffect(() => {
-    if (!location.hash) return;
-    document.getElementById(location.hash.slice(1))?.scrollIntoView();
-    // Only on first mount — later hash changes are native in-page jumps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleSelectBatch = (nextTopicId: string, batch: Batch) =>
     selectBatch(nextTopicId, batch.id);
 
@@ -63,19 +52,22 @@ const HomePage = () => {
         onOpenTopic={openTopic}
         onSelectBatch={handleSelectBatch}
       />
-      <LearningModelSection />
-      <TopicBreakdownSection
-        topic={listTopics(catalogue.subjects)[0] ?? null}
-      />
-      <AiTestSection onStartSample={() => setActiveDialog('aiTest')} />
       <TopicsSection catalogue={catalogue} onOpenTopic={openTopic} />
+      <AiTestSection />
       <ProgramsSection
         onSeeTestFlow={() => setActiveDialog('aiTest')}
         onJoinWaitlist={() => setActiveDialog('modelPaper')}
       />
       <AboutSection />
       <TeamSection />
-      <CtaSection />
+      <ClosingCta
+        titleId="cta-title"
+        eyebrow={CTA_TEXT.eyebrow}
+        title={CTA_TEXT.title}
+        titleEmphasis={CTA_TEXT.titleEmphasis}
+        actionLabel={CTA_TEXT.action}
+        to={toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics)}
+      />
 
       <TopicDialog
         open={topicContext !== null && activeDialog === null}

@@ -1,0 +1,12 @@
+.stamp {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-stamp) double var(--color-accent);
+  background: var(--color-bg-page);
+  color: var(--color-text-accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  rotate: var(--tilt-stamp);
+}

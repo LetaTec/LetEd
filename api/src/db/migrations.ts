@@ -159,4 +159,25 @@ export const MIGRATIONS: readonly Migration[] = [
       ALTER TABLE student_profiles ADD COLUMN stream_other TEXT;
     `,
   },
+  {
+    // Accounts carry a role. Super admins are named in SUPER_ADMIN_EMAILS,
+    // may have no password (they sign in with an emailed one-time link) and
+    // need no student profile.
+    id: '004_user_roles_and_sign_in_links',
+    sql: `
+      ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'STUDENT'
+        CHECK (role IN ('STUDENT', 'SUPER_ADMIN'));
+      ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+
+      CREATE TABLE sign_in_links (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ
+      );
+
+      CREATE INDEX sign_in_links_user_id_idx ON sign_in_links (user_id);
+    `,
+  },
 ];

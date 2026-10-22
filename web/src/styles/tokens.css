@@ -26,6 +26,7 @@
 
   --color-accent: #8a6748;
   --color-accent-soft: #a4815e;
+  --color-brand-yellow: #f6b52c;
 
   --color-border-base: #d9d9d3;
   --color-border-strong: #203c39;
@@ -93,8 +94,14 @@
   --width-copy-lead: 470px;
   --width-modal: 570px;
   --width-auth-copy: 540px;
-  --width-auth-collage: 560px;
+  --width-auth-topics: 600px;
+  --width-feature-plate: 460px;
   --width-book: 820px;
+  --width-cta-title: 1000px;
+  --width-header-search: 240px;
+  --width-search-results: 440px;
+  --height-search-results: 480px;
+  --width-about-photo: 440px;
   --height-header: 76px;
   --height-logo-horizontal-md: 40px;
   --height-logo-horizontal-lg: 48px;
@@ -153,6 +160,7 @@
 
   /* Controls */
   --height-control: 46px;
+  --height-control-compact: 38px;
   --padding-control-x: 20px;
   --padding-control-x-compact: 14px;
   --padding-control-y: 12px;
@@ -165,6 +173,13 @@
   --tilt-test-sheet-sm: 1deg;
   --size-visually-hidden: 1px;
   --size-progress: 2px;
+  --height-progress-ruler: 24px;
+  --height-progress-tick: 10px;
+  --height-progress-fill: 6px;
+  --size-timeline-marker: 32px;
+  --size-timeline-pip: 10px;
+  --border-width-stamp: 4px;
+  --tilt-stamp: -8deg;
   --icon-size-sm: 16px;
   --icon-size-md: 20px;
   --icon-size-lg: 24px;
@@ -199,14 +214,6 @@
   --duration-spinner: 700ms;
   --duration-photo-reveal: 900ms;
   --duration-photo-settle: 1600ms;
-  --duration-breakdown: 700ms;
-  --delay-breakdown-stagger: 70ms;
-  --delay-breakdown-panel: 600ms;
-  --delay-breakdown-lesson: 550ms;
-  --delay-breakdown-victory: 3000ms;
-  --opacity-breakdown-dimmed: 0.35;
-  --scale-breakdown-cover: 0.96;
-  --height-breakdown-tile: 112px;
   --distance-lift: -2px;
   --distance-lift-card: -5px;
   --distance-reveal: 35px;
@@ -231,6 +238,7 @@
 
   --z-content: 1;
   --z-book-spine: 60;
+  --z-dropdown: 80;
   --z-header: 90;
   --z-progress: 120;
   --z-modal: 200;

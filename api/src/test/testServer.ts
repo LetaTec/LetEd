@@ -5,10 +5,14 @@ import { loadConfig } from '../config/env.js';
 import { seedCatalogue } from '../db/catalogueSeed.js';
 import { openDatabase, runMigrations } from '../db/client.js';
 import type { Mailer } from '../mail/mailer.js';
+import { syncSuperAdmins } from '../modules/auth/roles.js';
 
 export const TEST_WEB_ORIGIN = 'http://localhost:5173';
 
 export type SentResetEmail = { email: string; resetUrl: string };
+export type SentSignInLink = { email: string; signInUrl: string };
+
+export const TEST_SUPER_ADMIN_EMAIL = 'admin@sridha.test';
 
 export type TestClient = {
   request: (
@@ -24,20 +28,26 @@ export const startTestServer = async ({
   withMailer = true,
   enableRateLimiting = false,
   now = () => new Date('2026-10-10T09:00:00Z'),
+  superAdminEmails = [TEST_SUPER_ADMIN_EMAIL],
 }: {
   withMailer?: boolean;
   enableRateLimiting?: boolean;
   now?: () => Date;
+  superAdminEmails?: string[];
 } = {}) => {
   const db = await openDatabase(':memory:');
   await runMigrations(db);
   await seedCatalogue(db);
 
   const sentEmails: SentResetEmail[] = [];
+  const sentSignInLinks: SentSignInLink[] = [];
   const mailer: Mailer | null = withMailer
     ? {
         sendPasswordReset: async (email, resetUrl) => {
           sentEmails.push({ email, resetUrl });
+        },
+        sendAdminSignInLink: async (email, signInUrl) => {
+          sentSignInLinks.push({ email, signInUrl });
         },
       }
     : null;
@@ -47,7 +57,9 @@ export const startTestServer = async ({
     NODE_ENV: 'test',
     WEB_ORIGIN: TEST_WEB_ORIGIN,
     ENABLE_RATE_LIMIT: enableRateLimiting ? 'true' : 'false',
+    SUPER_ADMIN_EMAILS: superAdminEmails.join(','),
   });
+  await syncSuperAdmins(db, config.superAdminEmails, clock.now());
   const app = createApp({ db, config, mailer, now: () => clock.now() });
   const server = app.listen(0);
   await new Promise(resolve => server.once('listening', resolve));
@@ -94,6 +106,7 @@ export const startTestServer = async ({
     db,
     clock,
     sentEmails,
+    sentSignInLinks,
     port,
     baseUrl,
     createClient,

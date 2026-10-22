@@ -5,7 +5,7 @@ import { BrandLogo } from '@components/brand/BrandLogo/BrandLogo';
 import { Container } from '@components/ui/Container/Container';
 import { Text } from '@components/ui/Text/Text';
 import { BRAND, FOOTER_COLUMNS, FOOTER_STUDENT_TEXT } from '@constants/home';
-import { APP_ROUTES, toSectionHref } from '@constants/routes';
+import { APP_ROUTES } from '@constants/routes';
 
 import styles from './SiteFooter.module.css';
 
@@ -38,13 +38,9 @@ export const SiteFooter = () => {
                 {column.title}
               </Text>
               {column.links.map(link => (
-                <a
-                  key={link.label}
-                  href={`${APP_ROUTES.HOME}${toSectionHref(link.sectionId)}`}
-                  className={cn('link')}
-                >
+                <Link key={link.label} to={link.to} className={cn('link')}>
                   {link.label}
-                </a>
+                </Link>
               ))}
             </nav>
           ))}

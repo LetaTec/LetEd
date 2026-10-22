@@ -1,4 +1,9 @@
-import { HOME_SECTION_ID } from './routes';
+import {
+  ABOUT_SECTION_ID,
+  APP_ROUTES,
+  HOME_SECTION_ID,
+  toPageSection,
+} from './routes';
 
 export const BRAND = {
   name: 'SriDha Academy',
@@ -8,11 +13,16 @@ export const BRAND = {
   footerNote: 'Designed as an editorial learning experience',
 } as const;
 
+// isSection: a jump to a section of a page, never shown as the current page.
 export const NAV_LINKS = [
-  { label: 'Topics', sectionId: HOME_SECTION_ID.topics },
-  { label: 'AI Test', sectionId: HOME_SECTION_ID.aiTest },
-  { label: 'Model Paper', sectionId: HOME_SECTION_ID.modelPaper },
-  { label: 'About', sectionId: HOME_SECTION_ID.about },
+  {
+    label: 'Topics',
+    to: toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
+    isSection: true,
+  },
+  { label: 'AI Test', to: APP_ROUTES.AI_TEST, isSection: false },
+  { label: 'Model Paper', to: APP_ROUTES.MODEL_PAPER, isSection: false },
+  { label: 'About', to: APP_ROUTES.ABOUT, isSection: false },
 ] as const;
 
 export const HEADER_TEXT = {
@@ -23,6 +33,14 @@ export const HEADER_TEXT = {
   primaryNavigation: 'Primary',
   homeLabel: 'SriDha Academy home',
   skipToContent: 'Skip to content',
+  // Topic search in the header, with each topic's batches in the results
+  searchLabel: 'Find your topic',
+  searchPlaceholder: 'Search topics or subtopics',
+  searchEmpty: 'No topic matches yet. Try GST or Trial balance',
+  searchResultsLabel: 'Matching topics and batches',
+  searchSoon: 'Batches opening soon',
+  searchBatchLabel: (topic: string, batch: string, timing: string) =>
+    `Reserve ${topic}, ${batch}, ${timing}`,
 } as const;
 
 export const HERO_TEXT = {
@@ -35,92 +53,9 @@ export const HERO_TEXT = {
   secondaryAction: 'My learning',
   stats: [
     { value: '03', label: 'Learning paths' },
-    { value: '15+', label: 'Topics & exams' },
+    { value: '04', label: 'Topics ready' },
     { value: '100', label: 'Students / batch' },
   ],
-} as const;
-
-// Second section: the approved breakdown of the SriDha Academy learning model.
-export const LEARNING_MODEL_TEXT = {
-  index: '01 /',
-  title: 'Big Subjects. Broken Into',
-  titleEmphasis: 'Small Victories.',
-  lead: 'Breaking down the model',
-  body: 'Learn topic by topic. Build confidence one concept at a time.',
-  action: 'Browse topics',
-  blocks: [
-    {
-      index: '01',
-      photo: 'overwhelmed',
-      title: 'Big Subjects',
-      description:
-        'Subjects like Mathematics, Accounts, Science, Economics and other subjects related to professional courses can feel overwhelming when students have to learn everything at once',
-    },
-    {
-      index: '02',
-      photo: 'reading',
-      title: 'Broken Into',
-      description:
-        'Instead of teaching the entire subject as one big package, you divide it into individual chapters and topics',
-    },
-    {
-      index: '03',
-      photo: 'smiling',
-      title: 'Small Victories',
-      description:
-        'Every time a student understands a difficult concept, completes a chapter, or solves a problem independently, they achieve a small win',
-    },
-    {
-      index: '04',
-      photo: 'writing',
-      title: 'Test Paper',
-      description:
-        'We develop online test papers for students so they can track their progress. This is done with the help of in-house AI tools.',
-    },
-  ],
-} as const;
-
-// Animated explainer: a whole subject breaking into topics, then one topic.
-export const TOPIC_BREAKDOWN_TEXT = {
-  eyebrow: 'Topic-wise learning',
-  title: 'Not the whole subject.',
-  titleEmphasis: 'One topic at a time.',
-  description:
-    'A subject like Accounts has many chapters. At SriDha Academy you join a batch for one topic, learn its lessons and move on when you are ready',
-  subjectLabel: 'Accounts · Class 11',
-  subjectCaption: 'The whole subject',
-  exampleNote: 'Illustration: chapters in Class 11 Accounts',
-  tiles: [
-    'Basics of accounting',
-    'Journal entries',
-    'Ledger',
-    'Trial balance',
-    'Depreciation',
-    'GST',
-  ],
-  selectedTile: 'GST',
-  steps: [
-    {
-      label: 'A whole subject',
-      description: 'Everything at once feels overwhelming',
-    },
-    {
-      label: 'Broken into topics',
-      description: 'Each chapter becomes a focused topic',
-    },
-    {
-      label: 'One topic, one batch',
-      description: 'Join only the topic you need',
-    },
-  ],
-  panelEyebrow: 'You join one topic',
-  lessonsLabel: 'Lessons in this topic',
-  victory: 'Topic complete — a small victory',
-  pause: 'Pause animation',
-  play: 'Play animation',
-  stepLabel: (step: number, label: string) => `Step ${step}: ${label}`,
-  figureLabel:
-    'Animation: a whole subject, Accounts, splits into six topics, and one topic, GST, is chosen with its lessons ticked off one by one',
 } as const;
 
 export const AI_TEST_TEXT = {
@@ -132,6 +67,7 @@ export const AI_TEST_TEXT = {
   action: 'Start a sample test',
 } as const;
 
+// Second section of the homepage: the topics on offer, as cards.
 export const TOPICS_TEXT = {
   title: 'Topics',
   titleEmphasis: 'to begin with.',
@@ -182,6 +118,7 @@ export const ABOUT_TEXT = {
     'Instead of selling a whole subject at once, we break it into chapters and topics, teach them in focused batches and help students measure progress along the way',
   ],
   note: 'Topic-wise online classes · AI assessment · AI model paper',
+  readMore: 'Read our story',
 } as const;
 
 export const TEAM_TEXT = {
@@ -189,6 +126,7 @@ export const TEAM_TEXT = {
   titleEmphasis: 'the page.',
   description:
     'Faculty profiles will be published here as each topic team is confirmed',
+  meetTutors: 'Meet your tutors',
   members: [
     { initial: 'A', name: 'Accounts Faculty', role: 'Topic Faculty' },
     { initial: 'E', name: 'Economics Faculty', role: 'Topic Faculty' },
@@ -212,16 +150,22 @@ export const FOOTER_COLUMNS = [
   {
     title: 'Explore',
     links: [
-      { label: 'Topics', sectionId: HOME_SECTION_ID.topics },
-      { label: 'AI Test', sectionId: HOME_SECTION_ID.aiTest },
-      { label: 'Model Paper', sectionId: HOME_SECTION_ID.modelPaper },
+      {
+        label: 'Topics',
+        to: toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
+      },
+      { label: 'AI Test', to: APP_ROUTES.AI_TEST },
+      { label: 'Model Paper', to: APP_ROUTES.MODEL_PAPER },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'About', sectionId: HOME_SECTION_ID.about },
-      { label: 'Our Team', sectionId: HOME_SECTION_ID.team },
+      { label: 'About', to: APP_ROUTES.ABOUT },
+      {
+        label: 'Meet the tutors',
+        to: toPageSection(APP_ROUTES.ABOUT, ABOUT_SECTION_ID.tutors),
+      },
     ],
   },
 ] as const;

@@ -3,7 +3,21 @@
 export const AUTH_QUERY_PARAM = {
   redirectTo: 'redirect_to',
   resetToken: 'token',
+  signInToken: 'token',
 } as const;
+
+// Account roles, mirrored from the API. The API decides who holds each role.
+export const USER_ROLE = {
+  student: 'STUDENT',
+  superAdmin: 'SUPER_ADMIN',
+} as const;
+
+export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
+
+export const USER_ROLE_LABEL: Record<UserRole, string> = {
+  STUDENT: 'Student',
+  SUPER_ADMIN: 'Super admin',
+};
 
 export const AUTH_VIEW = {
   login: 'login',
@@ -91,4 +105,20 @@ export const AUTH_PAGE_TEXT = {
   loginHeading: 'Welcome back',
   registerHeading: 'Create your student account',
   forgotHeading: 'Reset your password',
+} as const;
+
+// Password-free sign-in for the SriDha Academy team (super admins)
+export const ADMIN_SIGN_IN_TEXT = {
+  eyebrow: 'Team / Sign in',
+  title: 'Team',
+  titleEmphasis: 'sign-in.',
+  description:
+    'Enter your team email and we will send you a one-time sign-in link. No password needed',
+  submit: 'Email me a sign-in link',
+  sentMessage:
+    'If this email belongs to a team account, a sign-in link is on its way. It works once and expires in 15 minutes',
+  confirming: 'Signing you in',
+  linkError: 'This sign-in link could not be used. Request a new one below',
+  signedInToast: 'Signed in to your team account',
+  footerLink: 'Team sign-in',
 } as const;

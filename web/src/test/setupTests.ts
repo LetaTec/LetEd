@@ -9,3 +9,25 @@ if (!HTMLDialogElement.prototype.showModal) {
     this.removeAttribute('open');
   };
 }
+
+// jsdom does not implement scrolling; the router scroll handling calls it.
+window.scrollTo = () => {};
+Element.prototype.scrollIntoView = function scrollIntoView() {};
+
+// jsdom has no canvas; decorative canvases simply draw nothing in tests.
+HTMLCanvasElement.prototype.getContext = () => null;
+
+// jsdom does not implement media queries; tests run as "no preference".
+if (!window.matchMedia) {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList;
+}

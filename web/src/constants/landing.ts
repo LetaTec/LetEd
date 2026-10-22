@@ -1,76 +1,130 @@
 import type { IconName } from './icons';
 
-// Content for the sign-in landing page, below the sign-in form.
+// Content for the sign-in landing page.
 
 export type TopicPreview = {
   title: string;
   level: string;
   icon: IconName;
+  // What the topic's batches teach, shown on the card's hover overlay
+  subtopics: readonly string[];
   // Catalogue topic this preview represents, when batches are published.
   catalogueTopicId?: string;
 };
 
-// SriDha Academy teaches topics, not subjects. Only previews linked to a
-// catalogue topic with published batches show as open.
+// The topics SriDha Academy teaches today, all Class 11 Accountancy. A topic
+// shows as open once its catalogue topic has published batches.
 export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
   {
     title: 'GST',
     level: 'Class 11',
     icon: 'topicGst',
+    subtopics: [
+      'What is GST',
+      'GST entries',
+      'Input tax credit',
+      'Journal entries of GST',
+    ],
     catalogueTopicId: 'topic_accounts_gst_class_11',
   },
   {
-    title: 'Depreciation',
+    title: 'Rectification of errors',
     level: 'Class 11',
-    icon: 'topicDepreciation',
-  },
-  {
-    title: 'Journal entries',
-    level: 'Class 11',
-    icon: 'topicJournal',
-  },
-  {
-    title: 'Bank reconciliation',
-    level: 'Class 11',
-    icon: 'topicBank',
+    icon: 'topicRectification',
+    subtopics: [
+      'Types of errors',
+      'Errors that affect the trial balance',
+      'Suspense account',
+      'Rectifying errors before and after',
+    ],
   },
   {
     title: 'Trial balance',
     level: 'Class 11',
     icon: 'topicTrialBalance',
+    subtopics: [
+      'Meaning and objectives',
+      'Preparing it from ledger balances',
+      'Totals and balances methods',
+      'Locating errors when it does not agree',
+    ],
   },
   {
-    title: 'Demand and supply',
-    level: 'Class 12',
-    icon: 'topicDemandSupply',
-  },
-  {
-    title: 'Matrices',
-    level: 'Class 12',
-    icon: 'topicMatrices',
-  },
-  {
-    title: 'Probability',
-    level: 'Class 12',
-    icon: 'topicProbability',
+    title: 'Bank reconciliation statement',
+    level: 'Class 11',
+    icon: 'topicBank',
+    subtopics: [
+      'Why the cash book and passbook differ',
+      'Cheques not yet presented or cleared',
+      'Preparing a BRS',
+      'Overdraft balances',
+    ],
   },
 ];
 
+// The "Big Subjects. Broken Into Small Victories" section under the
+// sign-in form.
+export const LEARNING_MODEL_TEXT = {
+  index: '01 /',
+  title: 'Big Subjects. Broken Into',
+  titleEmphasis: 'Small Victories.',
+  lead: 'Breaking down the model',
+  body: 'Learn topic by topic. Build confidence one concept at a time.',
+  action: 'Browse topics',
+  blocks: [
+    {
+      index: '01',
+      photo: 'overwhelmed',
+      title: 'Big Subjects',
+      description:
+        'Subjects like Mathematics, Accounts, Science, Economics and other subjects related to professional courses can feel overwhelming when students have to learn everything at once',
+    },
+    {
+      index: '02',
+      photo: 'reading',
+      title: 'Broken Into',
+      description:
+        'Instead of teaching the entire subject as one big package, you divide it into individual chapters and topics',
+    },
+    {
+      index: '03',
+      photo: 'smiling',
+      title: 'Small Victories',
+      description:
+        'Every time a student understands a difficult concept, completes a chapter, or solves a problem independently, they achieve a small win',
+    },
+    {
+      index: '04',
+      photo: 'writing',
+      title: 'Test Paper',
+      description:
+        'We develop online test papers for students so they can track their progress. This is done with the help of in-house AI tools.',
+    },
+  ],
+} as const;
+
 export const LANDING_TEXT = {
-  illustrationLabel:
-    'Illustration: four students learning online — on a laptop, a tablet, in a notebook and on a phone',
+  // The topics panel beside the sign-in form
+  ongoingEyebrow: 'Topics running now',
+  ongoingTitle: 'Learn one topic at a time',
+  ongoingAction: 'Create your free student ID to explore all batches',
   topicsTitle: 'Pick a topic,',
   topicsTitleEmphasis: 'not a whole subject.',
-  topicsDescription:
-    'Every batch teaches one focused topic. Choose the exact topic you need and learn it in a single batch',
   searchLabel: 'Search topics',
-  searchPlaceholder: 'Type the topic you want to learn, e.g. Depreciation',
+  searchPlaceholder: 'Type the topic you want to learn, e.g. Trial balance',
   topicOpen: 'Batches open',
-  topicSoon: 'Coming soon',
+  topicSoon: 'Batches opening soon',
+  topicStarts: (date: string) => `Starts ${date}`,
+  // Overlay shown when a topic card is hovered or focused
+  overlayTitle: 'What we will teach',
+  overlayAction: 'See lessons and batches',
   topicAction: (topic: string) => `Join SriDha Academy to learn ${topic}`,
   noTopicsTitle: 'No topics match your search',
-  noTopicsMessage: 'Try another topic name, such as GST or Depreciation',
-  seeAllTopics: 'Join to see all topics',
+  noTopicsMessage: 'Try another topic name, such as GST or Trial balance',
+  featuresEyebrow: 'In three chapters',
+  featureChapter: (index: number) =>
+    `Chapter ${String(index).padStart(2, '0')}`,
+  featurePlate: (index: number) => `Plate ${String(index).padStart(2, '0')}`,
   featuresTitle: 'How',
   featuresTitleEmphasis: 'SriDha Academy works.',
   features: [
@@ -99,17 +153,9 @@ export const AUTH_FOOTER_TEXT = {
   lead: 'SriDha Academy teaches one topic at a time, so students learn a single concept well and build confidence along the way',
   columns: [
     {
-      title: 'Popular topics',
-      links: ['GST', 'Depreciation', 'Journal entries', 'Demand and supply'],
-    },
-    {
-      title: 'More topics',
-      links: [
-        'Bank reconciliation',
-        'Trial balance',
-        'Matrices',
-        'Probability',
-      ],
+      title: 'Topics',
+      // The topics taught right now, from the same list as the topic cards.
+      links: TOPIC_PREVIEWS.map(topic => topic.title),
     },
   ],
   accountTitle: 'Account',

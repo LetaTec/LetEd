@@ -203,6 +203,7 @@ export const createApp = (context: AppContext) => {
     api.use('/auth/register', registerLimiter);
     api.use('/auth/password-reset/confirm', passwordResetConfirmLimiter);
     api.use('/auth/password-reset', passwordResetLimiter);
+    api.use('/auth/admin-sign-in', passwordResetLimiter);
     api.use('/enquiries', enquiryLimiter);
   }
 

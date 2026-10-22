@@ -67,7 +67,7 @@ These rules follow the pro-web conventions, adapted to SriDha Academy. Differenc
 ## Responsive CSS (differs from pro-web)
 
 - CSS custom properties cannot be used inside media queries — `@media (max-width: var(--breakpoint-sm))` is ignored by browsers. SriDha Academy declares shared breakpoints as custom media in `web/src/styles/breakpoints.css`, compiled by `postcss-custom-media`:
-  - `@media (--viewport-md)`, `@media (--viewport-sm)`, `@media (--reduced-motion)`.
+  - `@media (--viewport-md)`, `@media (--viewport-sm)`, `@media (--reduced-motion)`, `@media (--no-hover)` (touch screens).
 - Do not invent component-specific breakpoints; add a custom media entry first.
 - Respect `prefers-reduced-motion` for every transition and animation.
 

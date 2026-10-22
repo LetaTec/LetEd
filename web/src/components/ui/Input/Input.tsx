@@ -11,17 +11,37 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
   hint?: string;
   endAdornment?: React.ReactNode;
+  // Keeps the label for screen readers but does not show it, for compact
+  // placements such as the header search.
+  hideLabel?: boolean;
 };
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, id, error, hint, endAdornment, className, ...props }, ref) => {
+  (
+    {
+      label,
+      id,
+      error,
+      hint,
+      endAdornment,
+      hideLabel = false,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
     const messageId = `${inputId}-message`;
 
     return (
       <div className={cn('field')}>
-        <Text as="label" variant="label" htmlFor={inputId}>
+        <Text
+          as="label"
+          variant="label"
+          htmlFor={inputId}
+          className={cn({ visuallyHidden: hideLabel })}
+        >
           {label}
         </Text>
         <div className={cn('control')}>

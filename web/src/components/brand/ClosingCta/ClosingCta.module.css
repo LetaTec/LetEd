@@ -1,0 +1,4 @@
+.title {
+  max-width: var(--width-cta-title);
+  margin: var(--space-2) auto var(--space-5);
+}

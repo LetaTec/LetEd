@@ -38,6 +38,8 @@ const envSchema = z.object({
     .transform(value => value === 'true'),
   COOKIE_SAMESITE: z.enum(['lax', 'none', 'strict']).optional(),
   COOKIE_DOMAIN: z.string().min(1).optional(),
+  // Comma-separated emails that are super admins (password-free sign-in)
+  SUPER_ADMIN_EMAILS: z.string().optional(),
 });
 
 export type AppConfig = {
@@ -58,6 +60,7 @@ export type AppConfig = {
   secureCookies: boolean;
   cookieSameSite: 'lax' | 'none' | 'strict';
   cookieDomain?: string;
+  superAdminEmails: string[];
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -157,6 +160,10 @@ export const loadConfig = (
     secureCookies: isProduction,
     cookieSameSite,
     cookieDomain: env.COOKIE_DOMAIN,
+    superAdminEmails: (env.SUPER_ADMIN_EMAILS ?? '')
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(Boolean),
   };
 };
 

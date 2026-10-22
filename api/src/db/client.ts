@@ -32,11 +32,19 @@ export type Database = DatabaseClient & {
   close: () => Promise<void>;
 };
 
+const IN_MEMORY_DATABASE = ':memory:';
+
+// No DATABASE_URL (or ":memory:") means the embedded in-memory PostgreSQL.
+export const isInMemoryDatabase = (
+  databaseUrl?: string | null,
+): databaseUrl is typeof IN_MEMORY_DATABASE | '' | null | undefined =>
+  !databaseUrl || databaseUrl === IN_MEMORY_DATABASE;
+
 export const openDatabase = async (
   databaseUrl?: string | null,
   maxConnections = 10,
 ): Promise<Database> => {
-  if (databaseUrl && databaseUrl !== ':memory:') {
+  if (!isInMemoryDatabase(databaseUrl)) {
     const isProduction = process.env.NODE_ENV === 'production';
     const pool = new Pool({
       connectionString: databaseUrl,

@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import cx from 'classnames/bind';
 
-import { StudentsIllustration } from '@components/brand/StudentsIllustration/StudentsIllustration';
 import { ForgotPasswordForm } from '@components/auth/ForgotPasswordForm/ForgotPasswordForm';
 import { LoginForm } from '@components/auth/LoginForm/LoginForm';
 import { RegisterForm } from '@components/auth/RegisterForm/RegisterForm';
@@ -15,8 +14,7 @@ import {
   AUTH_VIEW,
   type AuthView,
 } from '@constants/auth';
-import { LANDING_TEXT } from '@constants/landing';
-import { APP_ROUTES } from '@constants/routes';
+import { APP_ROUTES, AUTH_SECTION_ID } from '@constants/routes';
 import { useAuth } from '@context/AuthContext';
 import { useToast } from '@context/ToastContext';
 import { useCatalogue } from '@hooks/useCatalogue';
@@ -24,7 +22,8 @@ import type { AuthUser } from '@services/auth';
 import { listTopics } from '@services/catalogue';
 
 import { FeatureSection } from './components/FeatureSection/FeatureSection';
-import { TopicPreviewSection } from './components/TopicPreviewSection/TopicPreviewSection';
+import { LearningModelSection } from './components/LearningModelSection/LearningModelSection';
+import { OngoingTopics } from './components/OngoingTopics/OngoingTopics';
 import styles from './AuthPage.module.css';
 
 const cn = cx.bind(styles);
@@ -50,11 +49,7 @@ const AuthPage = ({ view }: AuthPageProps) => {
   const { search } = useLocation();
 
   const { subjects } = useCatalogue();
-  const openTopicIds = new Set(
-    listTopics(subjects)
-      .filter(context => context.topic.batches.length > 0)
-      .map(context => context.topic.id),
-  );
+  const catalogueTopics = listTopics(subjects).map(context => context.topic);
 
   const goTo = (pathname: string) => navigate({ pathname, search });
 
@@ -70,7 +65,11 @@ const AuthPage = ({ view }: AuthPageProps) => {
   return (
     <>
       <Container className={cn('grid')}>
-        <section className={cn('copy')} aria-labelledby={TITLE_ID}>
+        <section
+          id={AUTH_SECTION_ID.access}
+          className={cn('copy')}
+          aria-labelledby={TITLE_ID}
+        >
           <Text
             as="div"
             variant="eyebrow"
@@ -139,10 +138,10 @@ const AuthPage = ({ view }: AuthPageProps) => {
         </section>
 
         <div className={cn('visual')}>
-          <StudentsIllustration label={LANDING_TEXT.illustrationLabel} />
+          <OngoingTopics catalogueTopics={catalogueTopics} />
         </div>
       </Container>
-      <TopicPreviewSection openTopicIds={openTopicIds} />
+      <LearningModelSection />
       <FeatureSection />
     </>
   );

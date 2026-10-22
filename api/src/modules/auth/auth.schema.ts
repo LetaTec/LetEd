@@ -103,5 +103,13 @@ export const passwordResetConfirmSchema = z.strictObject({
   password: passwordSchema,
 });
 
+export const adminSignInRequestSchema = z.strictObject({
+  email: emailSchema,
+});
+
+export const adminSignInConfirmSchema = z.strictObject({
+  token: z.string().min(1).max(256),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

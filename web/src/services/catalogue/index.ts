@@ -1,6 +1,7 @@
 export { getCatalogue } from './api';
 export {
   findBatchContext,
+  findNextBatch,
   findTopicContext,
   isBatchOpen,
   listTopics,

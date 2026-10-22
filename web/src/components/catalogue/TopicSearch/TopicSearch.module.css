@@ -1,0 +1,111 @@
+.search {
+  position: relative;
+  width: var(--width-header-search);
+}
+
+.input {
+  min-height: var(--height-control-compact);
+  padding-block: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+/* Results drop down over the page; the layout never shifts */
+.results {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: var(--z-dropdown);
+  display: none;
+  width: var(--width-search-results);
+  max-height: var(--height-search-results);
+  overflow-y: auto;
+  border: var(--border-width-base) solid var(--color-border-strong);
+  background: var(--color-bg-page);
+  box-shadow: var(--shadow-offset-accent);
+}
+
+.resultsOpen {
+  display: grid;
+}
+
+.group + .group {
+  border-top: var(--border-width-base) solid var(--color-border-strong);
+}
+
+.topic,
+.batch {
+  display: grid;
+  align-items: center;
+  gap: var(--space-1-5);
+  width: 100%;
+  color: inherit;
+  text-align: start;
+  transition: background-color var(--transition-fast);
+}
+
+.topic {
+  grid-template-columns: var(--icon-size-md) minmax(0, 1fr) auto;
+  padding: var(--space-1-5) var(--space-2);
+}
+
+/* Batches sit indented under their topic */
+.batch {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-1) var(--space-2) var(--space-1)
+    calc(var(--space-2) + var(--icon-size-md) + var(--space-1-5));
+  border-top: var(--border-width-base) solid var(--color-border-base);
+}
+
+.topic:hover,
+.topic:focus-visible,
+.batch:hover,
+.batch:focus-visible {
+  background: var(--color-bg-subtle);
+}
+
+.topic:focus-visible,
+.batch:focus-visible {
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+.topicIcon {
+  display: flex;
+  color: var(--color-text-accent);
+}
+
+.topicText,
+.batchText {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-0-5) var(--space-1);
+  min-width: 0;
+}
+
+.batchText {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.empty {
+  padding: var(--space-1-5) var(--space-2);
+}
+
+/* In the phone menu the search fills the width */
+@media (--viewport-md) {
+  .search {
+    width: 100%;
+  }
+
+  .results {
+    left: 0;
+    width: auto;
+  }
+}
+
+@media (--reduced-motion) {
+  .topic,
+  .batch {
+    transition: none;
+  }
+}

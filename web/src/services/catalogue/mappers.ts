@@ -1,6 +1,12 @@
 import { BATCH_AVAILABILITY } from '@constants/catalogue';
 
-import type { Batch, BatchContext, Subject, TopicContext } from './types';
+import type {
+  Batch,
+  BatchContext,
+  Subject,
+  Topic,
+  TopicContext,
+} from './types';
 
 export const listTopics = (subjects: readonly Subject[]): TopicContext[] =>
   subjects.flatMap(subject =>
@@ -34,3 +40,13 @@ export const findBatchContext = (
 
 export const isBatchOpen = (batch: Batch) =>
   batch.availability === BATCH_AVAILABILITY.OPEN;
+
+// The batch a student could join next: the earliest dated open batch, or the
+// earliest dated batch when none is open.
+export const findNextBatch = (topic: Topic): Batch | null => {
+  const dated = topic.batches
+    .filter(batch => batch.startDate !== null)
+    .sort((a, b) => String(a.startDate).localeCompare(String(b.startDate)));
+
+  return dated.find(isBatchOpen) ?? dated[0] ?? null;
+};

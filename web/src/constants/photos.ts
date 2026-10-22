@@ -1,6 +1,8 @@
 import studentOverwhelmed from '@/assets/photos/student-overwhelmed.webp';
 import studentReading from '@/assets/photos/student-reading.webp';
+import studentSlate from '@/assets/photos/student-slate.webp';
 import studentWriting from '@/assets/photos/student-writing.webp';
+import studentsClassroom from '@/assets/photos/students-classroom.webp';
 import studentsSmiling from '@/assets/photos/students-smiling.webp';
 
 // Photographs licensed CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/).
@@ -25,6 +27,16 @@ export const STUDENT_PHOTOS = {
     src: studentWriting,
     alt: 'A student writing answers in a notebook',
     credit: 'Photo: KMo Foto / Flickr, CC BY 2.0',
+  },
+  classroom: {
+    src: studentsClassroom,
+    alt: 'A girl at her classroom desk looks up while a teacher works through a book beside her',
+    credit: 'Photo: José Morcillo Valenciano / Flickr, CC BY 2.0',
+  },
+  slate: {
+    src: studentSlate,
+    alt: 'A student working through sums in chalk on a small slate',
+    credit: 'Photo: { pranav } / Flickr, CC BY 2.0',
   },
 } as const;
 
