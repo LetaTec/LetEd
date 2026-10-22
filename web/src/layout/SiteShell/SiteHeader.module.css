@@ -45,7 +45,8 @@
 }
 
 .link:hover::after,
-.link:focus-visible::after {
+.link:focus-visible::after,
+.linkActive::after {
   width: 100%;
 }
 

@@ -10,8 +10,8 @@ export type TopicPreview = {
   catalogueTopicId?: string;
 };
 
-// SriDha Academy teaches topics, not subjects. Only previews linked to a
-// catalogue topic with published batches show as open.
+// The topics SriDha Academy teaches today, all Class 11 Accountancy. A topic
+// shows as open once its catalogue topic has published batches.
 export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
   {
     title: 'GST',
@@ -20,19 +20,9 @@ export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
     catalogueTopicId: 'topic_accounts_gst_class_11',
   },
   {
-    title: 'Depreciation',
+    title: 'Rectification of errors',
     level: 'Class 11',
-    icon: 'topicDepreciation',
-  },
-  {
-    title: 'Journal entries',
-    level: 'Class 11',
-    icon: 'topicJournal',
-  },
-  {
-    title: 'Bank reconciliation',
-    level: 'Class 11',
-    icon: 'topicBank',
+    icon: 'topicRectification',
   },
   {
     title: 'Trial balance',
@@ -40,21 +30,40 @@ export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
     icon: 'topicTrialBalance',
   },
   {
-    title: 'Demand and supply',
-    level: 'Class 12',
-    icon: 'topicDemandSupply',
-  },
-  {
-    title: 'Matrices',
-    level: 'Class 12',
-    icon: 'topicMatrices',
-  },
-  {
-    title: 'Probability',
-    level: 'Class 12',
-    icon: 'topicProbability',
+    title: 'Bank reconciliation statement',
+    level: 'Class 11',
+    icon: 'topicBank',
   },
 ];
+
+// The sign-in animation: loose words from a whole subject go into the
+// SriDha Academy machine and come out as ready topics (TOPIC_PREVIEWS).
+export const TOPIC_MACHINE_TEXT = {
+  label:
+    'Animation: loose words from a whole subject, such as Ledger, Debit and Suspense account, pour into the SriDha Academy machine and come out as ready topics: GST, Rectification of errors, Trial balance and Bank reconciliation statement',
+  inputWords: [
+    'Accountancy',
+    'Ledger',
+    'Debit',
+    'Credit',
+    'Journal',
+    'Vouchers',
+    'Suspense A/c',
+    'Cash book',
+    'Passbook',
+    'Errors',
+    'Invoice',
+    'Input credit',
+    'Tax',
+    'Balances',
+    'Overdraft',
+    'Chapter 9',
+    'Syllabus',
+    'Theory',
+  ],
+  cardLabel: (level: string) => `${level} · Topic`,
+  cardStatus: 'Ready to learn',
+} as const;
 
 export const LANDING_TEXT = {
   illustrationLabel:
@@ -64,13 +73,17 @@ export const LANDING_TEXT = {
   topicsDescription:
     'Every batch teaches one focused topic. Choose the exact topic you need and learn it in a single batch',
   searchLabel: 'Search topics',
-  searchPlaceholder: 'Type the topic you want to learn, e.g. Depreciation',
+  searchPlaceholder: 'Type the topic you want to learn, e.g. Trial balance',
   topicOpen: 'Batches open',
-  topicSoon: 'Coming soon',
+  topicSoon: 'Batches opening soon',
   topicAction: (topic: string) => `Join SriDha Academy to learn ${topic}`,
   noTopicsTitle: 'No topics match your search',
-  noTopicsMessage: 'Try another topic name, such as GST or Depreciation',
+  noTopicsMessage: 'Try another topic name, such as GST or Trial balance',
   seeAllTopics: 'Join to see all topics',
+  featuresEyebrow: 'In three chapters',
+  featureChapter: (index: number) =>
+    `Chapter ${String(index).padStart(2, '0')}`,
+  featurePlate: (index: number) => `Plate ${String(index).padStart(2, '0')}`,
   featuresTitle: 'How',
   featuresTitleEmphasis: 'SriDha Academy works.',
   features: [
@@ -99,17 +112,9 @@ export const AUTH_FOOTER_TEXT = {
   lead: 'SriDha Academy teaches one topic at a time, so students learn a single concept well and build confidence along the way',
   columns: [
     {
-      title: 'Popular topics',
-      links: ['GST', 'Depreciation', 'Journal entries', 'Demand and supply'],
-    },
-    {
-      title: 'More topics',
-      links: [
-        'Bank reconciliation',
-        'Trial balance',
-        'Matrices',
-        'Probability',
-      ],
+      title: 'Topics',
+      // The topics taught right now, from the same list as the topic cards.
+      links: TOPIC_PREVIEWS.map(topic => topic.title),
     },
   ],
   accountTitle: 'Account',

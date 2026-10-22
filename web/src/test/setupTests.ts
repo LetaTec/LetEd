@@ -9,3 +9,7 @@ if (!HTMLDialogElement.prototype.showModal) {
     this.removeAttribute('open');
   };
 }
+
+// jsdom does not implement scrolling; the router scroll handling calls it.
+window.scrollTo = () => {};
+Element.prototype.scrollIntoView = function scrollIntoView() {};

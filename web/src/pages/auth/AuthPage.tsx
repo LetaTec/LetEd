@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import cx from 'classnames/bind';
 
-import { StudentsIllustration } from '@components/brand/StudentsIllustration/StudentsIllustration';
+import { TopicMachine } from '@components/brand/TopicMachine/TopicMachine';
 import { ForgotPasswordForm } from '@components/auth/ForgotPasswordForm/ForgotPasswordForm';
 import { LoginForm } from '@components/auth/LoginForm/LoginForm';
 import { RegisterForm } from '@components/auth/RegisterForm/RegisterForm';
@@ -15,7 +15,6 @@ import {
   AUTH_VIEW,
   type AuthView,
 } from '@constants/auth';
-import { LANDING_TEXT } from '@constants/landing';
 import { APP_ROUTES } from '@constants/routes';
 import { useAuth } from '@context/AuthContext';
 import { useToast } from '@context/ToastContext';
@@ -139,7 +138,7 @@ const AuthPage = ({ view }: AuthPageProps) => {
         </section>
 
         <div className={cn('visual')}>
-          <StudentsIllustration label={LANDING_TEXT.illustrationLabel} />
+          <TopicMachine />
         </div>
       </Container>
       <TopicPreviewSection openTopicIds={openTopicIds} />

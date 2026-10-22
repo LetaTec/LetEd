@@ -94,7 +94,11 @@ describe('app routing', () => {
     const router = renderApp(`/?topic=${GST_TOPIC_ID}&batch=${openBatch.id}`);
 
     // The homepage is not rendered; the visitor lands on the sign-in page.
-    await screen.findByRole('heading', { name: 'Welcome back' });
+    await screen.findByRole(
+      'heading',
+      { name: 'Welcome back' },
+      { timeout: LAZY_PAGE_TIMEOUT_MS },
+    );
     expect(router.state.location.pathname).toBe('/login');
     const redirectTo = new URLSearchParams(router.state.location.search).get(
       'redirect_to',
@@ -148,7 +152,7 @@ describe('app routing', () => {
     expect(router.state.location.pathname).toBe('/');
   });
 
-  it('opens a topic from the topic cards and keeps coming-soon topics disabled', async () => {
+  it('opens a topic from the topic cards and keeps topics without batches disabled', async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(student);
     const user = userEvent.setup();
     const router = renderApp('/');
@@ -159,7 +163,7 @@ describe('app routing', () => {
       { timeout: LAZY_PAGE_TIMEOUT_MS },
     );
     expect(
-      screen.getByRole('button', { name: 'View batches for Depreciation' }),
+      screen.getByRole('button', { name: 'View batches for Trial balance' }),
     ).toBeDisabled();
 
     await user.click(gst);
@@ -170,5 +174,63 @@ describe('app routing', () => {
     expect(
       within(dialog).getAllByRole('button', { name: 'Select batch' }),
     ).toHaveLength(2);
+  });
+
+  it('opens the About page from the header and marks it as the current page', async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(student);
+    const user = userEvent.setup();
+    const router = renderApp('/');
+    const nav = await screen.findByRole(
+      'navigation',
+      { name: 'Primary' },
+      { timeout: LAZY_PAGE_TIMEOUT_MS },
+    );
+
+    await user.click(within(nav).getByRole('link', { name: 'About' }));
+
+    await screen.findByRole(
+      'heading',
+      { level: 1, name: /one page at a time/i },
+      { timeout: LAZY_PAGE_TIMEOUT_MS },
+    );
+    expect(router.state.location.pathname).toBe('/about');
+    expect(within(nav).getByRole('link', { name: 'About' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(
+      screen.getByRole('heading', { name: /meet your\s*tutors/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows AI test papers as in progress, with progress derived from the milestones', async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(student);
+    renderApp('/ai-test');
+
+    const progress = await screen.findByRole(
+      'progressbar',
+      { name: 'Built so far' },
+      { timeout: LAZY_PAGE_TIMEOUT_MS },
+    );
+    // 2 written + 2 half-written of 6 chapters.
+    expect(progress).toHaveAttribute('aria-valuenow', '50');
+    expect(screen.getByText('2 of 6 chapters written')).toBeInTheDocument();
+    expect(screen.getAllByText('Being written')).toHaveLength(2);
+  });
+
+  it('opens the model paper waitlist from the model paper page', async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(student);
+    const user = userEvent.setup();
+    renderApp('/model-paper');
+
+    await user.click(
+      await screen.findByRole(
+        'button',
+        { name: 'Join the waitlist' },
+        { timeout: LAZY_PAGE_TIMEOUT_MS },
+      ),
+    );
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 });

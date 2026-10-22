@@ -1,4 +1,9 @@
-import { HOME_SECTION_ID } from './routes';
+import {
+  ABOUT_SECTION_ID,
+  APP_ROUTES,
+  HOME_SECTION_ID,
+  toPageSection,
+} from './routes';
 
 export const BRAND = {
   name: 'SriDha Academy',
@@ -8,11 +13,16 @@ export const BRAND = {
   footerNote: 'Designed as an editorial learning experience',
 } as const;
 
+// isSection: a jump to a section of a page, never shown as the current page.
 export const NAV_LINKS = [
-  { label: 'Topics', sectionId: HOME_SECTION_ID.topics },
-  { label: 'AI Test', sectionId: HOME_SECTION_ID.aiTest },
-  { label: 'Model Paper', sectionId: HOME_SECTION_ID.modelPaper },
-  { label: 'About', sectionId: HOME_SECTION_ID.about },
+  {
+    label: 'Topics',
+    to: toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
+    isSection: true,
+  },
+  { label: 'AI Test', to: APP_ROUTES.AI_TEST, isSection: false },
+  { label: 'Model Paper', to: APP_ROUTES.MODEL_PAPER, isSection: false },
+  { label: 'About', to: APP_ROUTES.ABOUT, isSection: false },
 ] as const;
 
 export const HEADER_TEXT = {
@@ -35,7 +45,7 @@ export const HERO_TEXT = {
   secondaryAction: 'My learning',
   stats: [
     { value: '03', label: 'Learning paths' },
-    { value: '15+', label: 'Topics & exams' },
+    { value: '04', label: 'Topics ready' },
     { value: '100', label: 'Students / batch' },
   ],
 } as const;
@@ -182,6 +192,7 @@ export const ABOUT_TEXT = {
     'Instead of selling a whole subject at once, we break it into chapters and topics, teach them in focused batches and help students measure progress along the way',
   ],
   note: 'Topic-wise online classes · AI assessment · AI model paper',
+  readMore: 'Read our story',
 } as const;
 
 export const TEAM_TEXT = {
@@ -189,6 +200,7 @@ export const TEAM_TEXT = {
   titleEmphasis: 'the page.',
   description:
     'Faculty profiles will be published here as each topic team is confirmed',
+  meetTutors: 'Meet your tutors',
   members: [
     { initial: 'A', name: 'Accounts Faculty', role: 'Topic Faculty' },
     { initial: 'E', name: 'Economics Faculty', role: 'Topic Faculty' },
@@ -212,16 +224,22 @@ export const FOOTER_COLUMNS = [
   {
     title: 'Explore',
     links: [
-      { label: 'Topics', sectionId: HOME_SECTION_ID.topics },
-      { label: 'AI Test', sectionId: HOME_SECTION_ID.aiTest },
-      { label: 'Model Paper', sectionId: HOME_SECTION_ID.modelPaper },
+      {
+        label: 'Topics',
+        to: toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
+      },
+      { label: 'AI Test', to: APP_ROUTES.AI_TEST },
+      { label: 'Model Paper', to: APP_ROUTES.MODEL_PAPER },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'About', sectionId: HOME_SECTION_ID.about },
-      { label: 'Our Team', sectionId: HOME_SECTION_ID.team },
+      { label: 'About', to: APP_ROUTES.ABOUT },
+      {
+        label: 'Meet the tutors',
+        to: toPageSection(APP_ROUTES.ABOUT, ABOUT_SECTION_ID.tutors),
+      },
     ],
   },
 ] as const;

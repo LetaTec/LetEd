@@ -282,7 +282,7 @@ test.describe('student journey', () => {
     await signedIn(page, `${testInfo.project.name}-journey`);
     await page.goto('/#topics');
     await expect(
-      page.getByRole('button', { name: 'View batches for Depreciation' }),
+      page.getByRole('button', { name: 'View batches for Trial balance' }),
     ).toBeDisabled();
     await page.getByRole('button', { name: 'View batches for GST' }).click();
     const courseDialog = page.getByRole('dialog', {

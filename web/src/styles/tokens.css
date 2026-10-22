@@ -26,6 +26,7 @@
 
   --color-accent: #8a6748;
   --color-accent-soft: #a4815e;
+  --color-brand-yellow: #f6b52c;
 
   --color-border-base: #d9d9d3;
   --color-border-strong: #203c39;
@@ -93,8 +94,14 @@
   --width-copy-lead: 470px;
   --width-modal: 570px;
   --width-auth-copy: 540px;
-  --width-auth-collage: 560px;
+  --width-auth-collage: 600px;
+  --aspect-topic-machine: 7 / 6;
+  --mask-topic-machine-x: 22%;
+  --mask-topic-machine-y: 10%;
+  --width-feature-plate: 460px;
   --width-book: 820px;
+  --width-cta-title: 1000px;
+  --width-about-photo: 440px;
   --height-header: 76px;
   --height-logo-horizontal-md: 40px;
   --height-logo-horizontal-lg: 48px;
@@ -165,6 +172,13 @@
   --tilt-test-sheet-sm: 1deg;
   --size-visually-hidden: 1px;
   --size-progress: 2px;
+  --height-progress-ruler: 24px;
+  --height-progress-tick: 10px;
+  --height-progress-fill: 6px;
+  --size-timeline-marker: 32px;
+  --size-timeline-pip: 10px;
+  --border-width-stamp: 4px;
+  --tilt-stamp: -8deg;
   --icon-size-sm: 16px;
   --icon-size-md: 20px;
   --icon-size-lg: 24px;

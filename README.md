@@ -11,7 +11,7 @@ Sections, in order:
 1. **Hero** — "Big Subjects. _Broken Into_ Small Victories", with the interactive book alongside.
 2. **Our model** — "Big Subjects. Broken Into Small Victories." with four cards: Big Subjects, Broken Into, Small Victories and Test Paper.
 3. **AI Test Paper** — explains generated test papers. "Start a sample test" invites visitors to create a profile.
-4. **Topics** — one searchable card per topic from the live catalogue. A topic with batches opens its lessons and batches; the others show "Coming soon".
+4. **Topics** — one searchable card per topic from the live catalogue. A topic with batches opens its lessons and batches; the others show "Batches opening soon".
 5. **The three paths** — Online Classes, AI Test Paper and AI Model Paper. "Join waitlist" opens the AI model paper waitlist form.
 6. **About**, **Team** and a closing **Create your student account** call to action.
 
@@ -38,15 +38,18 @@ Full, closed, inactive and upcoming batches show their status and cannot be sele
 
 Visitors see only the sign-in screens until they log in or create an account.
 
-| Path               | Who                | What                                                         |
-| ------------------ | ------------------ | ------------------------------------------------------------ |
-| `/login`           | signed-out         | Sign-in page: headline, form, illustrations, topic previews  |
-| `/register`        | signed-out         | Student registration (10th–12th, CA, CS, NEET, JEE, Bank PO) |
-| `/forgot-password` | signed-out         | Request a password-reset email                               |
-| `/reset-password`  | anyone with a link | Choose a new password from a reset email                     |
-| `/`                | signed-in students | Homepage, topic details and batch selection                  |
-| `/batches`         | signed-in students | Every topic batch with full details                          |
-| `/my-learning`     | signed-in students | The student's reserved seats                                 |
+| Path               | Who                | What                                                          |
+| ------------------ | ------------------ | ------------------------------------------------------------- |
+| `/login`           | signed-out         | Sign-in page: form, 3D topic machine animation, topic cards   |
+| `/register`        | signed-out         | Student registration (10th–12th, CA, CS, NEET, JEE, Bank PO)  |
+| `/forgot-password` | signed-out         | Request a password-reset email                                |
+| `/reset-password`  | anyone with a link | Choose a new password from a reset email                      |
+| `/`                | signed-in students | Homepage, topic details and batch selection                   |
+| `/batches`         | signed-in students | Every topic batch with full details                           |
+| `/my-learning`     | signed-in students | The student's reserved seats                                  |
+| `/about`           | signed-in students | Motive, inspiration, how we teach and the tutors              |
+| `/ai-test`         | signed-in students | AI test papers: coming soon, with build progress              |
+| `/model-paper`     | signed-in students | AI model papers: coming soon, build progress and the waitlist |
 
 Opening any signed-in page while signed out redirects to `/login?redirect_to=…`. After signing in, the student returns to that page, including any chosen topic and batch. Signed-in students who open `/login` or `/register` go straight to the homepage.
 
@@ -60,12 +63,14 @@ Opening any signed-in page while signed out redirects to `/login?redirect_to=…
 
 Student photographs are used under [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), which allows commercial use with credit. Each photo shows its credit on the page. The images are cropped and resized from the originals.
 
-| File (`web/src/assets/photos/`) | Original                                                                                                   | Photographer |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------ |
-| `student-overwhelmed.webp`      | [Is education really a rat race in India?](https://www.flickr.com/photos/47850033@N08/41403332650)         | Nithi clicks |
-| `student-reading.webp`          | [Indian School Boy Reading the Book](https://www.flickr.com/photos/47850033@N08/40717134564)               | Nithi clicks |
-| `students-smiling.webp`         | [Colours of Rural life (School Life in Tamilnadu)](https://www.flickr.com/photos/47850033@N08/47393681652) | Nithi clicks |
-| `student-writing.webp`          | [\_L8V1571](https://www.flickr.com/photos/28032587@N06/10485308324)                                        | KMo Foto     |
+| File (`web/src/assets/photos/`) | Original                                                                                                   | Photographer             |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `student-overwhelmed.webp`      | [Is education really a rat race in India?](https://www.flickr.com/photos/47850033@N08/41403332650)         | Nithi clicks             |
+| `student-reading.webp`          | [Indian School Boy Reading the Book](https://www.flickr.com/photos/47850033@N08/40717134564)               | Nithi clicks             |
+| `students-smiling.webp`         | [Colours of Rural life (School Life in Tamilnadu)](https://www.flickr.com/photos/47850033@N08/47393681652) | Nithi clicks             |
+| `student-writing.webp`          | [\_L8V1571](https://www.flickr.com/photos/28032587@N06/10485308324)                                        | KMo Foto                 |
+| `students-classroom.webp`       | [Indian children at school](https://www.flickr.com/photos/53620105@N06/6107977919)                         | José Morcillo Valenciano |
+| `student-slate.webp`            | [math on slate](https://www.flickr.com/photos/29220600@N08/3448529469)                                     | { pranav }               |
 
 ## Structure
 
