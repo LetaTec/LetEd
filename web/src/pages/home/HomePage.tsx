@@ -9,7 +9,6 @@ import { useTopicSelection } from '@hooks/useTopicSelection';
 import {
   findBatchContext,
   findTopicContext,
-  listTopics,
   type Batch,
 } from '@services/catalogue';
 
@@ -19,7 +18,6 @@ import { AiTestSection } from './components/AiTestSection/AiTestSection';
 import { HeroSection } from './components/HeroSection/HeroSection';
 import { ProgramsSection } from './components/ProgramsSection/ProgramsSection';
 import { TeamSection } from './components/TeamSection/TeamSection';
-import { TopicBreakdownSection } from './components/TopicBreakdownSection/TopicBreakdownSection';
 import { TopicDialog } from './components/TopicDialog/TopicDialog';
 import { TopicsSection } from './components/TopicsSection/TopicsSection';
 
@@ -54,11 +52,8 @@ const HomePage = () => {
         onOpenTopic={openTopic}
         onSelectBatch={handleSelectBatch}
       />
-      <TopicBreakdownSection
-        topic={listTopics(catalogue.subjects)[0] ?? null}
-      />
-      <AiTestSection />
       <TopicsSection catalogue={catalogue} onOpenTopic={openTopic} />
+      <AiTestSection />
       <ProgramsSection
         onSeeTestFlow={() => setActiveDialog('aiTest')}
         onJoinWaitlist={() => setActiveDialog('modelPaper')}

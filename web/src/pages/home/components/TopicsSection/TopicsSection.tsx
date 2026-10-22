@@ -13,6 +13,7 @@ export type TopicsSectionProps = {
   onOpenTopic: (topicId: string) => void;
 };
 
+// The topics on offer, second on the homepage, with their own search.
 export const TopicsSection = ({
   catalogue,
   onOpenTopic,

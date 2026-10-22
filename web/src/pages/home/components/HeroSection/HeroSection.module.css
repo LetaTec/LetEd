@@ -42,10 +42,6 @@
   margin-bottom: var(--space-4);
 }
 
-.searchArea {
-  margin-bottom: var(--space-3);
-}
-
 .actions {
   display: flex;
   flex-wrap: wrap;

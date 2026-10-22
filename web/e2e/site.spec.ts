@@ -181,9 +181,15 @@ test.describe('homepage', () => {
         name: /big subjects\.\s*broken into\s*small victories/i,
       }),
     ).toBeVisible();
+    // The topic search lives in the header (inside the menu on phones)
+    const menuButton = page.getByRole('button', { name: 'Open menu' });
+    if (await menuButton.isVisible()) await menuButton.click();
     await expect(
       page.getByRole('searchbox', { name: 'Find your topic' }),
     ).toBeVisible();
+    if (await page.getByRole('button', { name: 'Close menu' }).isVisible()) {
+      await page.getByRole('button', { name: 'Close menu' }).click();
+    }
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,

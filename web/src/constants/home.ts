@@ -33,6 +33,14 @@ export const HEADER_TEXT = {
   primaryNavigation: 'Primary',
   homeLabel: 'SriDha Academy home',
   skipToContent: 'Skip to content',
+  // Topic search in the header, with each topic's batches in the results
+  searchLabel: 'Find your topic',
+  searchPlaceholder: 'Search topics or subtopics',
+  searchEmpty: 'No topic matches yet. Try GST or Trial balance',
+  searchResultsLabel: 'Matching topics and batches',
+  searchSoon: 'Batches opening soon',
+  searchBatchLabel: (topic: string, batch: string, timing: string) =>
+    `Reserve ${topic}, ${batch}, ${timing}`,
 } as const;
 
 export const HERO_TEXT = {
@@ -43,61 +51,11 @@ export const HERO_TEXT = {
   lead: 'A focused learning environment for students preparing for school, competitive examinations and professional pathways — taught topic by topic',
   primaryAction: 'Explore learning',
   secondaryAction: 'My learning',
-  // Topic search in the hero
-  searchLabel: 'Find your topic',
-  searchPlaceholder: 'Search a topic or subtopic, e.g. Suspense account',
-  searchEmpty: 'No topic matches yet. Try GST or Trial balance',
-  searchResultsLabel: 'Matching topics',
-  searchOpen: 'Batches open',
-  searchSoon: 'Batches opening soon',
   stats: [
     { value: '03', label: 'Learning paths' },
     { value: '04', label: 'Topics ready' },
     { value: '100', label: 'Students / batch' },
   ],
-} as const;
-
-// Animated explainer: a whole subject breaking into topics, then one topic.
-export const TOPIC_BREAKDOWN_TEXT = {
-  eyebrow: 'Topic-wise learning',
-  title: 'Not the whole subject.',
-  titleEmphasis: 'One topic at a time.',
-  description:
-    'A subject like Accounts has many chapters. At SriDha Academy you join a batch for one topic, learn its lessons and move on when you are ready',
-  subjectLabel: 'Accounts · Class 11',
-  subjectCaption: 'The whole subject',
-  exampleNote: 'Illustration: chapters in Class 11 Accounts',
-  tiles: [
-    'Basics of accounting',
-    'Journal entries',
-    'Ledger',
-    'Trial balance',
-    'Depreciation',
-    'GST',
-  ],
-  selectedTile: 'GST',
-  steps: [
-    {
-      label: 'A whole subject',
-      description: 'Everything at once feels overwhelming',
-    },
-    {
-      label: 'Broken into topics',
-      description: 'Each chapter becomes a focused topic',
-    },
-    {
-      label: 'One topic, one batch',
-      description: 'Join only the topic you need',
-    },
-  ],
-  panelEyebrow: 'You join one topic',
-  lessonsLabel: 'Lessons in this topic',
-  victory: 'Topic complete — a small victory',
-  pause: 'Pause animation',
-  play: 'Play animation',
-  stepLabel: (step: number, label: string) => `Step ${step}: ${label}`,
-  figureLabel:
-    'Animation: a whole subject, Accounts, splits into six topics, and one topic, GST, is chosen with its lessons ticked off one by one',
 } as const;
 
 export const AI_TEST_TEXT = {
@@ -109,6 +67,7 @@ export const AI_TEST_TEXT = {
   action: 'Start a sample test',
 } as const;
 
+// Second section of the homepage: the topics on offer, as cards.
 export const TOPICS_TEXT = {
   title: 'Topics',
   titleEmphasis: 'to begin with.',

@@ -107,6 +107,7 @@ export const LANDING_TEXT = {
   // The topics panel beside the sign-in form
   ongoingEyebrow: 'Topics running now',
   ongoingTitle: 'Learn one topic at a time',
+  ongoingAction: 'Create your free student ID to explore all batches',
   topicsTitle: 'Pick a topic,',
   topicsTitleEmphasis: 'not a whole subject.',
   searchLabel: 'Search topics',

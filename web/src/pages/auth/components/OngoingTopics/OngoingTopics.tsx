@@ -2,12 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import cx from 'classnames/bind';
 
 import { TopicPreviewGrid } from '@components/catalogue/TopicPreviewGrid/TopicPreviewGrid';
+import { ButtonRouteLink } from '@components/ui/Button/Button';
 import { Heading } from '@components/ui/Heading/Heading';
 import { Text } from '@components/ui/Text/Text';
 import { AUTH_QUERY_PARAM } from '@constants/auth';
 import { CATALOGUE_QUERY_PARAM } from '@constants/catalogue';
 import { LANDING_TEXT } from '@constants/landing';
-import { APP_ROUTES } from '@constants/routes';
+import { APP_ROUTES, AUTH_SECTION_ID, toPageSection } from '@constants/routes';
 import type { Topic } from '@services/catalogue';
 
 import styles from './OngoingTopics.module.css';
@@ -20,8 +21,9 @@ export type OngoingTopicsProps = {
   catalogueTopics: readonly Topic[];
 };
 
-// The topics running now, beside the sign-in form. Choosing an open topic
-// asks the visitor to register, then returns them to that topic's batches.
+// The topics running now, beside the sign-in form, with an invitation to
+// sign up. Choosing an open topic asks the visitor to register, then returns
+// them to that topic's batches.
 export const OngoingTopics = ({ catalogueTopics }: OngoingTopicsProps) => {
   const navigate = useNavigate();
 
@@ -51,6 +53,16 @@ export const OngoingTopics = ({ catalogueTopics }: OngoingTopicsProps) => {
         showSearch={false}
         columns={2}
       />
+      <div className={cn('action')}>
+        <ButtonRouteLink
+          to={toPageSection(APP_ROUTES.REGISTER, AUTH_SECTION_ID.access)}
+          endIcon="arrowRight"
+          fullWidth
+          wrapLabel
+        >
+          {LANDING_TEXT.ongoingAction}
+        </ButtonRouteLink>
+      </div>
     </section>
   );
 };

@@ -9,11 +9,10 @@ SriDha Academy (repository: LetEd): topic-wise online classes, AI test papers an
 Sections, in order:
 
 1. **Hero** — "Big Subjects. _Broken Into_ Small Victories", a **Find your topic** search (matches topic names and subtopics; an open topic opens its batches) and the interactive book alongside.
-2. **Topic animation** — a whole subject breaking into topics.
+2. **Topics to begin with** — one card per topic, with its own search. Open topics show their fee and next start date; hovering a card shows **What we will teach** with its four subtopics. A topic with batches opens its lessons and batches, the others show "Batches opening soon".
 3. **AI Test Paper** — a five-question sample test (Accounts, Physics, Maths, Chemistry) with a five-minute timer and a score out of five.
-4. **Topics** — one searchable card per topic. Hovering a card shows **What we will teach** with its four subtopics; a topic with batches opens its lessons and batches, the others show "Batches opening soon".
-5. **The three paths** — Online Classes, AI Test Paper and AI Model Paper. "Join waitlist" opens the AI model paper waitlist form.
-6. **About**, **Team** and a closing call to action.
+4. **The three paths** — Online Classes, AI Test Paper and AI Model Paper. "Join waitlist" opens the AI model paper waitlist form.
+5. **About**, **Team** and a closing call to action.
 
 ### Sign-in page
 

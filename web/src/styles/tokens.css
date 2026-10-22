@@ -98,6 +98,9 @@
   --width-feature-plate: 460px;
   --width-book: 820px;
   --width-cta-title: 1000px;
+  --width-header-search: 240px;
+  --width-search-results: 440px;
+  --height-search-results: 480px;
   --width-about-photo: 440px;
   --height-header: 76px;
   --height-logo-horizontal-md: 40px;
@@ -157,6 +160,7 @@
 
   /* Controls */
   --height-control: 46px;
+  --height-control-compact: 38px;
   --padding-control-x: 20px;
   --padding-control-x-compact: 14px;
   --padding-control-y: 12px;
@@ -210,14 +214,6 @@
   --duration-spinner: 700ms;
   --duration-photo-reveal: 900ms;
   --duration-photo-settle: 1600ms;
-  --duration-breakdown: 700ms;
-  --delay-breakdown-stagger: 70ms;
-  --delay-breakdown-panel: 600ms;
-  --delay-breakdown-lesson: 550ms;
-  --delay-breakdown-victory: 3000ms;
-  --opacity-breakdown-dimmed: 0.35;
-  --scale-breakdown-cover: 0.96;
-  --height-breakdown-tile: 112px;
   --distance-lift: -2px;
   --distance-lift-card: -5px;
   --distance-reveal: 35px;

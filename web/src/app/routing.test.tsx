@@ -217,7 +217,7 @@ describe('app routing', () => {
     ).toHaveLength(2);
   });
 
-  it('finds topics by subtopic from the hero search and opens an open topic', async () => {
+  it('searches topics from the header and lists their batches', async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(student);
     const user = userEvent.setup();
     const router = renderApp('/');
@@ -228,7 +228,9 @@ describe('app routing', () => {
       { timeout: LAZY_PAGE_TIMEOUT_MS },
     );
     await user.type(search, 'suspense');
-    const results = screen.getByRole('region', { name: 'Matching topics' });
+    const results = screen.getByRole('region', {
+      name: 'Matching topics and batches',
+    });
     expect(
       within(results).getByRole('button', { name: /Rectification of errors/ }),
     ).toBeInTheDocument();
@@ -236,19 +238,24 @@ describe('app routing', () => {
       within(results).queryByRole('button', { name: /GST/ }),
     ).not.toBeInTheDocument();
 
+    // An open topic shows its fee and each batch with its timing
     await user.clear(search);
     await user.type(search, 'gst');
     await waitFor(() =>
       expect(
-        within(results).getByRole('button', { name: /GST.*Batches open/ }),
+        within(results).getByRole('button', { name: /^GST.*₹129/ }),
       ).toBeInTheDocument(),
     );
-    await user.keyboard('{Enter}');
+    const november = within(results).getByRole('button', {
+      name: /Reserve GST, November batch, 1st & 2nd November/,
+    });
 
+    // Choosing a batch goes straight to reserving it
+    await user.click(november);
     expect(
-      await screen.findByRole('dialog', { name: /learn gst for class 11/i }),
+      await screen.findByRole('dialog', { name: /review your\s*selection/i }),
     ).toBeInTheDocument();
-    expect(router.state.location.search).toContain(`topic=${GST_TOPIC_ID}`);
+    expect(router.state.location.search).toContain(`batch=${openBatch.id}`);
   });
 
   it('opens the About page from the header and marks it as the current page', async () => {
