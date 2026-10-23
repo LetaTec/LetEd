@@ -1,36 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <defs>
-    <style>
-      :root {
-        --brand-green: #1e332c;
-        --brand-gold: #f9b522;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --brand-green: #fbfaf5;
-          --brand-gold: #f9b522;
-        }
-      }
-      .brand-green {
-        fill: var(--brand-green);
-      }
-      .brand-gold {
-        fill: var(--brand-gold);
-      }
-    </style>
-  </defs>
+  <!-- Solid Pure White Background -->
+  <rect width="256" height="256" fill="#ffffff" />
+
   <!-- Left Forest Green Semicircle -->
-  <path class="brand-green" d="M 105,64 A 65.5,65.5 0 0,0 105,195 Z" />
-  
-  <!-- Center Vertical Forest Green Stem -->
-  <rect class="brand-green" x="113" y="64" width="5.5" height="131" rx="0.5" />
-  
+  <path d="M 105,64 A 65.5,65.5 0 0,0 105,195 Z" fill="#1e332c" />
+
+  <!-- Center Forest Green Vertical Stem -->
+  <rect x="113" y="64" width="5.5" height="131" rx="0.5" fill="#1e332c" />
+
   <!-- Lower Golden Yellow Semicircle -->
-  <path class="brand-gold" d="M 118.5,137.5 A 28.5,28.5 0 0,1 118.5,195 Z" />
-  
+  <path d="M 118.5,137.5 A 28.5,28.5 0 0,1 118.5,195 Z" fill="#f9b522" />
+
   <!-- Upper Golden Yellow Circle -->
-  <circle class="brand-gold" cx="164" cy="120.5" r="16.2" />
-  
-  <!-- Diagonal Forest Green Stem (Line) -->
-  <line x1="171" y1="135" x2="219" y2="61" stroke="var(--brand-green)" stroke-width="5.5" stroke-linecap="butt" />
+  <circle cx="164" cy="120.5" r="16.2" fill="#f9b522" />
+
+  <!-- Diagonal Forest Green Stem -->
+  <line x1="171" y1="135" x2="219" y2="61" stroke="#1e332c" stroke-width="5.5" stroke-linecap="butt" />
 </svg>
