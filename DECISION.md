@@ -629,4 +629,35 @@ The website previously relied on a single unoptimized 64x64 PNG (`favicon.png`).
 - `npm run test`: Passed (67/67 tests).
 - `npm run build`: Succeeded. All assets copied to `web/dist/` with correct root paths.
 
+---
 
+## DEC-016: Opaque Pure White Background for Favicon Suite
+
+- **Date & Time**: `2026-10-22T18:45:00+05:30` (IST)
+- **Decision Title**: Standardize Favicon Suite on Pure Opaque White (#FFFFFF) Canvas
+- **Status**: Implemented & Verified
+
+### 1. Problem or Requirement
+
+The transparent background on browser tab favicons can lead to reduced legibility or visual inconsistency across diverse browser themes (e.g. dark browser tabs, translucent OS title bars, or custom browser skins). A unified, high-contrast, pure solid white (`#FFFFFF`) background was required across all favicon formats so that the geometric brand symbol (forest green `#1e332c` and golden yellow `#f9b522`) is consistently framed and instantly recognizable in all browser environments.
+
+### 2. Implementation Details
+
+1. **SVG Favicon (`web/public/favicon.svg`)**:
+   - Added explicit background `<rect width="256" height="256" fill="#ffffff" />`.
+   - Removed `@media (prefers-color-scheme: dark)` styling overrides to keep the symbol in its authentic brand colors (`#1e332c` forest green and `#f9b522` golden yellow) on top of the solid white background.
+2. **Raster PNG Assets**:
+   - Re-rendered all PNG assets (`apple-touch-icon.png` 180×180, `favicon.png` 64×64, `favicon-32x32.png` 32×32, and `favicon-16x16.png` 16×16) with 100% opaque, solid `#FFFFFF` pixel backgrounds.
+   - Preserved optical centering and protective padding around the symbol.
+3. **Multi-Resolution Windows ICO (`web/public/favicon.ico`)**:
+   - Reassembled the 3-frame ICO resource (16×16, 32×32, 48×48) using the new opaque white raster assets.
+4. **HTML & Headers**:
+   - Verified `web/index.html` link references and `web/public/_headers` cache-control policies.
+
+### 3. Verification Evidence
+
+- `npm run typecheck`: Passed (0 errors across `api` and `web`).
+- `npm run lint`: Passed (0 errors, 0 warnings).
+- `npm run test`: Passed (67/67 tests).
+- `npm run build`: Succeeded. All assets copied to `web/dist/` with opaque white backgrounds verified.
+- `git diff --check`: Passed (clean whitespace).
