@@ -58,6 +58,21 @@ test.describe('sign-in gate', () => {
     await expect(book(page)).toHaveCount(0);
     await expect(page.getByText('Topics to begin with')).toHaveCount(0);
 
+    // Beside the form: the four topics running now. Below it: our model.
+    const ongoing = page.getByRole('region', {
+      name: 'Learn one topic at a time',
+    });
+    await expect(
+      ongoing.getByRole('button', { name: /Join SriDha Academy to learn/ }),
+    ).toHaveCount(4);
+    await expect(
+      page.getByRole('heading', {
+        level: 2,
+        name: 'Big Subjects. Broken Into Small Victories.',
+      }),
+    ).toBeVisible();
+    await expect(page.getByText('Breaking down the model')).toBeVisible();
+
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
     );
@@ -166,13 +181,15 @@ test.describe('homepage', () => {
         name: /big subjects\.\s*broken into\s*small victories/i,
       }),
     ).toBeVisible();
+    // The topic search lives in the header (inside the menu on phones)
+    const menuButton = page.getByRole('button', { name: 'Open menu' });
+    if (await menuButton.isVisible()) await menuButton.click();
     await expect(
-      page.getByRole('heading', {
-        level: 2,
-        name: 'Big Subjects. Broken Into Small Victories.',
-      }),
+      page.getByRole('searchbox', { name: 'Find your topic' }),
     ).toBeVisible();
-    await expect(page.getByText('Breaking down the model')).toBeVisible();
+    if (await page.getByRole('button', { name: 'Close menu' }).isVisible()) {
+      await page.getByRole('button', { name: 'Close menu' }).click();
+    }
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
@@ -282,7 +299,7 @@ test.describe('student journey', () => {
     await signedIn(page, `${testInfo.project.name}-journey`);
     await page.goto('/#topics');
     await expect(
-      page.getByRole('button', { name: 'View batches for Depreciation' }),
+      page.getByRole('button', { name: 'View batches for Trial balance' }),
     ).toBeDisabled();
     await page.getByRole('button', { name: 'View batches for GST' }).click();
     const courseDialog = page.getByRole('dialog', {

@@ -1,0 +1,65 @@
+.ruler {
+  display: grid;
+  gap: var(--space-1-5);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.value {
+  font-family: var(--font-serif);
+  font-size: var(--text-display-lg);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-text-primary);
+}
+
+.unit {
+  margin-left: var(--space-0-5);
+  font-size: var(--text-display-xs);
+  font-style: italic;
+  color: var(--color-text-accent);
+}
+
+.track {
+  position: relative;
+  height: var(--height-progress-ruler);
+  border-bottom: var(--border-width-base) solid var(--color-border-strong);
+}
+
+.fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: var(--height-progress-fill);
+  background: var(--color-accent);
+}
+
+.tick {
+  position: absolute;
+  bottom: 0;
+  width: var(--border-width-base);
+  height: var(--height-progress-tick);
+  background: var(--color-border-strong);
+  translate: -50% 0;
+}
+
+.major {
+  height: var(--height-progress-ruler);
+}
+
+.scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-3xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-muted);
+}
+
+.caption {
+  margin-top: var(--space-1);
+}

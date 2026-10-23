@@ -7,6 +7,7 @@ import { Container } from '@components/ui/Container/Container';
 import { AUTH_PAGE_TEXT } from '@constants/auth';
 import { HEADER_TEXT } from '@constants/home';
 import { APP_ROUTES } from '@constants/routes';
+import { useScrollToHash } from '@hooks/useScrollToHash';
 
 import { AuthFooter } from './AuthFooter';
 import styles from './AuthShell.module.css';
@@ -18,6 +19,7 @@ const cn = cx.bind(styles);
 export const AuthShell = () => {
   const { pathname, search } = useLocation();
   const isRegister = pathname === APP_ROUTES.REGISTER;
+  useScrollToHash();
 
   return (
     <div className={cn('shell')}>

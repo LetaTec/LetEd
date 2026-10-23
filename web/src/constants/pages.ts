@@ -18,7 +18,8 @@ export const PAGE_TEXT = {
   myLearningEyebrow: 'Student / My learning',
   myLearningTitle: 'My',
   myLearningTitleEmphasis: 'learning.',
-  myLearningGreeting: (name: string) => `Signed in as ${name}`,
+  myLearningGreeting: (name: string, role?: string) =>
+    role ? `Signed in as ${name} · ${role}` : `Signed in as ${name}`,
   myLearningEmptyTitle: 'No topics selected yet',
   myLearningEmptyMessage:
     'Browse the topics and select a batch for the topic you want to learn first',

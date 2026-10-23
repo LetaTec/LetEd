@@ -88,6 +88,11 @@
   width: 100%;
 }
 
+.wrapLabel {
+  white-space: normal;
+  text-align: center;
+}
+
 .disabled {
   opacity: var(--opacity-disabled);
 }

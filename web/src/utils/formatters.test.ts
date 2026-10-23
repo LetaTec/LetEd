@@ -1,5 +1,5 @@
 import { formatPrice } from './currency';
-import { formatDateOnly, formatWallClockTime } from './date';
+import { formatCountdown, formatDateOnly, formatWallClockTime } from './date';
 import { resolveInternalPath } from './url';
 
 describe('formatters', () => {
@@ -18,6 +18,13 @@ describe('formatters', () => {
 
   it('formats published wall-clock times in IST', () => {
     expect(formatWallClockTime('10:00')).toMatch(/^10:00\s?am IST$/i);
+  });
+
+  it('formats countdowns as minutes and seconds', () => {
+    expect(formatCountdown(300)).toBe('05:00');
+    expect(formatCountdown(272)).toBe('04:32');
+    expect(formatCountdown(0.4)).toBe('00:01');
+    expect(formatCountdown(-3)).toBe('00:00');
   });
 });
 

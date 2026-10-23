@@ -80,7 +80,7 @@ The API server starts on `http://localhost:4000`. Database migrations and schema
 npm run db:seed
 ```
 
-Seeds subjects, chapters, topics, lessons, and batch cohorts into the database.
+Seeds subjects, chapters, topics, lessons, and batch cohorts into the PostgreSQL database named by `DATABASE_URL`. Without `DATABASE_URL`, the API runs in-memory and seeds its own catalogue every time it starts, so this step is not needed.
 
 ### Start Frontend Website:
 

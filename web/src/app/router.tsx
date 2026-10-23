@@ -20,8 +20,14 @@ const AuthPage = lazy(() => import('@pages/auth/AuthPage'));
 const HomePage = lazy(() => import('@pages/home/HomePage'));
 const MyLearningPage = lazy(() => import('@pages/my-learning/MyLearningPage'));
 const BatchesPage = lazy(() => import('@pages/batches/BatchesPage'));
+const AboutPage = lazy(() => import('@pages/about/AboutPage'));
+const AiTestPage = lazy(() => import('@pages/ai-test/AiTestPage'));
+const ModelPaperPage = lazy(() => import('@pages/model-paper/ModelPaperPage'));
 const ResetPasswordPage = lazy(
   () => import('@pages/reset-password/ResetPasswordPage'),
+);
+const AdminSignInPage = lazy(
+  () => import('@pages/admin-sign-in/AdminSignInPage'),
 );
 const NotFoundPage = lazy(() => import('@pages/not-found/NotFoundPage'));
 
@@ -59,6 +65,7 @@ export const routes: RouteObject[] = [
             ],
           },
           { path: APP_ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
+          { path: APP_ROUTES.ADMIN_SIGN_IN, element: <AdminSignInPage /> },
         ],
       },
     ],
@@ -76,6 +83,9 @@ export const routes: RouteObject[] = [
               { path: APP_ROUTES.HOME, element: <HomePage /> },
               { path: APP_ROUTES.MY_LEARNING, element: <MyLearningPage /> },
               { path: APP_ROUTES.BATCHES, element: <BatchesPage /> },
+              { path: APP_ROUTES.ABOUT, element: <AboutPage /> },
+              { path: APP_ROUTES.AI_TEST, element: <AiTestPage /> },
+              { path: APP_ROUTES.MODEL_PAPER, element: <ModelPaperPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],
           },

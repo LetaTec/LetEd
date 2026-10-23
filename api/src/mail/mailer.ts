@@ -2,16 +2,42 @@ import { MAIL_TRANSPORT, type AppConfig } from '../config/env.js';
 
 export type Mailer = {
   sendPasswordReset: (email: string, resetUrl: string) => Promise<void>;
+  sendAdminSignInLink: (email: string, signInUrl: string) => Promise<void>;
 };
 
 const consoleMailer: Mailer = {
   sendPasswordReset: async (email, resetUrl) => {
     console.info('[mail] password reset for %s - %s', email, resetUrl);
   },
+  sendAdminSignInLink: async (email, signInUrl) => {
+    console.info('[mail] admin sign-in link for %s - %s', email, signInUrl);
+  },
 };
 
-const createResendMailer = (apiKey: string, fromAddress: string): Mailer => ({
-  sendPasswordReset: async (email, resetUrl) => {
+type EmailContent = {
+  subject: string;
+  intro: string;
+  action: string;
+  url: string;
+  note: string;
+};
+
+const renderEmail = ({ intro, action, url, note }: EmailContent) => `
+  <div style="font-family: sans-serif; line-height: 1.5; color: #333; max-width: 560px; margin: 0 auto; padding: 24px;">
+    <h2 style="color: #111;">SriDha Academy</h2>
+    <p>Hello,</p>
+    <p>${intro}</p>
+    <p style="margin: 24px 0;">
+      <a href="${url}" style="background-color: #0b57d0; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">${action}</a>
+    </p>
+    <p style="font-size: 14px; color: #666;">${note}</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
+    <p style="font-size: 12px; color: #999;">SriDha Academy</p>
+  </div>
+`;
+
+const createResendMailer = (apiKey: string, fromAddress: string): Mailer => {
+  const send = async (email: string, content: EmailContent) => {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -21,20 +47,8 @@ const createResendMailer = (apiKey: string, fromAddress: string): Mailer => ({
       body: JSON.stringify({
         from: fromAddress,
         to: [email],
-        subject: 'Reset your SriDha Academy password',
-        html: `
-          <div style="font-family: sans-serif; line-height: 1.5; color: #333; max-width: 560px; margin: 0 auto; padding: 24px;">
-            <h2 style="color: #111;">SriDha Academy</h2>
-            <p>Hello,</p>
-            <p>We received a request to reset the password for your SriDha Academy account.</p>
-            <p style="margin: 24px 0;">
-              <a href="${resetUrl}" style="background-color: #0b57d0; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">Reset Password</a>
-            </p>
-            <p style="font-size: 14px; color: #666;">This link is valid for 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
-            <p style="font-size: 12px; color: #999;">SriDha Academy</p>
-          </div>
-        `,
+        subject: content.subject,
+        html: renderEmail(content),
       }),
     });
 
@@ -46,11 +60,32 @@ const createResendMailer = (apiKey: string, fromAddress: string): Mailer => ({
         errorText,
       );
       throw new Error(
-        `Failed to send password reset email via Resend (status ${response.status})`,
+        `Failed to send "${content.subject}" via Resend (status ${response.status})`,
       );
     }
-  },
-});
+  };
+
+  return {
+    sendPasswordReset: (email, resetUrl) =>
+      send(email, {
+        subject: 'Reset your SriDha Academy password',
+        intro:
+          'We received a request to reset the password for your SriDha Academy account.',
+        action: 'Reset Password',
+        url: resetUrl,
+        note: 'This link is valid for 1 hour. If you did not request a password reset, you can safely ignore this email.',
+      }),
+    sendAdminSignInLink: (email, signInUrl) =>
+      send(email, {
+        subject: 'Your SriDha Academy sign-in link',
+        intro:
+          'Use the button below to sign in to your SriDha Academy team account.',
+        action: 'Sign in',
+        url: signInUrl,
+        note: 'This link works once and expires in 15 minutes. If you did not ask to sign in, you can safely ignore this email.',
+      }),
+  };
+};
 
 // Returns null when no transport is configured so callers can report that
 // password recovery is unavailable instead of silently dropping the email.

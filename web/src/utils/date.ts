@@ -22,3 +22,10 @@ export const formatWallClockTime = (value: string): string => {
     timeZone: 'UTC',
   }).format(date)} IST`;
 };
+
+// A countdown as minutes and seconds, e.g. 272 -> "04:32".
+export const formatCountdown = (totalSeconds: number): string => {
+  const seconds = Math.max(0, Math.ceil(totalSeconds));
+  const minutes = Math.floor(seconds / 60);
+  return `${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+};

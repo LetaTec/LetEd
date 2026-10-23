@@ -1,17 +1,21 @@
 import { useEffect, useId, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import cx from 'classnames/bind';
 
 import { BrandLogo } from '@components/brand/BrandLogo/BrandLogo';
+import { TopicSearch } from '@components/catalogue/TopicSearch/TopicSearch';
 import { Button, ButtonRouteLink } from '@components/ui/Button/Button';
 import { Container } from '@components/ui/Container/Container';
 import { IconButton } from '@components/ui/IconButton/IconButton';
 import { AUTH_TEXT } from '@constants/auth';
+import { CATALOGUE_QUERY_PARAM } from '@constants/catalogue';
 import { HEADER_TEXT, NAV_LINKS } from '@constants/home';
-import { APP_ROUTES, toSectionHref } from '@constants/routes';
+import { APP_ROUTES, HOME_SECTION_ID, toPageSection } from '@constants/routes';
 import { useAuth } from '@context/AuthContext';
 import { useToast } from '@context/ToastContext';
+import { useCatalogue } from '@hooks/useCatalogue';
 import { logoutStudent } from '@services/auth';
+import { listTopics } from '@services/catalogue';
 
 import styles from './SiteHeader.module.css';
 
@@ -25,6 +29,17 @@ export const SiteHeader = () => {
   const navId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { subjects } = useCatalogue();
+  const catalogueTopics = listTopics(subjects).map(context => context.topic);
+
+  // Search results open the topic or batch on the homepage, from any page.
+  const showOnHome = (params: Record<string, string>) => {
+    setIsMenuOpen(false);
+    navigate({
+      pathname: APP_ROUTES.HOME,
+      search: `?${new URLSearchParams(params)}`,
+    });
+  };
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -94,16 +109,51 @@ export const SiteHeader = () => {
           aria-label={HEADER_TEXT.primaryNavigation}
           className={cn('links', { linksOpen: isMenuOpen })}
         >
-          {NAV_LINKS.map(link => (
-            <a
-              key={link.sectionId}
-              href={`${APP_ROUTES.HOME}${toSectionHref(link.sectionId)}`}
-              className={cn('link')}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {link.label}
-            </a>
-          ))}
+          {NAV_LINKS.map(link =>
+            // Section jumps are never the current page; pages show as active.
+            link.isSection ? (
+              <Link
+                key={link.label}
+                to={link.to}
+                className={cn('link')}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <NavLink
+                key={link.label}
+                to={link.to}
+                end
+                className={({ isActive }) =>
+                  cn('link', { linkActive: isActive })
+                }
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            ),
+          )}
+          <div className={cn('searchSlot')}>
+            <TopicSearch
+              catalogueTopics={catalogueTopics}
+              onOpenTopic={topicId =>
+                showOnHome({ [CATALOGUE_QUERY_PARAM.topic]: topicId })
+              }
+              onSelectBatch={(topicId, batchId) =>
+                showOnHome({
+                  [CATALOGUE_QUERY_PARAM.topic]: topicId,
+                  [CATALOGUE_QUERY_PARAM.batch]: batchId,
+                })
+              }
+              onBrowseTopics={() => {
+                setIsMenuOpen(false);
+                navigate(
+                  toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
+                );
+              }}
+            />
+          </div>
           <div className={cn('menuActions')}>{accountActions}</div>
         </nav>
 

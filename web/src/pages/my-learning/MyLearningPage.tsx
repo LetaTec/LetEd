@@ -18,6 +18,7 @@ import {
   ENROLMENT_STATUS_LABEL,
 } from '@constants/catalogue';
 import { BOOK_TEXT } from '@constants/home';
+import { USER_ROLE, USER_ROLE_LABEL } from '@constants/auth';
 import { PAGE_TEXT } from '@constants/pages';
 import { APP_ROUTES, HOME_SECTION_ID, toSectionHref } from '@constants/routes';
 import { useAuth } from '@context/AuthContext';
@@ -79,7 +80,12 @@ const MyLearningPage = () => {
         </Heading>
         {user ? (
           <Text as="p" tone="muted">
-            {PAGE_TEXT.myLearningGreeting(user.student.fullName)}
+            {PAGE_TEXT.myLearningGreeting(
+              user.student?.fullName ?? user.email,
+              user.role === USER_ROLE.superAdmin
+                ? USER_ROLE_LABEL[user.role]
+                : undefined,
+            )}
           </Text>
         ) : null}
       </div>
