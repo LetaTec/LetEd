@@ -1,3 +1,4 @@
+import { SIGN_IN_TOPIC_COUNT, TOPIC_PREVIEWS } from './landing';
 import type { StudentPhotoKey } from './photos';
 
 // Copy for the About page. Tutor names and photographs are published here
@@ -84,24 +85,19 @@ export const ABOUT_PAGE_TEXT = {
     description:
       'Every topic is taught by a specialist in that topic. Full tutor profiles appear here as each topic team is confirmed',
     status: 'Tutor profile coming soon',
-    items: [
-      { initial: 'G', name: 'GST', focus: 'Class 11 · Accountancy' },
-      {
-        initial: 'R',
-        name: 'Rectification of errors',
-        focus: 'Class 11 · Accountancy',
-      },
-      { initial: 'T', name: 'Trial balance', focus: 'Class 11 · Accountancy' },
-      {
-        initial: 'B',
-        name: 'Bank reconciliation statement',
-        focus: 'Class 11 · Accountancy',
-      },
-    ],
+    // One tutor card per topic on the sign-in page
+    items: TOPIC_PREVIEWS.slice(0, SIGN_IN_TOPIC_COUNT).map(topic => ({
+      initial: topic.title.charAt(0),
+      name: topic.title,
+      focus: topic.level,
+    })),
   },
   stats: [
     { value: '03', label: 'Learning paths' },
-    { value: '04', label: 'Topics ready' },
+    {
+      value: String(TOPIC_PREVIEWS.length).padStart(2, '0'),
+      label: 'Topics ready',
+    },
     { value: '100', label: 'Students / batch' },
   ],
   cta: {

@@ -19,6 +19,7 @@ import {
 import { findNextBatch, type Topic } from '@services/catalogue';
 import { formatPrice } from '@utils/currency';
 import { formatDateOnly } from '@utils/date';
+import { searchTopicPreviews } from '@utils/topicSearch';
 
 import styles from './TopicPreviewGrid.module.css';
 
@@ -57,6 +58,8 @@ export type TopicPreviewGridProps = {
   // beside the sign-in form has neither.
   showSearch?: boolean;
   columns?: 2 | 4;
+  // Show only the first few topics, e.g. in the compact sign-in panel
+  limit?: number;
 };
 
 // Grid of topic cards. Hovering or focusing a card reveals what the topic
@@ -68,12 +71,13 @@ export const TopicPreviewGrid = ({
   actionLabel,
   showSearch = true,
   columns = 4,
+  limit,
 }: TopicPreviewGridProps) => {
   const overlayId = useId();
   const [query, setQuery] = useState('');
-  const normalisedQuery = query.trim().toLowerCase();
-  const topics = TOPIC_PREVIEWS.filter(topic =>
-    topic.title.toLowerCase().includes(normalisedQuery),
+  const topics = searchTopicPreviews(TOPIC_PREVIEWS, query).results.slice(
+    0,
+    limit,
   );
 
   const findCatalogueTopic = (preview: TopicPreview) =>

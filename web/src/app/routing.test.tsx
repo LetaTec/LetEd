@@ -191,12 +191,12 @@ describe('app routing', () => {
     );
     // Topics without batches stay focusable, so their subtopics can be read,
     // but are marked unavailable.
-    const trialBalance = screen.getByRole('button', {
-      name: 'View batches for Trial balance',
+    const rayOptics = screen.getByRole('button', {
+      name: 'View batches for Ray optics',
     });
-    expect(trialBalance).toHaveAttribute('aria-disabled', 'true');
-    expect(trialBalance).toHaveAccessibleDescription(
-      /Trial balance · Class 11.*What we will teach.*Meaning and objectives/,
+    expect(rayOptics).toHaveAttribute('aria-disabled', 'true');
+    expect(rayOptics).toHaveAccessibleDescription(
+      /Ray optics · Class 12.*What we will teach.*Reflection by spherical mirrors/,
     );
     // GST opens once the catalogue has loaded; its hover overlay's subtopics
     // double as the card's description.
@@ -227,12 +227,12 @@ describe('app routing', () => {
       { name: 'Find your topic' },
       { timeout: LAZY_PAGE_TIMEOUT_MS },
     );
-    await user.type(search, 'suspense');
+    await user.type(search, 'hybridisation');
     const results = screen.getByRole('region', {
       name: 'Matching topics and batches',
     });
     expect(
-      within(results).getByRole('button', { name: /Rectification of errors/ }),
+      within(results).getByRole('button', { name: /Chemical bonding/ }),
     ).toBeInTheDocument();
     expect(
       within(results).queryByRole('button', { name: /GST/ }),
@@ -283,6 +283,41 @@ describe('app routing', () => {
     expect(
       screen.getByRole('heading', { name: /meet your\s*tutors/i }),
     ).toBeInTheDocument();
+  });
+
+  it('opens the Topics page from the header and filters topics by class', async () => {
+    vi.mocked(getCurrentSession).mockResolvedValue(student);
+    const user = userEvent.setup();
+    const router = renderApp('/');
+    const nav = await screen.findByRole(
+      'navigation',
+      { name: 'Primary' },
+      { timeout: LAZY_PAGE_TIMEOUT_MS },
+    );
+
+    await user.click(within(nav).getByRole('link', { name: 'Topics' }));
+
+    await screen.findByRole(
+      'heading',
+      { level: 1, name: /every topic/i },
+      { timeout: LAZY_PAGE_TIMEOUT_MS },
+    );
+    expect(router.state.location.pathname).toBe('/topics');
+    expect(within(nav).getByRole('link', { name: 'Topics' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search topics' }),
+      'class 12',
+    );
+    expect(
+      screen.getByRole('button', { name: 'View batches for Ray optics' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'View batches for GST' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows AI test papers as in progress, with progress derived from the milestones', async () => {

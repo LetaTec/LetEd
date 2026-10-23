@@ -1,9 +1,4 @@
-import {
-  ABOUT_SECTION_ID,
-  APP_ROUTES,
-  HOME_SECTION_ID,
-  toPageSection,
-} from './routes';
+import { ABOUT_SECTION_ID, APP_ROUTES, toPageSection } from './routes';
 
 export const BRAND = {
   name: 'SriDha Academy',
@@ -15,11 +10,7 @@ export const BRAND = {
 
 // isSection: a jump to a section of a page, never shown as the current page.
 export const NAV_LINKS = [
-  {
-    label: 'Topics',
-    to: toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
-    isSection: true,
-  },
+  { label: 'Topics', to: APP_ROUTES.TOPICS, isSection: false },
   { label: 'AI Test', to: APP_ROUTES.AI_TEST, isSection: false },
   { label: 'Model Paper', to: APP_ROUTES.MODEL_PAPER, isSection: false },
   { label: 'About', to: APP_ROUTES.ABOUT, isSection: false },
@@ -35,8 +26,13 @@ export const HEADER_TEXT = {
   skipToContent: 'Skip to content',
   // Topic search in the header, with each topic's batches in the results
   searchLabel: 'Find your topic',
-  searchPlaceholder: 'Search topics or subtopics',
-  searchEmpty: 'No topic matches yet. Try GST or Trial balance',
+  searchPlaceholder: 'Topic or class, e.g. Class 11',
+  searchEmpty: 'No topic matches yet. Try GST, Integrals or Class 12',
+  // Shown above the results when the query names a class
+  searchClassResults: (classLabel: string, count: number) =>
+    `${classLabel} · ${count} ${count === 1 ? 'topic' : 'topics'}`,
+  searchClassEmpty: (classLabel: string, taught: string) =>
+    `No ${classLabel} topics yet. We teach ${taught} right now`,
   searchResultsLabel: 'Matching topics and batches',
   searchSoon: 'Batches opening soon',
   searchBatchLabel: (topic: string, batch: string, timing: string) =>
@@ -150,10 +146,7 @@ export const FOOTER_COLUMNS = [
   {
     title: 'Explore',
     links: [
-      {
-        label: 'Topics',
-        to: toPageSection(APP_ROUTES.HOME, HOME_SECTION_ID.topics),
-      },
+      { label: 'Topics', to: APP_ROUTES.TOPICS },
       { label: 'AI Test', to: APP_ROUTES.AI_TEST },
       { label: 'Model Paper', to: APP_ROUTES.MODEL_PAPER },
     ],
