@@ -1,4 +1,5 @@
 import { ABOUT_SECTION_ID, APP_ROUTES, toPageSection } from './routes';
+import { READY_TOPIC_COUNT } from './topics';
 
 export const BRAND = {
   name: 'SriDha Academy',
@@ -35,6 +36,7 @@ export const HEADER_TEXT = {
     `No ${classLabel} topics yet. We teach ${taught} right now`,
   searchResultsLabel: 'Matching topics and batches',
   searchSoon: 'Batches opening soon',
+  searchSeeAll: (count: number) => `See all ${count} results`,
   searchBatchLabel: (topic: string, batch: string, timing: string) =>
     `Reserve ${topic}, ${batch}, ${timing}`,
 } as const;
@@ -49,7 +51,7 @@ export const HERO_TEXT = {
   secondaryAction: 'My learning',
   stats: [
     { value: '03', label: 'Learning paths' },
-    { value: '04', label: 'Topics ready' },
+    { value: READY_TOPIC_COUNT, label: 'Topics ready' },
     { value: '100', label: 'Students / batch' },
   ],
 } as const;
@@ -70,6 +72,7 @@ export const TOPICS_TEXT = {
   description:
     'Each topic is a focused batch with its own lessons. Open a topic to see its lessons and batches.',
   openTopicLabel: (topic: string) => `View batches for ${topic}`,
+  seeAll: (count: number) => `See all ${count} topics`,
 } as const;
 
 export const PROGRAMS_TEXT = {

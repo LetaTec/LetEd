@@ -11,11 +11,8 @@ import { Input } from '@components/ui/Input/Input';
 import { StatusDot } from '@components/ui/StatusDot/StatusDot';
 import { Text } from '@components/ui/Text/Text';
 import { CATALOGUE_TEXT } from '@constants/catalogue';
-import {
-  LANDING_TEXT,
-  TOPIC_PREVIEWS,
-  type TopicPreview,
-} from '@constants/landing';
+import { LANDING_TEXT } from '@constants/landing';
+import { TOPIC_PREVIEWS, type TopicPreview } from '@constants/topics';
 import { findNextBatch, type Topic } from '@services/catalogue';
 import { formatPrice } from '@utils/currency';
 import { formatDateOnly } from '@utils/date';
@@ -47,6 +44,8 @@ const TopicOffer = ({ topic }: { topic: Topic }) => {
 };
 
 export type TopicPreviewGridProps = {
+  // The topics to show; defaults to every topic
+  previews?: readonly TopicPreview[];
   // Topics from the live catalogue; a preview is open once its topic has
   // published batches.
   catalogueTopics: readonly Topic[];
@@ -72,13 +71,11 @@ export const TopicPreviewGrid = ({
   showSearch = true,
   columns = 4,
   limit,
+  previews = TOPIC_PREVIEWS,
 }: TopicPreviewGridProps) => {
   const overlayId = useId();
   const [query, setQuery] = useState('');
-  const topics = searchTopicPreviews(TOPIC_PREVIEWS, query).results.slice(
-    0,
-    limit,
-  );
+  const topics = searchTopicPreviews(previews, query).results.slice(0, limit);
 
   const findCatalogueTopic = (preview: TopicPreview) =>
     catalogueTopics.find(topic => topic.id === preview.catalogueTopicId) ??
@@ -109,7 +106,7 @@ export const TopicPreviewGrid = ({
 
             return (
               <ButtonBase
-                key={preview.title}
+                key={`${preview.title}-${preview.level}`}
                 className={cn('topic', { topicSoon: topicId === null })}
                 aria-disabled={topicId === null || undefined}
                 aria-label={actionLabel(preview.title)}

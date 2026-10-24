@@ -1,4 +1,8 @@
-import { SIGN_IN_TOPIC_COUNT, TOPIC_PREVIEWS } from './landing';
+import {
+  READY_TOPIC_COUNT,
+  SIGN_IN_TOPIC_COUNT,
+  TOPIC_PREVIEWS,
+} from './topics';
 import type { StudentPhotoKey } from './photos';
 
 // Copy for the About page. Tutor names and photographs are published here
@@ -95,7 +99,7 @@ export const ABOUT_PAGE_TEXT = {
   stats: [
     { value: '03', label: 'Learning paths' },
     {
-      value: String(TOPIC_PREVIEWS.length).padStart(2, '0'),
+      value: READY_TOPIC_COUNT,
       label: 'Topics ready',
     },
     { value: '100', label: 'Students / batch' },
