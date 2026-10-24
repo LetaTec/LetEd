@@ -2,6 +2,7 @@ export const APP_ROUTES = {
   HOME: '/',
   MY_LEARNING: '/my-learning',
   BATCHES: '/batches',
+  TOPICS: '/topics',
   ABOUT: '/about',
   AI_TEST: '/ai-test',
   MODEL_PAPER: '/model-paper',

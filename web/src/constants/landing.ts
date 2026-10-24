@@ -8,17 +8,28 @@ export type TopicPreview = {
   icon: IconName;
   // What the topic's batches teach, shown on the card's hover overlay
   subtopics: readonly string[];
+  // Extra words students may search with, such as the subject. Never shown.
+  keywords: readonly string[];
   // Catalogue topic this preview represents, when batches are published.
   catalogueTopicId?: string;
 };
 
-// The topics SriDha Academy teaches today, all Class 11 Accountancy. A topic
-// shows as open once its catalogue topic has published batches.
+// Hidden search words per subject, so "chemistry class 11" finds its topics.
+// Students only ever see topics, never the subject.
+const ACCOUNTANCY_KEYWORDS = ['Accountancy', 'Accounts', 'Commerce'];
+const CHEMISTRY_KEYWORDS = ['Chemistry', 'Science'];
+const PHYSICS_KEYWORDS = ['Physics', 'Science'];
+const MATHS_KEYWORDS = ['Mathematics', 'Maths', 'Math'];
+
+// The topics SriDha Academy teaches, across classes. A topic shows as open
+// once its catalogue topic has published batches. The sign-in page shows the
+// first four.
 export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
   {
     title: 'GST',
     level: 'Class 11',
     icon: 'topicGst',
+    keywords: ACCOUNTANCY_KEYWORDS,
     subtopics: [
       'What is GST',
       'GST entries',
@@ -28,39 +39,100 @@ export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
     catalogueTopicId: 'topic_accounts_gst_class_11',
   },
   {
-    title: 'Rectification of errors',
+    title: 'Chemical bonding',
     level: 'Class 11',
-    icon: 'topicRectification',
+    icon: 'topicBonding',
+    keywords: CHEMISTRY_KEYWORDS,
     subtopics: [
-      'Types of errors',
-      'Errors that affect the trial balance',
-      'Suspense account',
-      'Rectifying errors before and after',
+      'Ionic and covalent bonds',
+      'VSEPR theory and molecular shapes',
+      'Hybridisation',
+      'Molecular orbital theory',
     ],
+    catalogueTopicId: 'topic_chemistry_bonding_class_11',
   },
   {
-    title: 'Trial balance',
-    level: 'Class 11',
-    icon: 'topicTrialBalance',
+    title: 'Ray optics',
+    level: 'Class 12',
+    icon: 'topicOptics',
+    keywords: PHYSICS_KEYWORDS,
     subtopics: [
-      'Meaning and objectives',
-      'Preparing it from ledger balances',
-      'Totals and balances methods',
-      'Locating errors when it does not agree',
+      'Reflection by spherical mirrors',
+      'Refraction and lenses',
+      'Total internal reflection',
+      'Microscopes and telescopes',
     ],
+    catalogueTopicId: 'topic_physics_ray_optics_class_12',
   },
   {
-    title: 'Bank reconciliation statement',
-    level: 'Class 11',
-    icon: 'topicBank',
+    title: 'Integrals',
+    level: 'Class 12',
+    icon: 'topicIntegrals',
+    keywords: MATHS_KEYWORDS,
     subtopics: [
-      'Why the cash book and passbook differ',
-      'Cheques not yet presented or cleared',
-      'Preparing a BRS',
-      'Overdraft balances',
+      'Indefinite integrals',
+      'Integration by parts',
+      'Definite integrals',
+      'Area under curves',
     ],
+    catalogueTopicId: 'topic_maths_integrals_class_12',
+  },
+  {
+    title: 'Mole concept',
+    level: 'Class 11',
+    icon: 'topicMole',
+    keywords: CHEMISTRY_KEYWORDS,
+    subtopics: [
+      'Mole and molar mass',
+      'Empirical and molecular formula',
+      'Stoichiometry',
+      'Limiting reagent',
+    ],
+    catalogueTopicId: 'topic_chemistry_mole_concept_class_11',
+  },
+  {
+    title: 'Current electricity',
+    level: 'Class 12',
+    icon: 'topicCurrent',
+    keywords: PHYSICS_KEYWORDS,
+    subtopics: [
+      "Ohm's law and resistivity",
+      'Cells, EMF and internal resistance',
+      "Kirchhoff's laws",
+      'Wheatstone bridge',
+    ],
+    catalogueTopicId: 'topic_physics_current_electricity_class_12',
+  },
+  {
+    title: 'Laws of motion',
+    level: 'Class 11',
+    icon: 'topicMotion',
+    keywords: PHYSICS_KEYWORDS,
+    subtopics: [
+      "Newton's three laws",
+      'Conservation of momentum',
+      'Friction',
+      'Circular motion',
+    ],
+    catalogueTopicId: 'topic_physics_laws_of_motion_class_11',
+  },
+  {
+    title: 'Partnership accounts',
+    level: 'Class 12',
+    icon: 'topicPartnership',
+    keywords: ACCOUNTANCY_KEYWORDS,
+    subtopics: [
+      'Fundamentals of partnership',
+      'Valuation of goodwill',
+      'Admission of a partner',
+      'Retirement and death of a partner',
+    ],
+    catalogueTopicId: 'topic_accounts_partnership_class_12',
   },
 ];
+
+// The sign-in page panel keeps to a short, mixed selection
+export const SIGN_IN_TOPIC_COUNT = 4;
 
 // The "Big Subjects. Broken Into Small Victories" section under the
 // sign-in form.
@@ -107,11 +179,10 @@ export const LANDING_TEXT = {
   // The topics panel beside the sign-in form
   ongoingEyebrow: 'Topics running now',
   ongoingTitle: 'Learn one topic at a time',
-  ongoingAction: 'Create your free student ID to explore all batches',
   topicsTitle: 'Pick a topic,',
   topicsTitleEmphasis: 'not a whole subject.',
   searchLabel: 'Search topics',
-  searchPlaceholder: 'Type the topic you want to learn, e.g. Trial balance',
+  searchPlaceholder: 'Type a topic or your class, e.g. Integrals or Class 12',
   topicOpen: 'Batches open',
   topicSoon: 'Batches opening soon',
   topicStarts: (date: string) => `Starts ${date}`,
@@ -120,7 +191,8 @@ export const LANDING_TEXT = {
   overlayAction: 'See lessons and batches',
   topicAction: (topic: string) => `Join SriDha Academy to learn ${topic}`,
   noTopicsTitle: 'No topics match your search',
-  noTopicsMessage: 'Try another topic name, such as GST or Trial balance',
+  noTopicsMessage:
+    'Try another topic name, such as GST, or your class, such as Class 12',
   featuresEyebrow: 'In three chapters',
   featureChapter: (index: number) =>
     `Chapter ${String(index).padStart(2, '0')}`,

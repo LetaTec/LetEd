@@ -9,6 +9,12 @@ export const PAGE_TEXT = {
   routeErrorTitleEmphasis: 'wrong.',
   routeErrorMessage:
     'Please refresh the page. If the problem continues, try again later.',
+  topicsEyebrow: 'Student / Topics',
+  topicsTitle: 'Every topic,',
+  topicsTitleEmphasis: 'one at a time.',
+  topicsNote:
+    'Search by topic or by your class, such as Class 11 or Class 12. Open a topic to see its lessons and batches',
+  topicsOpenLabel: (topic: string) => `View batches for ${topic}`,
   batchesEyebrow: 'Student / Batches',
   batchesTitle: 'All',
   batchesTitleEmphasis: 'batches.',

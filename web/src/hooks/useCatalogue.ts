@@ -40,5 +40,22 @@ export const useCatalogue = (): CatalogueState => {
 
   const reload = useCallback(() => setRequestId(id => id + 1), []);
 
+  // A failed load (the API was briefly down) retries when the student comes
+  // back to the tab, so topics do not stay without their fees and batches.
+  useEffect(() => {
+    if (!hasError) return undefined;
+
+    const retryWhenVisible = () => {
+      if (document.visibilityState === 'visible') reload();
+    };
+    window.addEventListener('focus', retryWhenVisible);
+    document.addEventListener('visibilitychange', retryWhenVisible);
+
+    return () => {
+      window.removeEventListener('focus', retryWhenVisible);
+      document.removeEventListener('visibilitychange', retryWhenVisible);
+    };
+  }, [hasError, reload]);
+
   return { subjects, isLoading, hasError, reload };
 };

@@ -14,8 +14,10 @@ import {
 import { HEADER_TEXT } from '@constants/home';
 import { TOPIC_PREVIEWS, type TopicPreview } from '@constants/landing';
 import { isBatchOpen, type Batch, type Topic } from '@services/catalogue';
+import { formatClassLevel } from '@utils/classLevel';
 import { formatPrice } from '@utils/currency';
 import { formatWallClockTime } from '@utils/date';
+import { listTopicClasses, searchTopicPreviews } from '@utils/topicSearch';
 
 import styles from './TopicSearch.module.css';
 
@@ -32,10 +34,9 @@ export type TopicSearchProps = {
   onBrowseTopics: () => void;
 };
 
-const matches = (preview: TopicPreview, query: string) =>
-  [preview.title, ...preview.subtopics].some(text =>
-    text.toLowerCase().includes(query),
-  );
+const TAUGHT_CLASSES = listTopicClasses(TOPIC_PREVIEWS)
+  .map(formatClassLevel)
+  .join(', ');
 
 const batchTiming = (batch: Batch) =>
   [
@@ -50,7 +51,8 @@ const batchStatus = (batch: Batch) =>
     ? CATALOGUE_TEXT.seatsRemaining(batch.seatsRemaining)
     : BATCH_AVAILABILITY_LABEL[batch.availability];
 
-// Topic search for the header. Matches topic names and subtopics, and lists
+// Topic search for the header. Matches a class ("class 11", "12th", "XI")
+// as well as topic names and subtopics, and lists
 // each open topic's fee and batches: choosing a topic opens its lessons and
 // batches, choosing a batch goes straight to reserving it.
 export const TopicSearch = ({
@@ -65,9 +67,11 @@ export const TopicSearch = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const normalisedQuery = query.trim().toLowerCase();
-  const results = normalisedQuery
-    ? TOPIC_PREVIEWS.filter(preview => matches(preview, normalisedQuery))
-    : [];
+  const { classNumber, results } = normalisedQuery
+    ? searchTopicPreviews(TOPIC_PREVIEWS, normalisedQuery)
+    : { classNumber: null, results: [] };
+  const classLabel =
+    classNumber === null ? null : formatClassLevel(classNumber);
   const showResults = isOpen && normalisedQuery.length > 0;
 
   const findOpenTopic = (preview: TopicPreview) => {
@@ -135,9 +139,22 @@ export const TopicSearch = ({
         aria-live="polite"
         className={cn('results', { resultsOpen: showResults })}
       >
+        {showResults && classLabel && results.length > 0 ? (
+          <Text
+            as="p"
+            variant="eyebrow"
+            tone="accent"
+            className={cn('classHeading')}
+          >
+            {HEADER_TEXT.searchClassResults(classLabel, results.length)}
+          </Text>
+        ) : null}
+
         {showResults && results.length === 0 ? (
           <Text as="p" variant="small" tone="muted" className={cn('empty')}>
-            {HEADER_TEXT.searchEmpty}
+            {classLabel
+              ? HEADER_TEXT.searchClassEmpty(classLabel, TAUGHT_CLASSES)
+              : HEADER_TEXT.searchEmpty}
           </Text>
         ) : null}
 
