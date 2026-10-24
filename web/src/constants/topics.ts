@@ -78,11 +78,26 @@ export type TopicPreview = {
   icon: IconName;
   // What the topic's batches teach, shown on the card's hover overlay
   subtopics: readonly string[];
-  // Catalogue topic this preview represents, when batches are published
-  catalogueTopicId?: string;
+  // The catalogue topic behind this preview, which holds its price and
+  // batches. The API seed is generated from this list (npm run topics:export).
+  catalogueTopicId: string;
 };
 
 type TopicExtras = Partial<Pick<TopicPreview, 'icon' | 'catalogueTopicId'>>;
+
+const toSlug = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+
+// e.g. topic_physics_wave_optics_class_12
+const toCatalogueTopicId = (
+  subject: SubjectKey,
+  classNumber: number,
+  title: string,
+) =>
+  `topic_${toSlug(SUBJECT_LABEL[subject])}_${toSlug(title)}_class_${classNumber}`;
 
 const topic = (
   subject: SubjectKey,
@@ -96,7 +111,8 @@ const topic = (
   subject,
   icon: icon ?? SUBJECT_ICON[subject],
   subtopics,
-  ...(catalogueTopicId ? { catalogueTopicId } : {}),
+  catalogueTopicId:
+    catalogueTopicId ?? toCatalogueTopicId(subject, classNumber, title),
 });
 
 const { accountancy, businessStudies, economics, physics, chemistry } = SUBJECT;

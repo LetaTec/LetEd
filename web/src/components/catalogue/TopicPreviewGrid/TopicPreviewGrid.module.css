@@ -3,36 +3,38 @@
   gap: var(--space-4);
 }
 
+/* Card on top, offer and action pinned to the bottom of every box */
 .topic {
-  position: relative;
-  display: block;
-  width: 100%;
-  overflow: hidden;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
   color: inherit;
-  text-align: inherit;
 }
 
-.topic:focus-visible {
-  outline-offset: calc(var(--focus-ring-offset) * -1);
+/* The offer sits below the card; the card keeps just enough height for
+   the subtopics overlay */
+.preview .card {
+  min-height: var(--height-topic-preview);
+  padding-bottom: var(--space-2);
 }
 
-/* Coming-soon topics stay fully readable; only the cursor changes */
-.topicSoon {
-  cursor: default;
+.preview {
+  position: relative;
+  overflow: hidden;
 }
 
-/* Batch details fade in over the card; the layout never moves */
+/* What the topic teaches fades in over the card; the layout never moves */
 .overlay {
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
 .topic:hover .overlay,
-.topic:focus-visible .overlay {
+.topic:focus-within .overlay {
   opacity: 1;
 }
 
-/* Touch screens have no hover: tapping an open card opens its batches */
+/* Touch screens have no hover; the payment panel lists the subtopics */
 @media (--no-hover) {
   .overlay {
     display: none;
@@ -45,9 +47,21 @@
   }
 }
 
-/* Fee above the next start date on an open topic */
 .offer {
   display: grid;
   justify-items: center;
-  gap: var(--space-0-5);
+  gap: var(--space-1);
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+/* A text link with an arrow, in the accent colour */
+.offer .action {
+  margin-top: var(--space-0-5);
+  padding-bottom: var(--space-0-5);
+  border-bottom: var(--border-width-base) solid currentcolor;
+  color: var(--color-text-accent);
+}
+
+.offer .action:hover:not(:disabled) {
+  color: var(--color-text-primary);
 }

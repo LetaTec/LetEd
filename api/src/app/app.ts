@@ -17,6 +17,7 @@ import { createSessionMiddleware } from '../modules/auth/session.js';
 import { createCatalogueRouter } from '../modules/catalogue/catalogue.routes.js';
 import { createEnquiriesRouter } from '../modules/enquiries/enquiries.routes.js';
 import { createEnrolmentsRouter } from '../modules/enrolments/enrolments.routes.js';
+import { createPaymentsRouter } from '../modules/payments/payments.routes.js';
 import type { AppContext } from './context.js';
 
 const WEB_DIST_PATH = path.resolve(import.meta.dirname, '../../../web/dist');
@@ -199,17 +200,36 @@ export const createApp = (context: AppContext) => {
       },
     });
 
+    // Each checkout creates a provider order, so retries are capped
+    const paymentLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 30,
+      standardHeaders: true,
+      legacyHeaders: false,
+      handler: (_req, _res, next) => {
+        next(
+          new ApiError(
+            429,
+            ERROR_CODE.rateLimitExceeded,
+            'Too many payment attempts. Please try again later.',
+          ),
+        );
+      },
+    });
+
     api.use('/auth/login', loginLimiter);
     api.use('/auth/register', registerLimiter);
     api.use('/auth/password-reset/confirm', passwordResetConfirmLimiter);
     api.use('/auth/password-reset', passwordResetLimiter);
     api.use('/auth/admin-sign-in', passwordResetLimiter);
     api.use('/enquiries', enquiryLimiter);
+    api.use('/payments', paymentLimiter);
   }
 
   api.use('/auth', createAuthRouter(context));
   api.use('/catalogue', createCatalogueRouter(context));
   api.use('/enrolments', createEnrolmentsRouter(context));
+  api.use('/payments', createPaymentsRouter(context));
   api.use('/enquiries', createEnquiriesRouter(context));
   api.use(notFoundHandler);
   api.use(errorHandler);

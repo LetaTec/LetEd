@@ -93,6 +93,7 @@
   --width-copy-wide: 500px;
   --width-copy-lead: 470px;
   --width-modal: 570px;
+  --width-drawer: 460px;
   --width-auth-copy: 540px;
   --width-auth-topics: 600px;
   --width-feature-plate: 460px;
@@ -111,6 +112,7 @@
   --height-card-tile: 330px;
   --height-card-panel: 300px;
   --height-card-centered: 236px;
+  --height-topic-preview: 220px;
   --section-padding: 144px;
   --section-padding-sm: 88px;
 
@@ -165,6 +167,7 @@
   --padding-control-x-compact: 14px;
   --padding-control-y: 12px;
   --border-width-base: 1px;
+  --border-width-accent: 3px;
   --radius-none: 0;
   --radius-full: 9999px;
   --size-dot: 6px;
@@ -208,6 +211,7 @@
   --transition-reveal: 800ms var(--ease-editorial);
   --duration-page-turn: 1150ms;
   --duration-toast: 400ms;
+  --duration-drawer: 320ms;
   --duration-pulse: 2.8s;
   --duration-float: 6s;
   --distance-float: -8px;

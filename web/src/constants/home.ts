@@ -71,7 +71,6 @@ export const TOPICS_TEXT = {
   titleEmphasis: 'to begin with.',
   description:
     'Each topic is a focused batch with its own lessons. Open a topic to see its lessons and batches.',
-  openTopicLabel: (topic: string) => `View batches for ${topic}`,
   seeAll: (count: number) => `See all ${count} topics`,
 } as const;
 

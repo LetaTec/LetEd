@@ -56,8 +56,6 @@ export const LANDING_TEXT = {
   topicStarts: (date: string) => `Starts ${date}`,
   // Overlay shown when a topic card is hovered or focused
   overlayTitle: 'What we will teach',
-  overlayAction: 'See lessons and batches',
-  topicAction: (topic: string) => `Join SriDha Academy to learn ${topic}`,
   noTopicsTitle: 'No topics match your search',
   noTopicsMessage:
     'Try another topic name, such as GST, or your class, such as Class 12',

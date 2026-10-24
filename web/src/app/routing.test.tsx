@@ -12,6 +12,7 @@ import {
 } from '@services/auth/api';
 import { getCatalogue } from '@services/catalogue/api';
 import { createEnrolment } from '@services/enrolments/api';
+import { createCheckout } from '@services/payments/api';
 import { catalogueFixture, openBatch } from '@/test/catalogueFixture';
 
 import { routes } from './router';
@@ -26,6 +27,10 @@ vi.mock('@services/auth/api', () => ({
   confirmPasswordReset: vi.fn(),
   requestAdminSignIn: vi.fn(),
   confirmAdminSignIn: vi.fn(),
+}));
+vi.mock('@services/payments/api', () => ({
+  createCheckout: vi.fn(),
+  verifyPayment: vi.fn(),
 }));
 vi.mock('@services/enrolments/api', () => ({
   createEnrolment: vi.fn(),
@@ -179,43 +184,80 @@ describe('app routing', () => {
     expect(router.state.location.pathname).toBe('/');
   });
 
-  it('opens a topic from the topic cards and keeps topics without batches disabled', async () => {
-    vi.mocked(getCurrentSession).mockResolvedValue(student);
-    const user = userEvent.setup();
-    const router = renderApp('/');
+  it(
+    'enrols from a topic card through the payment panel',
+    async () => {
+      vi.mocked(getCurrentSession).mockResolvedValue(student);
+      vi.mocked(createCheckout).mockResolvedValue({
+        paymentId: 'payment_1',
+        status: 'CREATED',
+        kind: 'ENROLMENT',
+        amount: { amountPaise: 12900, currency: 'INR', taxLabel: null },
+        topic: {
+          id: GST_TOPIC_ID,
+          title: 'Learn GST for Class 11',
+          level: 'Class 11',
+        },
+        batch: {
+          id: openBatch.id,
+          name: openBatch.name,
+          scheduleLabel: openBatch.scheduleLabel,
+        },
+        provider: { name: 'TEST', orderId: 'order_test_1', keyId: null },
+      });
+      const user = userEvent.setup();
+      const router = renderApp('/');
 
-    const gst = await screen.findByRole(
-      'button',
-      { name: 'View batches for GST' },
-      { timeout: LAZY_PAGE_TIMEOUT_MS },
-    );
-    // Topics without batches stay focusable, so their subtopics can be read,
-    // but are marked unavailable.
-    const rayOptics = screen.getByRole('button', {
-      name: 'View batches for Ray optics',
-    });
-    expect(rayOptics).toHaveAttribute('aria-disabled', 'true');
-    expect(rayOptics).toHaveAccessibleDescription(
-      /Ray optics · Class 12.*What we will teach.*Reflection by spherical mirrors/,
-    );
-    // GST opens once the catalogue has loaded; its hover overlay's subtopics
-    // double as the card's description.
-    await waitFor(() =>
-      expect(gst).not.toHaveAttribute('aria-disabled', 'true'),
-    );
-    expect(gst).toHaveAccessibleDescription(
-      /What we will teach.*What is GST.*Input tax credit.*See lessons and batches/,
-    );
+      const enrol = await screen.findByRole(
+        'button',
+        { name: 'Enrol now: GST, Class 11' },
+        { timeout: LAZY_PAGE_TIMEOUT_MS },
+      );
+      await waitFor(() => expect(enrol).toBeEnabled());
+      // The hover overlay's subtopics double as the button's description
+      expect(enrol).toHaveAccessibleDescription(
+        /What we will teach.*What is GST.*Input tax credit/,
+      );
+      // Topics without batches are priced and open for pre-registration
+      expect(
+        screen.getByRole('button', {
+          name: 'Pre-register now: Ray optics, Class 12',
+        }),
+      ).toBeEnabled();
 
-    await user.click(gst);
-    const dialog = await screen.findByRole('dialog', {
-      name: /learn gst for class 11/i,
-    });
-    expect(router.state.location.search).toContain(`topic=${GST_TOPIC_ID}`);
-    expect(
-      within(dialog).getAllByRole('button', { name: 'Select batch' }),
-    ).toHaveLength(2);
-  });
+      await user.click(enrol);
+      const panel = await screen.findByRole('dialog', { name: /^GST/ });
+      expect(router.state.location.search).toContain(
+        `checkout=${GST_TOPIC_ID}`,
+      );
+      expect(
+        within(panel).getByRole('radio', { name: /November batch/ }),
+      ).toBeChecked();
+      expect(
+        within(panel).getByRole('radio', { name: /December batch/ }),
+      ).toBeDisabled();
+
+      await user.type(
+        within(panel).getByRole('textbox', { name: 'Mobile number' }),
+        '+91 98765 43210',
+      );
+      await user.click(screen.getByRole('button', { name: 'Pay ₹129' }));
+
+      expect(createCheckout).toHaveBeenCalledWith({
+        kind: 'ENROLMENT',
+        batchId: openBatch.id,
+        fullName: 'Asha Verma',
+        email: 'asha@example.com',
+        mobile: '+91 98765 43210',
+      });
+      // Without Razorpay keys the seat is held until payment is collected
+      expect(await within(panel).findByText('Seat saved')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Done' }));
+      expect(router.state.location.search).not.toContain('checkout=');
+    },
+    JOURNEY_TEST_TIMEOUT_MS,
+  );
 
   it('searches topics from the header and lists their batches', async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(student);
@@ -310,15 +352,18 @@ describe('app routing', () => {
         'page',
       );
 
-      await user.type(
+      // Pasted in one go: typing re-renders every card on each keystroke
+      await user.click(
         screen.getByRole('searchbox', { name: 'Search topics' }),
-        'class 12',
       );
+      await user.paste('class 12');
       expect(
-        screen.getByRole('button', { name: 'View batches for Ray optics' }),
+        screen.getByRole('button', {
+          name: 'Pre-register now: Ray optics, Class 12',
+        }),
       ).toBeInTheDocument();
       expect(
-        screen.queryByRole('button', { name: 'View batches for GST' }),
+        screen.queryByRole('button', { name: 'Enrol now: GST, Class 11' }),
       ).not.toBeInTheDocument();
 
       // Filters narrow the subject groups and are kept in the URL

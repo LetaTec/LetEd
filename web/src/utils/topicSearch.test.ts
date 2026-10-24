@@ -13,6 +13,7 @@ const preview = (
   icon: 'search',
   subtopics,
   subject: SUBJECT.accountancy,
+  catalogueTopicId: `topic_${title}`,
 });
 
 const PREVIEWS = [
