@@ -15,6 +15,22 @@ export const PAGE_TEXT = {
   topicsNote:
     'Search by topic or by your class, such as Class 11 or Class 12. Open a topic to see its lessons and batches',
   topicsOpenLabel: (topic: string) => `View batches for ${topic}`,
+  topicsFilterTitle: 'Filter by',
+  topicsFilterClass: 'Class',
+  topicsFilterClassAll: 'All classes',
+  topicsSubjectTabs: 'Subjects',
+  topicsAllSubjects: 'All subjects',
+  topicsFilterStream: 'Stream',
+  topicsFilterStreamAll: 'All streams',
+  topicsFilterAvailability: 'Availability',
+  topicsFilterAvailabilityAll: 'Any availability',
+  topicsClearFilters: 'Clear filters',
+  topicsCount: (shown: number, total: number) =>
+    shown === total ? `${total} topics` : `Showing ${shown} of ${total} topics`,
+  topicsGroupCount: (count: number) =>
+    `${count} ${count === 1 ? 'topic' : 'topics'}`,
+  topicsEmptyTitle: 'No topics match these filters',
+  topicsEmptyMessage: 'Try another class or subject, or clear the filters',
   batchesEyebrow: 'Student / Batches',
   batchesTitle: 'All',
   batchesTitleEmphasis: 'batches.',

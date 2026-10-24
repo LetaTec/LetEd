@@ -1,138 +1,6 @@
-import type { IconName } from './icons';
+import { FOOTER_TOPIC_COUNT, TOPIC_PREVIEWS } from './topics';
 
 // Content for the sign-in landing page.
-
-export type TopicPreview = {
-  title: string;
-  level: string;
-  icon: IconName;
-  // What the topic's batches teach, shown on the card's hover overlay
-  subtopics: readonly string[];
-  // Extra words students may search with, such as the subject. Never shown.
-  keywords: readonly string[];
-  // Catalogue topic this preview represents, when batches are published.
-  catalogueTopicId?: string;
-};
-
-// Hidden search words per subject, so "chemistry class 11" finds its topics.
-// Students only ever see topics, never the subject.
-const ACCOUNTANCY_KEYWORDS = ['Accountancy', 'Accounts', 'Commerce'];
-const CHEMISTRY_KEYWORDS = ['Chemistry', 'Science'];
-const PHYSICS_KEYWORDS = ['Physics', 'Science'];
-const MATHS_KEYWORDS = ['Mathematics', 'Maths', 'Math'];
-
-// The topics SriDha Academy teaches, across classes. A topic shows as open
-// once its catalogue topic has published batches. The sign-in page shows the
-// first four.
-export const TOPIC_PREVIEWS: readonly TopicPreview[] = [
-  {
-    title: 'GST',
-    level: 'Class 11',
-    icon: 'topicGst',
-    keywords: ACCOUNTANCY_KEYWORDS,
-    subtopics: [
-      'What is GST',
-      'GST entries',
-      'Input tax credit',
-      'Journal entries of GST',
-    ],
-    catalogueTopicId: 'topic_accounts_gst_class_11',
-  },
-  {
-    title: 'Chemical bonding',
-    level: 'Class 11',
-    icon: 'topicBonding',
-    keywords: CHEMISTRY_KEYWORDS,
-    subtopics: [
-      'Ionic and covalent bonds',
-      'VSEPR theory and molecular shapes',
-      'Hybridisation',
-      'Molecular orbital theory',
-    ],
-    catalogueTopicId: 'topic_chemistry_bonding_class_11',
-  },
-  {
-    title: 'Ray optics',
-    level: 'Class 12',
-    icon: 'topicOptics',
-    keywords: PHYSICS_KEYWORDS,
-    subtopics: [
-      'Reflection by spherical mirrors',
-      'Refraction and lenses',
-      'Total internal reflection',
-      'Microscopes and telescopes',
-    ],
-    catalogueTopicId: 'topic_physics_ray_optics_class_12',
-  },
-  {
-    title: 'Integrals',
-    level: 'Class 12',
-    icon: 'topicIntegrals',
-    keywords: MATHS_KEYWORDS,
-    subtopics: [
-      'Indefinite integrals',
-      'Integration by parts',
-      'Definite integrals',
-      'Area under curves',
-    ],
-    catalogueTopicId: 'topic_maths_integrals_class_12',
-  },
-  {
-    title: 'Mole concept',
-    level: 'Class 11',
-    icon: 'topicMole',
-    keywords: CHEMISTRY_KEYWORDS,
-    subtopics: [
-      'Mole and molar mass',
-      'Empirical and molecular formula',
-      'Stoichiometry',
-      'Limiting reagent',
-    ],
-    catalogueTopicId: 'topic_chemistry_mole_concept_class_11',
-  },
-  {
-    title: 'Current electricity',
-    level: 'Class 12',
-    icon: 'topicCurrent',
-    keywords: PHYSICS_KEYWORDS,
-    subtopics: [
-      "Ohm's law and resistivity",
-      'Cells, EMF and internal resistance',
-      "Kirchhoff's laws",
-      'Wheatstone bridge',
-    ],
-    catalogueTopicId: 'topic_physics_current_electricity_class_12',
-  },
-  {
-    title: 'Laws of motion',
-    level: 'Class 11',
-    icon: 'topicMotion',
-    keywords: PHYSICS_KEYWORDS,
-    subtopics: [
-      "Newton's three laws",
-      'Conservation of momentum',
-      'Friction',
-      'Circular motion',
-    ],
-    catalogueTopicId: 'topic_physics_laws_of_motion_class_11',
-  },
-  {
-    title: 'Partnership accounts',
-    level: 'Class 12',
-    icon: 'topicPartnership',
-    keywords: ACCOUNTANCY_KEYWORDS,
-    subtopics: [
-      'Fundamentals of partnership',
-      'Valuation of goodwill',
-      'Admission of a partner',
-      'Retirement and death of a partner',
-    ],
-    catalogueTopicId: 'topic_accounts_partnership_class_12',
-  },
-];
-
-// The sign-in page panel keeps to a short, mixed selection
-export const SIGN_IN_TOPIC_COUNT = 4;
 
 // The "Big Subjects. Broken Into Small Victories" section under the
 // sign-in form.
@@ -226,8 +94,10 @@ export const AUTH_FOOTER_TEXT = {
   columns: [
     {
       title: 'Topics',
-      // The topics taught right now, from the same list as the topic cards.
-      links: TOPIC_PREVIEWS.map(topic => topic.title),
+      // The first few topics, from the same list as the topic cards
+      links: TOPIC_PREVIEWS.slice(0, FOOTER_TOPIC_COUNT).map(
+        topic => topic.title,
+      ),
     },
   ],
   accountTitle: 'Account',

@@ -6,7 +6,8 @@ import { Heading } from '@components/ui/Heading/Heading';
 import { Text } from '@components/ui/Text/Text';
 import { AUTH_QUERY_PARAM } from '@constants/auth';
 import { CATALOGUE_QUERY_PARAM } from '@constants/catalogue';
-import { LANDING_TEXT, SIGN_IN_TOPIC_COUNT } from '@constants/landing';
+import { LANDING_TEXT } from '@constants/landing';
+import { SIGN_IN_TOPIC_COUNT } from '@constants/topics';
 import { APP_ROUTES } from '@constants/routes';
 import type { Topic } from '@services/catalogue';
 

@@ -12,7 +12,7 @@ import {
   CATALOGUE_TEXT,
 } from '@constants/catalogue';
 import { HEADER_TEXT } from '@constants/home';
-import { TOPIC_PREVIEWS, type TopicPreview } from '@constants/landing';
+import { TOPIC_PREVIEWS, type TopicPreview } from '@constants/topics';
 import { isBatchOpen, type Batch, type Topic } from '@services/catalogue';
 import { formatClassLevel } from '@utils/classLevel';
 import { formatPrice } from '@utils/currency';
@@ -23,15 +23,17 @@ import styles from './TopicSearch.module.css';
 
 const cn = cx.bind(styles);
 
-// Enough to keep the dropdown short; the topic opens the full list.
+// Enough to keep the dropdown short; the Topics page has the rest.
 const MAX_BATCHES = 3;
+const MAX_RESULTS = 5;
 
 export type TopicSearchProps = {
   catalogueTopics: readonly Topic[];
   onOpenTopic: (topicId: string) => void;
   onSelectBatch: (topicId: string, batchId: string) => void;
-  // For topics that have no batches yet
-  onBrowseTopics: () => void;
+  // Opens the Topics page searched for the query: for topics without
+  // batches yet, and for every result beyond the first few
+  onBrowseTopics: (query: string) => void;
 };
 
 const TAUGHT_CLASSES = listTopicClasses(TOPIC_PREVIEWS)
@@ -90,7 +92,7 @@ export const TopicSearch = ({
     const topic = findOpenTopic(preview);
     finish();
     if (topic) onOpenTopic(topic.id);
-    else onBrowseTopics();
+    else onBrowseTopics(preview.title);
   };
 
   const closeOnEscape = (event: KeyboardEvent) => {
@@ -159,7 +161,7 @@ export const TopicSearch = ({
         ) : null}
 
         {showResults
-          ? results.map(preview => {
+          ? results.slice(0, MAX_RESULTS).map(preview => {
               const topic = findOpenTopic(preview);
               const batches = topic?.batches.slice(0, MAX_BATCHES) ?? [];
 
@@ -234,6 +236,23 @@ export const TopicSearch = ({
               );
             })
           : null}
+
+        {showResults && results.length > MAX_RESULTS ? (
+          <ButtonBase
+            className={cn('seeAll')}
+            onClick={() => {
+              const searched = query.trim();
+              finish();
+              onBrowseTopics(searched);
+            }}
+            onKeyDown={closeOnEscape}
+          >
+            <Text as="span" variant="small">
+              {HEADER_TEXT.searchSeeAll(results.length)}
+            </Text>
+            <Icon name="arrowRight" size="sm" />
+          </ButtonBase>
+        ) : null}
       </div>
     </div>
   );

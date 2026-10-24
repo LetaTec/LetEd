@@ -1,4 +1,8 @@
-import type { TopicPreview } from '@constants/landing';
+import {
+  SUBJECT_KEYWORDS,
+  SUBJECT_LABEL,
+  type TopicPreview,
+} from '@constants/topics';
 
 import { parseClassQuery } from './classLevel';
 
@@ -29,7 +33,8 @@ export const searchTopicPreviews = (
     const texts = [
       preview.title,
       ...preview.subtopics,
-      ...preview.keywords,
+      SUBJECT_LABEL[preview.subject],
+      ...SUBJECT_KEYWORDS[preview.subject],
     ].map(text => text.toLowerCase());
     return words.every(word => texts.some(text => text.includes(word)));
   });

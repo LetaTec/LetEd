@@ -1,4 +1,4 @@
-import type { TopicPreview } from '@constants/landing';
+import { SUBJECT, type TopicPreview } from '@constants/topics';
 
 import { parseClassQuery } from './classLevel';
 import { listTopicClasses, searchTopicPreviews } from './topicSearch';
@@ -12,7 +12,7 @@ const preview = (
   level,
   icon: 'search',
   subtopics,
-  keywords: ['Accountancy', 'Accounts'],
+  subject: SUBJECT.accountancy,
 });
 
 const PREVIEWS = [

@@ -1,28 +1,93 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import cx from 'classnames/bind';
 
 import { TopicPreviewGrid } from '@components/catalogue/TopicPreviewGrid/TopicPreviewGrid';
+import { Button } from '@components/ui/Button/Button';
+import { EmptyState } from '@components/ui/EmptyState/EmptyState';
 import { Heading } from '@components/ui/Heading/Heading';
+import { Icon } from '@components/ui/Icon/Icon';
+import { Input } from '@components/ui/Input/Input';
 import { Section } from '@components/ui/Section/Section';
 import { Text } from '@components/ui/Text/Text';
 import { CATALOGUE_QUERY_PARAM } from '@constants/catalogue';
+import { LANDING_TEXT } from '@constants/landing';
 import { PAGE_TEXT } from '@constants/pages';
 import { APP_ROUTES } from '@constants/routes';
+import {
+  SUBJECT_LABEL,
+  TOPIC_FILTER_PARAM,
+  TOPIC_PREVIEWS,
+  type TopicPreview,
+} from '@constants/topics';
 import { useCatalogue } from '@hooks/useCatalogue';
 import { listTopics } from '@services/catalogue';
 
+import { SubjectTabs } from './components/SubjectTabs/SubjectTabs';
+import {
+  TopicFilters,
+  type TopicFilterKey,
+} from './components/TopicFilters/TopicFilters';
+import {
+  countTopicsBySubject,
+  filterTopics,
+  groupTopicsBySubject,
+  hasActiveFilters,
+  readTopicFilters,
+} from './topicFilters';
 import styles from './TopicsPage.module.css';
 
 const cn = cx.bind(styles);
 
 const TITLE_ID = 'topics-page-title';
 
-// Every topic we teach, searchable by name or class. Choosing an open topic
-// opens its lessons and batches on the homepage, kept in the URL.
+// Every topic we teach, searchable and filterable by class, stream and
+// availability. Subject tabs show one subject at a time; within a subject,
+// each class has its own row. Choosing an open topic opens its
+// lessons and batches on the homepage, kept in the URL.
 const TopicsPage = () => {
   const { subjects } = useCatalogue();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = readTopicFilters(searchParams);
+
   const catalogueTopics = listTopics(subjects).map(context => context.topic);
+  const openTopicIds = new Set(
+    catalogueTopics
+      .filter(topic => topic.batches.length > 0)
+      .map(topic => topic.id),
+  );
+  const isOpen = (preview: TopicPreview) =>
+    preview.catalogueTopicId !== undefined &&
+    openTopicIds.has(preview.catalogueTopicId);
+
+  // Subject tabs count topics under every other filter, then pick one subject
+  const resultsInAnySubject = filterTopics(
+    TOPIC_PREVIEWS,
+    { ...filters, subject: null },
+    isOpen,
+  );
+  const results = filters.subject
+    ? resultsInAnySubject.filter(preview => preview.subject === filters.subject)
+    : resultsInAnySubject;
+  const groups = groupTopicsBySubject(results);
+
+  // Replacing the history entry keeps Back for leaving the page
+  const setParam = (key: string, value: string) => {
+    setSearchParams(
+      current => {
+        const next = new URLSearchParams(current);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  const handleFilterChange = (key: TopicFilterKey, value: string) =>
+    setParam(TOPIC_FILTER_PARAM[key], value);
+
+  const clearFilters = () => setSearchParams({}, { replace: true });
 
   const handleSelectTopic = (topicId: string) => {
     const params = new URLSearchParams({
@@ -45,11 +110,88 @@ const TopicsPage = () => {
         </Text>
       </div>
 
-      <TopicPreviewGrid
-        catalogueTopics={catalogueTopics}
-        onSelectTopic={handleSelectTopic}
-        actionLabel={PAGE_TEXT.topicsOpenLabel}
-      />
+      <div className={cn('controls')}>
+        <Input
+          type="search"
+          label={LANDING_TEXT.searchLabel}
+          placeholder={LANDING_TEXT.searchPlaceholder}
+          value={filters.query}
+          onChange={event =>
+            setParam(TOPIC_FILTER_PARAM.query, event.target.value)
+          }
+          endAdornment={<Icon name="search" size="sm" />}
+        />
+        <SubjectTabs
+          selected={filters.subject}
+          counts={countTopicsBySubject(resultsInAnySubject)}
+          total={resultsInAnySubject.length}
+          onSelect={subject =>
+            setParam(TOPIC_FILTER_PARAM.subject, subject ?? '')
+          }
+        />
+        <TopicFilters
+          filters={filters}
+          onChange={handleFilterChange}
+          onClear={clearFilters}
+          canClear={hasActiveFilters(filters)}
+        />
+        <Text as="p" variant="small" tone="muted" aria-live="polite">
+          {PAGE_TEXT.topicsCount(results.length, TOPIC_PREVIEWS.length)}
+        </Text>
+      </div>
+
+      {groups.length > 0 ? (
+        <div className={cn('groups')}>
+          {groups.map(group => {
+            const groupTitleId = `topics-group-${group.subject}`;
+
+            return (
+              <section
+                key={group.subject}
+                className={cn('group')}
+                aria-labelledby={groupTitleId}
+              >
+                <div className={cn('groupHead')}>
+                  <Heading level={2} variant="title" id={groupTitleId}>
+                    {SUBJECT_LABEL[group.subject]}
+                  </Heading>
+                  <Text as="span" variant="small" tone="muted">
+                    {PAGE_TEXT.topicsGroupCount(group.count)}
+                  </Text>
+                </div>
+                {group.classes.map(classGroup => (
+                  <div key={classGroup.level} className={cn('classGroup')}>
+                    <Heading
+                      level={3}
+                      variant="item"
+                      className={cn('classHead')}
+                    >
+                      {classGroup.level}
+                    </Heading>
+                    <TopicPreviewGrid
+                      previews={classGroup.topics}
+                      catalogueTopics={catalogueTopics}
+                      onSelectTopic={handleSelectTopic}
+                      actionLabel={PAGE_TEXT.topicsOpenLabel}
+                      showSearch={false}
+                    />
+                  </div>
+                ))}
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState
+          title={PAGE_TEXT.topicsEmptyTitle}
+          message={PAGE_TEXT.topicsEmptyMessage}
+          action={
+            <Button variant="secondary" onClick={clearFilters}>
+              {PAGE_TEXT.topicsClearFilters}
+            </Button>
+          }
+        />
+      )}
     </Section>
   );
 };

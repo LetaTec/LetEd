@@ -285,40 +285,57 @@ describe('app routing', () => {
     ).toBeInTheDocument();
   });
 
-  it('opens the Topics page from the header and filters topics by class', async () => {
-    vi.mocked(getCurrentSession).mockResolvedValue(student);
-    const user = userEvent.setup();
-    const router = renderApp('/');
-    const nav = await screen.findByRole(
-      'navigation',
-      { name: 'Primary' },
-      { timeout: LAZY_PAGE_TIMEOUT_MS },
-    );
+  it(
+    'opens the Topics page from the header and filters topics by class',
+    async () => {
+      vi.mocked(getCurrentSession).mockResolvedValue(student);
+      const user = userEvent.setup();
+      const router = renderApp('/');
+      const nav = await screen.findByRole(
+        'navigation',
+        { name: 'Primary' },
+        { timeout: LAZY_PAGE_TIMEOUT_MS },
+      );
 
-    await user.click(within(nav).getByRole('link', { name: 'Topics' }));
+      await user.click(within(nav).getByRole('link', { name: 'Topics' }));
 
-    await screen.findByRole(
-      'heading',
-      { level: 1, name: /every topic/i },
-      { timeout: LAZY_PAGE_TIMEOUT_MS },
-    );
-    expect(router.state.location.pathname).toBe('/topics');
-    expect(within(nav).getByRole('link', { name: 'Topics' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+      await screen.findByRole(
+        'heading',
+        { level: 1, name: /every topic/i },
+        { timeout: LAZY_PAGE_TIMEOUT_MS },
+      );
+      expect(router.state.location.pathname).toBe('/topics');
+      expect(within(nav).getByRole('link', { name: 'Topics' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
 
-    await user.type(
-      screen.getByRole('searchbox', { name: 'Search topics' }),
-      'class 12',
-    );
-    expect(
-      screen.getByRole('button', { name: 'View batches for Ray optics' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'View batches for GST' }),
-    ).not.toBeInTheDocument();
-  });
+      await user.type(
+        screen.getByRole('searchbox', { name: 'Search topics' }),
+        'class 12',
+      );
+      expect(
+        screen.getByRole('button', { name: 'View batches for Ray optics' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'View batches for GST' }),
+      ).not.toBeInTheDocument();
+
+      // Filters narrow the subject groups and are kept in the URL
+      await user.click(screen.getByRole('button', { name: /^Biology/ }));
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Biology' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', { level: 2, name: 'Physics' }),
+      ).not.toBeInTheDocument();
+      expect(router.state.location.search).toContain('subject=biology');
+
+      await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+      expect(router.state.location.search).toBe('');
+    },
+    JOURNEY_TEST_TIMEOUT_MS,
+  );
 
   it('shows AI test papers as in progress, with progress derived from the milestones', async () => {
     vi.mocked(getCurrentSession).mockResolvedValue(student);
