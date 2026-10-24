@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { AuthProvider } from '@context/AuthContext';
 import { ToastProvider } from '@context/ToastContext';
+import { resetCatalogueCache } from '@hooks/useCatalogue';
 import {
   confirmAdminSignIn,
   getCurrentSession,
@@ -94,6 +95,8 @@ const renderApp = (initialEntry: string) => {
 
 describe('app routing', () => {
   beforeEach(() => {
+    // The catalogue request is shared across the page; start each test fresh
+    resetCatalogueCache();
     vi.mocked(getCatalogue).mockResolvedValue(catalogueFixture);
     vi.mocked(loginStudent).mockResolvedValue(student);
     vi.mocked(createEnrolment).mockResolvedValue({
@@ -376,8 +379,25 @@ describe('app routing', () => {
       ).not.toBeInTheDocument();
       expect(router.state.location.search).toContain('subject=biology');
 
-      await user.click(screen.getByRole('button', { name: 'Clear filters' }));
-      expect(router.state.location.search).toBe('');
+      // Class, stream and availability live in a side panel
+      await user.click(screen.getByRole('button', { name: /^Filters/ }));
+      const panel = await screen.findByRole('dialog', {
+        name: 'Filter topics',
+      });
+      await user.click(within(panel).getByRole('radio', { name: 'Class 12' }));
+      expect(router.state.location.search).toContain('class=12');
+      await user.click(
+        within(panel).getByRole('button', { name: /^Show \d+ topics?$/ }),
+      );
+      expect(
+        screen.queryByRole('dialog', { name: 'Filter topics' }),
+      ).not.toBeInTheDocument();
+
+      // Each applied filter shows as a chip that removes it
+      await user.click(
+        screen.getByRole('button', { name: 'Remove filter: Class 12' }),
+      );
+      expect(router.state.location.search).not.toContain('class=');
     },
     JOURNEY_TEST_TIMEOUT_MS,
   );

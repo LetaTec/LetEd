@@ -15,6 +15,12 @@ export const PAGE_TEXT = {
   topicsNote:
     'Search by topic or by your class, such as Class 11 or Class 12. Open a topic to see its lessons and batches',
   topicsFilterTitle: 'Filter by',
+  topicsFiltersButton: 'Filters',
+  topicsFilterPanelTitle: 'Filter topics',
+  topicsFilterPanelClose: 'Close filters',
+  topicsShowResults: (count: number) =>
+    `Show ${count} ${count === 1 ? 'topic' : 'topics'}`,
+  topicsRemoveFilter: (label: string) => `Remove filter: ${label}`,
   topicsFilterClass: 'Class',
   topicsFilterClassAll: 'All classes',
   topicsSubjectTabs: 'Subjects',

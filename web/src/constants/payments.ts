@@ -32,6 +32,11 @@ export const RAZORPAY = {
 export const CHECKOUT_TEXT = {
   enrolAction: 'Enrol now',
   preRegisterAction: 'Pre-register now',
+  loadingPrice: 'Loading fee and dates',
+  loadingTopic: 'Loading this topic',
+  loadFailedTopic:
+    'We could not load this topic. Check your connection and try again',
+  retry: 'Try again',
   actionLabel: (action: string, topic: string, level: string) =>
     `${action}: ${topic}, ${level}`,
   enrolEyebrow: 'Enrol',

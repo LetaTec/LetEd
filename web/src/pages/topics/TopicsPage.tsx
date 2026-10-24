@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import cx from 'classnames/bind';
 
@@ -22,10 +23,9 @@ import { useCheckout } from '@hooks/useCheckout';
 import { listTopics } from '@services/catalogue';
 
 import { SubjectTabs } from './components/SubjectTabs/SubjectTabs';
-import {
-  TopicFilters,
-  type TopicFilterKey,
-} from './components/TopicFilters/TopicFilters';
+import { ActiveFilters } from './components/ActiveFilters/ActiveFilters';
+import { TopicFilterPanel } from './components/TopicFilterPanel/TopicFilterPanel';
+import type { TopicFilterKey } from './topicFilterOptions';
 import {
   countTopicsBySubject,
   filterTopics,
@@ -39,8 +39,8 @@ const cn = cx.bind(styles);
 
 const TITLE_ID = 'topics-page-title';
 
-// Every topic we teach, searchable and filterable by class, stream and
-// availability. Subject tabs show one subject at a time; within a subject,
+// Every topic we teach, searchable, with class, stream and availability
+// filters in a side panel. Subject tabs show one subject at a time; within a subject,
 // each class has its own row. "Enrol now" and "Pre-register now" open the
 // payment panel over this page.
 const TopicsPage = () => {
@@ -48,6 +48,7 @@ const TopicsPage = () => {
   const { openCheckout } = useCheckout();
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = readTopicFilters(searchParams);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
   const catalogueTopics = listTopics(subjects).map(context => context.topic);
   const openTopicIds = new Set(
@@ -71,16 +72,17 @@ const TopicsPage = () => {
   const groups = groupTopicsBySubject(results);
 
   // Replacing the history entry keeps Back for leaving the page
+  // Builds on the latest change even before the page re-renders, so two
+  // quick filter choices both stick
+  const latestParams = useRef(searchParams);
+  latestParams.current = searchParams;
+
   const setParam = (key: string, value: string) => {
-    setSearchParams(
-      current => {
-        const next = new URLSearchParams(current);
-        if (value) next.set(key, value);
-        else next.delete(key);
-        return next;
-      },
-      { replace: true },
-    );
+    const next = new URLSearchParams(latestParams.current);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    latestParams.current = next;
+    setSearchParams(next, { replace: true });
   };
 
   const handleFilterChange = (key: TopicFilterKey, value: string) =>
@@ -113,6 +115,11 @@ const TopicsPage = () => {
           }
           endAdornment={<Icon name="search" size="sm" />}
         />
+        <ActiveFilters
+          filters={filters}
+          onOpen={() => setIsFilterPanelOpen(true)}
+          onRemove={key => handleFilterChange(key, '')}
+        />
         <SubjectTabs
           selected={filters.subject}
           counts={countTopicsBySubject(resultsInAnySubject)}
@@ -120,12 +127,6 @@ const TopicsPage = () => {
           onSelect={subject =>
             setParam(TOPIC_FILTER_PARAM.subject, subject ?? '')
           }
-        />
-        <TopicFilters
-          filters={filters}
-          onChange={handleFilterChange}
-          onClear={clearFilters}
-          canClear={hasActiveFilters(filters)}
         />
         <Text as="p" variant="small" tone="muted" aria-live="polite">
           {PAGE_TEXT.topicsCount(results.length, TOPIC_PREVIEWS.length)}
@@ -183,6 +184,15 @@ const TopicsPage = () => {
           }
         />
       )}
+      <TopicFilterPanel
+        open={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        filters={filters}
+        onChange={handleFilterChange}
+        onClear={clearFilters}
+        canClear={hasActiveFilters(filters)}
+        resultCount={results.length}
+      />
     </Section>
   );
 };

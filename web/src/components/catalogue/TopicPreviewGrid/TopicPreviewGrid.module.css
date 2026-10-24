@@ -3,24 +3,31 @@
   gap: var(--space-4);
 }
 
-/* Card on top, offer and action pinned to the bottom of every box */
+/* The whole box is one button: card on top, offer and action below */
 .topic {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
   height: 100%;
   color: inherit;
+  text-align: inherit;
+  cursor: pointer;
 }
 
-/* The offer sits below the card; the card keeps just enough height for
-   the subtopics overlay */
-.preview .card {
-  min-height: var(--height-topic-preview);
-  padding-bottom: var(--space-2);
+.topic:focus-visible {
+  outline-offset: calc(var(--focus-ring-offset) * -1);
 }
 
 .preview {
   position: relative;
+  display: block;
   overflow: hidden;
+}
+
+/* The card keeps just enough height for the subtopics overlay */
+.preview .card {
+  min-height: var(--height-topic-preview);
+  padding-bottom: var(--space-2);
 }
 
 /* What the topic teaches fades in over the card; the layout never moves */
@@ -30,7 +37,7 @@
 }
 
 .topic:hover .overlay,
-.topic:focus-within .overlay {
+.topic:focus-visible .overlay {
   opacity: 1;
 }
 
@@ -41,12 +48,6 @@
   }
 }
 
-@media (--reduced-motion) {
-  .overlay {
-    transition: none;
-  }
-}
-
 .offer {
   display: grid;
   justify-items: center;
@@ -54,14 +55,33 @@
   padding: 0 var(--space-3) var(--space-3);
 }
 
-/* A text link with an arrow, in the accent colour */
-.offer .action {
+.pending {
+  min-height: var(--space-6);
+}
+
+/* Reads as a link: accent text with an arrow that moves on hover */
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   margin-top: var(--space-0-5);
   padding-bottom: var(--space-0-5);
   border-bottom: var(--border-width-base) solid currentcolor;
   color: var(--color-text-accent);
+  transition:
+    color var(--transition-fast),
+    gap var(--transition-fast);
 }
 
-.offer .action:hover:not(:disabled) {
+.topic:hover .action,
+.topic:focus-visible .action {
+  gap: var(--space-1-5);
   color: var(--color-text-primary);
+}
+
+@media (--reduced-motion) {
+  .overlay,
+  .action {
+    transition: none;
+  }
 }
