@@ -10,6 +10,7 @@ import { Heading } from '@components/ui/Heading/Heading';
 import { Input } from '@components/ui/Input/Input';
 import { KeyValueList } from '@components/ui/KeyValueList/KeyValueList';
 import { RuledList } from '@components/ui/RuledList/RuledList';
+import { Spinner } from '@components/ui/Spinner/Spinner';
 import { StatusDot } from '@components/ui/StatusDot/StatusDot';
 import { Text } from '@components/ui/Text/Text';
 import {
@@ -66,28 +67,40 @@ const batchLabel = (batch: Batch) =>
     .join(' · ');
 
 export type CheckoutPanelProps = {
+  open: boolean;
   preview: TopicPreview;
-  topic: Topic;
+  // Null while the catalogue is still loading (or failed to load)
+  topic: Topic | null;
+  isLoading: boolean;
+  onRetry: () => void;
   onClose: () => void;
 };
 
 // The payment panel: batch (or pre-registration), order summary and the
-// student's details, then Razorpay's checkout for the payment itself.
+// student's details, then Razorpay's checkout for the payment itself. It
+// opens at once and fills in when the catalogue arrives, so the panel never
+// has to be swapped for another.
 export const CheckoutPanel = ({
+  open,
   preview,
   topic,
+  isLoading,
+  onRetry,
   onClose,
 }: CheckoutPanelProps) => {
   const { user } = useAuth();
   const batchFieldName = useId();
-  const isEnrolment = topic.batches.length > 0;
-  const openBatches = topic.batches.filter(isBatchOpen);
-  const [batchId, setBatchId] = useState(openBatches[0]?.id ?? null);
+  const batches = topic?.batches ?? [];
+  const isEnrolment = batches.length > 0;
+  const openBatches = batches.filter(isBatchOpen);
+  const [chosenBatchId, setBatchId] = useState<string | null>(null);
+  // The next open batch until the student picks another
+  const batchId = chosenBatchId ?? openBatches[0]?.id ?? null;
   const [stage, setStage] = useState<Stage>({ name: 'details' });
   // Problems with Razorpay's window, which are not API errors
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const selectedBatch = topic.batches.find(batch => batch.id === batchId);
-  const amount = topic.price ? formatPrice(topic.price) : null;
+  const selectedBatch = batches.find(batch => batch.id === batchId);
+  const amount = topic?.price ? formatPrice(topic.price) : null;
   const action = isEnrolment
     ? CHECKOUT_TEXT.enrolEyebrow
     : CHECKOUT_TEXT.preRegisterEyebrow;
@@ -109,6 +122,7 @@ export const CheckoutPanel = ({
   });
 
   const onSubmit = handleSubmit(async values => {
+    if (!topic) return;
     clearFormError();
     setPaymentError(null);
 
@@ -161,13 +175,13 @@ export const CheckoutPanel = ({
 
   return (
     <Drawer
-      open={stage.name !== 'paying'}
+      open={open && stage.name !== 'paying'}
       onClose={onClose}
       eyebrow={CHECKOUT_TEXT.eyebrow(action, preview.level)}
       title={preview.title}
       closeLabel={CHECKOUT_TEXT.close}
       footer={
-        isFinished ? (
+        !topic ? undefined : isFinished ? (
           <div className={cn('finishActions')}>
             {stage.name === 'paid' ? (
               <ButtonRouteLink to={APP_ROUTES.MY_LEARNING} fullWidth>
@@ -201,7 +215,21 @@ export const CheckoutPanel = ({
         )
       }
     >
-      {isFinished ? (
+      {!topic ? (
+        <div className={cn('result')} role={isLoading ? 'status' : undefined}>
+          {isLoading ? <Spinner tone="muted" /> : null}
+          <Text as="p" variant="small" tone="muted">
+            {isLoading
+              ? CHECKOUT_TEXT.loadingTopic
+              : CHECKOUT_TEXT.loadFailedTopic}
+          </Text>
+          {isLoading ? null : (
+            <Button variant="secondary" onClick={onRetry}>
+              {CHECKOUT_TEXT.retry}
+            </Button>
+          )}
+        </div>
+      ) : isFinished ? (
         <div className={cn('result')}>
           <StatusDot
             color={stage.name === 'paid' ? 'positive' : 'warning'}
@@ -228,7 +256,7 @@ export const CheckoutPanel = ({
                   {CHECKOUT_TEXT.batchLegend}
                 </Text>
               </legend>
-              {topic.batches.map(batch => {
+              {batches.map(batch => {
                 const isOpen = isBatchOpen(batch);
                 return (
                   <label
