@@ -29,6 +29,17 @@
   border-left: var(--border-width-base) solid var(--color-border-strong);
   background: var(--color-bg-page);
   animation: slide-in var(--duration-drawer) var(--ease-editorial);
+  will-change: transform;
+}
+
+/* Leaving: the panel slides back out and the backdrop fades, then the
+   dialog closes */
+.closing .panel {
+  animation: slide-out var(--duration-drawer) var(--ease-editorial) forwards;
+}
+
+.closing::backdrop {
+  animation: fade-out var(--duration-drawer) var(--ease-editorial) forwards;
 }
 
 .header {
@@ -67,6 +78,26 @@
   }
 }
 
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -90,7 +121,9 @@
 
 @media (--reduced-motion) {
   .panel,
-  .drawer::backdrop {
+  .closing .panel,
+  .drawer::backdrop,
+  .closing::backdrop {
     animation: none;
   }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import cx from 'classnames/bind';
 
 import { Heading } from '../Heading/Heading';
@@ -19,10 +19,18 @@ export type DrawerProps = {
   footer?: React.ReactNode;
 };
 
-// A panel that slides in from the right over a dimmed page. Built on the
-// native <dialog> element like Modal: showModal() provides the focus trap,
-// Escape handling, inert background and focus return. The page behind does
-// not scroll while the panel is open.
+// How long the exit animation runs, read from the panel's own CSS so the
+// two never disagree. No animation (reduced motion, tests) closes at once.
+const exitDurationMs = (panel: HTMLElement | null) => {
+  if (!panel) return 0;
+  const seconds = Number.parseFloat(getComputedStyle(panel).animationDuration);
+  return Number.isFinite(seconds) ? seconds * 1000 : 0;
+};
+
+// A panel that slides in from the right over a dimmed page, and slides out
+// again before it closes. Built on the native <dialog> element like Modal:
+// showModal() provides the focus trap, Escape handling, inert background
+// and focus return; the page behind stops scrolling while it is open.
 export const Drawer = ({
   open,
   onClose,
@@ -33,29 +41,35 @@ export const Drawer = ({
   footer,
 }: DrawerProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const [isClosing, setIsClosing] = useState(false);
+  // The content stays mounted until the dialog has really closed, so the
+  // exit animation has something to animate
+  const [isMounted, setIsMounted] = useState(open);
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog) return undefined;
 
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
+    if (open) {
+      setIsMounted(true);
+      setIsClosing(false);
+      if (!dialog.open) dialog.showModal();
+      return undefined;
     }
-  }, [open]);
 
-  useEffect(() => {
-    if (!open) return undefined;
+    if (!dialog.open) return undefined;
 
-    const root = document.documentElement;
-    const previousOverflow = root.style.overflow;
-    root.style.overflow = 'hidden';
+    // Play the exit animation first, then close the dialog
+    setIsClosing(true);
+    const timer = window.setTimeout(() => {
+      dialog.close();
+      setIsClosing(false);
+      setIsMounted(false);
+    }, exitDurationMs(panelRef.current));
 
-    return () => {
-      root.style.overflow = previousOverflow;
-    };
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   const handleCancel = (event: React.SyntheticEvent<HTMLDialogElement>) => {
@@ -75,13 +89,13 @@ export const Drawer = ({
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       ref={dialogRef}
-      className={cn('drawer')}
+      className={cn('drawer', { closing: isClosing })}
       aria-labelledby={titleId}
       onCancel={handleCancel}
       onClick={handleClick}
     >
-      {open ? (
-        <div className={cn('panel')}>
+      {open || isMounted ? (
+        <div ref={panelRef} className={cn('panel')}>
           <div className={cn('header')}>
             <div className={cn('heading')}>
               {eyebrow ? (
