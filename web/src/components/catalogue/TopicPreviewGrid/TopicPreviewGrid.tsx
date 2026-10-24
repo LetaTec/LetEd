@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import cx from 'classnames/bind';
 
 import { TopicSubtopicsOverlay } from '@components/catalogue/TopicSubtopicsOverlay/TopicSubtopicsOverlay';
-import { Button } from '@components/ui/Button/Button';
+import { ButtonBase } from '@components/ui/ButtonBase/ButtonBase';
 import { Card } from '@components/ui/Card/Card';
 import { CardGrid } from '@components/ui/CardGrid/CardGrid';
 import { EmptyState } from '@components/ui/EmptyState/EmptyState';
@@ -23,31 +23,24 @@ import styles from './TopicPreviewGrid.module.css';
 
 const cn = cx.bind(styles);
 
-// The fee, when the next batch starts (or that batches open soon) and the
-// action that opens the payment panel.
-const TopicOffer = ({
-  preview,
-  topic,
-  onChoose,
-  describedBy,
-}: {
-  preview: TopicPreview;
-  topic: Topic | null;
-  onChoose: (topicId: string) => void;
-  describedBy: string;
-}) => {
-  const hasBatches = Boolean(topic && topic.batches.length > 0);
-  const nextBatch = topic ? findNextBatch(topic) : null;
-  const action = hasBatches
-    ? CHECKOUT_TEXT.enrolAction
-    : CHECKOUT_TEXT.preRegisterAction;
+// The fee and when the next batch starts, or that batches open soon. Until
+// the catalogue arrives, a quiet placeholder keeps the card's height.
+const TopicOffer = ({ topic }: { topic: Topic | null }) => {
+  if (!topic) {
+    return (
+      <Text as="span" variant="small" tone="muted" className={cn('pending')}>
+        {CHECKOUT_TEXT.loadingPrice}
+      </Text>
+    );
+  }
+
+  const hasBatches = topic.batches.length > 0;
+  const nextBatch = findNextBatch(topic);
 
   return (
-    <div className={cn('offer')}>
+    <>
       <Text as="span" variant="price">
-        {topic?.price
-          ? formatPrice(topic.price)
-          : CATALOGUE_TEXT.priceOnRequest}
+        {topic.price ? formatPrice(topic.price) : CATALOGUE_TEXT.priceOnRequest}
       </Text>
       <StatusDot
         color={hasBatches ? 'positive' : 'neutral'}
@@ -59,22 +52,7 @@ const TopicOffer = ({
               : LANDING_TEXT.topicOpen
         }
       />
-      <Button
-        variant="plain"
-        endIcon="arrowRight"
-        disabled={!topic}
-        aria-label={CHECKOUT_TEXT.actionLabel(
-          action,
-          preview.title,
-          preview.level,
-        )}
-        aria-describedby={describedBy}
-        className={cn('action')}
-        onClick={() => topic && onChoose(topic.id)}
-      >
-        {action}
-      </Button>
-    </div>
+    </>
   );
 };
 
@@ -83,7 +61,7 @@ export type TopicPreviewGridProps = {
   previews?: readonly TopicPreview[];
   // Topics from the live catalogue, which hold each topic's fee and batches
   catalogueTopics: readonly Topic[];
-  // "Enrol now" or "Pre-register now", with the catalogue topic id
+  // Opens the payment panel for the topic's catalogue id
   onChooseTopic: (topicId: string) => void;
   // The full grid has a search box and four columns; the compact panel
   // beside the sign-in form has neither.
@@ -93,9 +71,9 @@ export type TopicPreviewGridProps = {
   limit?: number;
 };
 
-// Grid of topic cards. Each shows its fee and an "Enrol now" (batches
-// published) or "Pre-register now" button; hovering the card reveals what
-// the topic teaches.
+// Grid of topic cards. The whole card is one button that opens the payment
+// panel: "Enrol now" when batches are published, "Pre-register now" when
+// they are not. Hovering the card reveals what the topic teaches.
 export const TopicPreviewGrid = ({
   catalogueTopics,
   onChooseTopic,
@@ -129,13 +107,25 @@ export const TopicPreviewGrid = ({
         <CardGrid variant="boxed" columns={columns}>
           {topics.map((preview, index) => {
             const descriptionId = `${overlayId}-${index}`;
+            const topic = findCatalogueTopic(preview);
+            const action =
+              topic && topic.batches.length === 0
+                ? CHECKOUT_TEXT.preRegisterAction
+                : CHECKOUT_TEXT.enrolAction;
 
             return (
-              <div
+              <ButtonBase
                 key={`${preview.title}-${preview.level}`}
                 className={cn('topic')}
+                aria-label={CHECKOUT_TEXT.actionLabel(
+                  action,
+                  preview.title,
+                  preview.level,
+                )}
+                aria-describedby={descriptionId}
+                onClick={() => onChooseTopic(preview.catalogueTopicId)}
               >
-                <div className={cn('preview')}>
+                <span className={cn('preview')}>
                   <Card
                     variant="centered"
                     className={cn('card')}
@@ -152,14 +142,17 @@ export const TopicPreviewGrid = ({
                     subtopics={preview.subtopics}
                     className={cn('overlay')}
                   />
-                </div>
-                <TopicOffer
-                  preview={preview}
-                  topic={findCatalogueTopic(preview)}
-                  onChoose={onChooseTopic}
-                  describedBy={descriptionId}
-                />
-              </div>
+                </span>
+                <span className={cn('offer')}>
+                  <TopicOffer topic={topic} />
+                  <span className={cn('action')}>
+                    <Text as="span" variant="strong">
+                      {action}
+                    </Text>
+                    <Icon name="arrowRight" size="sm" />
+                  </span>
+                </span>
+              </ButtonBase>
             );
           })}
         </CardGrid>
