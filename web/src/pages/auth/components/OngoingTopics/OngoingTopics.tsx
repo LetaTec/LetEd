@@ -21,14 +21,15 @@ export type OngoingTopicsProps = {
   catalogueTopics: readonly Topic[];
 };
 
-// The topics running now, beside the sign-in form. Choosing an open topic asks the visitor to register, then returns
-// them to that topic's batches.
+// The topics running now, beside the sign-in form. Enrolling or
+// pre-registering asks the visitor to register first, then opens that
+// topic's payment panel.
 export const OngoingTopics = ({ catalogueTopics }: OngoingTopicsProps) => {
   const navigate = useNavigate();
 
-  const handleSelectTopic = (topicId: string) => {
-    const destination = `${APP_ROUTES.HOME}?${new URLSearchParams({
-      [CATALOGUE_QUERY_PARAM.topic]: topicId,
+  const handleChooseTopic = (topicId: string) => {
+    const destination = `${APP_ROUTES.TOPICS}?${new URLSearchParams({
+      [CATALOGUE_QUERY_PARAM.checkout]: topicId,
     })}`;
     navigate(
       `${APP_ROUTES.REGISTER}?${new URLSearchParams({
@@ -47,8 +48,7 @@ export const OngoingTopics = ({ catalogueTopics }: OngoingTopicsProps) => {
       </Heading>
       <TopicPreviewGrid
         catalogueTopics={catalogueTopics}
-        onSelectTopic={handleSelectTopic}
-        actionLabel={LANDING_TEXT.topicAction}
+        onChooseTopic={handleChooseTopic}
         showSearch={false}
         columns={2}
         limit={SIGN_IN_TOPIC_COUNT}

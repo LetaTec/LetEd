@@ -63,7 +63,7 @@ test.describe('sign-in gate', () => {
       name: 'Learn one topic at a time',
     });
     await expect(
-      ongoing.getByRole('button', { name: /Join SriDha Academy to learn/ }),
+      ongoing.getByRole('button', { name: /^(Enrol now|Pre-register now):/ }),
     ).toHaveCount(4);
     await expect(
       page.getByRole('heading', {
@@ -298,35 +298,32 @@ test.describe('student journey', () => {
   }, testInfo) => {
     await signedIn(page, `${testInfo.project.name}-journey`);
     await page.goto('/#topics');
-    await expect(
-      page.getByRole('button', { name: 'View batches for Ray optics' }),
-    ).toBeEnabled();
-    await page.getByRole('button', { name: 'View batches for GST' }).click();
-    const courseDialog = page.getByRole('dialog', {
-      name: /learn gst for class 11/i,
+    const enrol = page.getByRole('button', {
+      name: 'Enrol now: GST, Class 11',
     });
-    await expect(courseDialog).toBeVisible();
-    await expect(courseDialog.getByText('What is GST')).toBeVisible();
-    await expect(
-      courseDialog.getByText('To be announced').first(),
-    ).toBeVisible();
+    await expect(enrol).toBeEnabled();
+    await enrol.click();
 
-    await courseDialog
-      .getByRole('button', { name: 'Select batch' })
-      .first()
-      .click();
-    const review = page.getByRole('dialog', {
-      name: /review your\s*selection/i,
+    // The payment panel opens from the right over a dimmed page
+    const panel = page.getByRole('dialog', { name: /^GST/ });
+    await expect(panel).toBeVisible();
+    await expect(
+      panel.getByRole('radio', { name: /November batch/ }),
+    ).toBeChecked();
+    await expect(panel.getByText('What is GST')).toBeVisible();
+    await panel.getByLabel('Mobile number').fill('+91 98765 43210');
+    await page.waitForTimeout(400);
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/${testInfo.project.name}-payment-panel.png`,
     });
-    await expect(
-      review.getByText('1st & 2nd November · November batch'),
-    ).toBeVisible();
-    await review.getByRole('button', { name: /reserve seat/i }).click();
-    await expect(
-      review.getByText('Seat reserved — payment pending'),
-    ).toBeVisible();
+    await panel.getByRole('button', { name: 'Pay ₹129' }).click();
 
-    await review.getByRole('link', { name: /go to my learning/i }).click();
+    // No Razorpay keys in the test API: the seat is held as payment pending
+    await expect(panel.getByText('Seat saved')).toBeVisible();
+    await panel.getByRole('button', { name: 'Done' }).click();
+    await expect(panel).toBeHidden();
+
+    await page.goto('/my-learning');
     await expect(page).toHaveURL(/\/my-learning$/);
     await expect(page.getByText('Signed in as Asha Verma')).toBeVisible();
 

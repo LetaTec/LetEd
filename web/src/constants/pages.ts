@@ -14,7 +14,6 @@ export const PAGE_TEXT = {
   topicsTitleEmphasis: 'one at a time.',
   topicsNote:
     'Search by topic or by your class, such as Class 11 or Class 12. Open a topic to see its lessons and batches',
-  topicsOpenLabel: (topic: string) => `View batches for ${topic}`,
   topicsFilterTitle: 'Filter by',
   topicsFilterClass: 'Class',
   topicsFilterClassAll: 'All classes',

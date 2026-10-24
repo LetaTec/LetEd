@@ -6,6 +6,7 @@ import { seedCatalogue } from '../db/catalogueSeed.js';
 import { openDatabase, runMigrations } from '../db/client.js';
 import type { Mailer } from '../mail/mailer.js';
 import { syncSuperAdmins } from '../modules/auth/roles.js';
+import type { PaymentGateway } from '../modules/payments/gateway.js';
 
 export const TEST_WEB_ORIGIN = 'http://localhost:5173';
 
@@ -29,11 +30,13 @@ export const startTestServer = async ({
   enableRateLimiting = false,
   now = () => new Date('2026-10-10T09:00:00Z'),
   superAdminEmails = [TEST_SUPER_ADMIN_EMAIL],
+  paymentGateway,
 }: {
   withMailer?: boolean;
   enableRateLimiting?: boolean;
   now?: () => Date;
   superAdminEmails?: string[];
+  paymentGateway?: PaymentGateway;
 } = {}) => {
   const db = await openDatabase(':memory:');
   await runMigrations(db);
@@ -60,7 +63,13 @@ export const startTestServer = async ({
     SUPER_ADMIN_EMAILS: superAdminEmails.join(','),
   });
   await syncSuperAdmins(db, config.superAdminEmails, clock.now());
-  const app = createApp({ db, config, mailer, now: () => clock.now() });
+  const app = createApp({
+    db,
+    config,
+    mailer,
+    now: () => clock.now(),
+    paymentGateway,
+  });
   const server = app.listen(0);
   await new Promise(resolve => server.once('listening', resolve));
   const { port } = server.address() as AddressInfo;

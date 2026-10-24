@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import cx from 'classnames/bind';
 
 import { TopicPreviewGrid } from '@components/catalogue/TopicPreviewGrid/TopicPreviewGrid';
@@ -9,10 +9,8 @@ import { Icon } from '@components/ui/Icon/Icon';
 import { Input } from '@components/ui/Input/Input';
 import { Section } from '@components/ui/Section/Section';
 import { Text } from '@components/ui/Text/Text';
-import { CATALOGUE_QUERY_PARAM } from '@constants/catalogue';
 import { LANDING_TEXT } from '@constants/landing';
 import { PAGE_TEXT } from '@constants/pages';
-import { APP_ROUTES } from '@constants/routes';
 import {
   SUBJECT_LABEL,
   TOPIC_FILTER_PARAM,
@@ -20,6 +18,7 @@ import {
   type TopicPreview,
 } from '@constants/topics';
 import { useCatalogue } from '@hooks/useCatalogue';
+import { useCheckout } from '@hooks/useCheckout';
 import { listTopics } from '@services/catalogue';
 
 import { SubjectTabs } from './components/SubjectTabs/SubjectTabs';
@@ -42,11 +41,11 @@ const TITLE_ID = 'topics-page-title';
 
 // Every topic we teach, searchable and filterable by class, stream and
 // availability. Subject tabs show one subject at a time; within a subject,
-// each class has its own row. Choosing an open topic opens its
-// lessons and batches on the homepage, kept in the URL.
+// each class has its own row. "Enrol now" and "Pre-register now" open the
+// payment panel over this page.
 const TopicsPage = () => {
   const { subjects } = useCatalogue();
-  const navigate = useNavigate();
+  const { openCheckout } = useCheckout();
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = readTopicFilters(searchParams);
 
@@ -88,13 +87,6 @@ const TopicsPage = () => {
     setParam(TOPIC_FILTER_PARAM[key], value);
 
   const clearFilters = () => setSearchParams({}, { replace: true });
-
-  const handleSelectTopic = (topicId: string) => {
-    const params = new URLSearchParams({
-      [CATALOGUE_QUERY_PARAM.topic]: topicId,
-    });
-    navigate(`${APP_ROUTES.HOME}?${params}`);
-  };
 
   return (
     <Section labelledBy={TITLE_ID} className={cn('page')}>
@@ -171,8 +163,7 @@ const TopicsPage = () => {
                     <TopicPreviewGrid
                       previews={classGroup.topics}
                       catalogueTopics={catalogueTopics}
-                      onSelectTopic={handleSelectTopic}
-                      actionLabel={PAGE_TEXT.topicsOpenLabel}
+                      onChooseTopic={openCheckout}
                       showSearch={false}
                     />
                   </div>

@@ -8,6 +8,7 @@ import { TOPICS_TEXT } from '@constants/home';
 import { APP_ROUTES, HOME_SECTION_ID } from '@constants/routes';
 import { HOME_TOPIC_COUNT, TOPIC_PREVIEWS } from '@constants/topics';
 import type { CatalogueState } from '@hooks/useCatalogue';
+import { useCheckout } from '@hooks/useCheckout';
 import { listTopics } from '@services/catalogue';
 
 import styles from './TopicsSection.module.css';
@@ -18,15 +19,12 @@ const TITLE_ID = 'topics-title';
 
 export type TopicsSectionProps = {
   catalogue: CatalogueState;
-  onOpenTopic: (topicId: string) => void;
 };
 
 // The first topics on offer, second on the homepage, with their own search
 // and a link to every topic on the Topics page.
-export const TopicsSection = ({
-  catalogue,
-  onOpenTopic,
-}: TopicsSectionProps) => {
+export const TopicsSection = ({ catalogue }: TopicsSectionProps) => {
+  const { openCheckout } = useCheckout();
   const catalogueTopics = listTopics(catalogue.subjects).map(
     context => context.topic,
   );
@@ -46,8 +44,7 @@ export const TopicsSection = ({
       />
       <TopicPreviewGrid
         catalogueTopics={catalogueTopics}
-        onSelectTopic={onOpenTopic}
-        actionLabel={TOPICS_TEXT.openTopicLabel}
+        onChooseTopic={openCheckout}
         limit={HOME_TOPIC_COUNT}
       />
       <div className={cn('more')}>

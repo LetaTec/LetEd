@@ -1,4 +1,5 @@
 import { transaction, type Database } from './client.js';
+import { TOPIC_LIBRARY, type LibrarySubject } from './topicLibrary.js';
 
 // Catalogue content sourced from the SriDha Academy education-model document and the
 // approved website prototype. Only values present in those sources are set;
@@ -55,8 +56,8 @@ type SeedSubject = {
 // The source plan assumes up to 100 students per batch.
 const BATCH_CAPACITY = 100;
 
-// Every topic launched after GST opens with one batch on 1 and 2 December
-// 2026 at the same fee as GST.
+// The standard topic fee, the same as GST, until the team sets one per
+// topic. The launch topics open with one batch on 1 and 2 December 2026.
 const LAUNCH_TOPIC_PRICE_PAISE = 12900;
 
 type LaunchTopic = {
@@ -101,7 +102,7 @@ const launchTopic = ({
   ],
 });
 
-export const CATALOGUE_SEED: readonly SeedSubject[] = [
+const HANDWRITTEN_CATALOGUE: readonly SeedSubject[] = [
   {
     id: 'subject_accounts',
     slug: 'accounts',
@@ -378,6 +379,26 @@ export const CATALOGUE_SEED: readonly SeedSubject[] = [
     chapters: [],
   },
   {
+    id: 'subject_business_studies',
+    slug: 'business-studies',
+    name: 'Business Studies',
+    description: 'Class 11 & 12 business studies taught one topic at a time',
+    status: 'AVAILABLE',
+    listPricePaise: null,
+    listPriceTaxLabel: null,
+    chapters: [],
+  },
+  {
+    id: 'subject_biology',
+    slug: 'biology',
+    name: 'Biology',
+    description: 'Class 11 & 12 biology taught one topic at a time',
+    status: 'AVAILABLE',
+    listPricePaise: null,
+    listPriceTaxLabel: null,
+    chapters: [],
+  },
+  {
     id: 'subject_ca_cs',
     slug: 'ca-cs',
     name: 'CA / CS',
@@ -389,6 +410,66 @@ export const CATALOGUE_SEED: readonly SeedSubject[] = [
     chapters: [],
   },
 ];
+
+const LIBRARY_SUBJECT_ID: Record<LibrarySubject, string> = {
+  accountancy: 'subject_accounts',
+  businessStudies: 'subject_business_studies',
+  economics: 'subject_economics',
+  physics: 'subject_physics',
+  chemistry: 'subject_chemistry',
+  mathematics: 'subject_mathematics',
+  biology: 'subject_biology',
+};
+
+// Every topic on the website that is not written out above: its own
+// chapter, the standard fee and no batches yet, so students pre-register.
+const withLibraryTopics = (subjects: readonly SeedSubject[]): SeedSubject[] => {
+  const seededTopicIds = new Set(
+    subjects.flatMap(subject =>
+      subject.chapters.flatMap(chapter =>
+        chapter.topics.map(topic => topic.id),
+      ),
+    ),
+  );
+
+  return subjects.map(subject => ({
+    ...subject,
+    chapters: [
+      ...subject.chapters,
+      ...TOPIC_LIBRARY.filter(
+        topic =>
+          LIBRARY_SUBJECT_ID[topic.subject] === subject.id &&
+          !seededTopicIds.has(topic.id),
+      ).map(topic => {
+        const key = topic.id.replace(/^topic_/, '');
+        return {
+          id: `chapter_${key}`,
+          title: topic.title,
+          topics: [
+            {
+              id: topic.id,
+              title: `Learn ${topic.title} for ${topic.level}`,
+              summary: `${topic.title} for ${topic.level}, taught one subtopic at a time with live classes and practice.`,
+              level: topic.level,
+              pricePaise: LAUNCH_TOPIC_PRICE_PAISE,
+              priceTaxLabel: null,
+              lessons: topic.lessons.map((title, index) => ({
+                id: `lesson_${key}_${index + 1}`,
+                title,
+                durationMinutes: null,
+              })),
+              batches: [],
+            },
+          ],
+        };
+      }),
+    ],
+  }));
+};
+
+export const CATALOGUE_SEED: readonly SeedSubject[] = withLibraryTopics(
+  HANDWRITTEN_CATALOGUE,
+);
 
 // Idempotent: re-running updates catalogue rows in place and never touches
 // users, sessions or enrolments.
